@@ -1,5 +1,5 @@
 [package]
-name = "clockwork"
+name = "sokoban-chess"
 version = "0.1.0"
 authors = ["Jack Spira <jjspira@gmail.com>"]
 edition = "2018"
