@@ -1,6 +1,6 @@
 use super::{
-    ComponentList, Entity, GraphNode, Name, NameInspectorParameters, PrefabMarker, SerializationData,
-    Transform, Vec2,
+    ComponentList, Entity, GraphNode, Name, NameInspectorParameters, PrefabMarker,
+    SerializationData, Transform, Vec2,
 };
 use lazy_static::lazy_static;
 use std::sync::Mutex;
@@ -44,7 +44,9 @@ fn walk_node(
     last_world_position: Vec2,
 ) {
     let new_world_position = if let Some(transform) = transforms.get_mut(entity) {
-        transform.inner_mut().update_world_position(last_world_position)
+        transform
+            .inner_mut()
+            .update_world_position(last_world_position)
     } else {
         last_world_position
     };
@@ -80,7 +82,16 @@ pub fn walk_graph_inspect(
     if let Some(root_nodes) = &root_nodes.children {
         for secondary_node in root_nodes {
             if let Some(target) = &secondary_node.target {
-                walk_node_inspect(target, transforms, nodes, names, prefabs, serialization_data, 0, f);
+                walk_node_inspect(
+                    target,
+                    transforms,
+                    nodes,
+                    names,
+                    prefabs,
+                    serialization_data,
+                    0,
+                    f,
+                );
             }
         }
     }

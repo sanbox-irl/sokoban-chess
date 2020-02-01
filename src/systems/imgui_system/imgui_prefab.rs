@@ -81,6 +81,7 @@ pub fn prefab_editor(
 
             // @update_components
             prefab_inspector_quick!(
+                [player, players],
                 [transform, transforms],
                 [velocity, velocities],
                 [sprite, sprites],

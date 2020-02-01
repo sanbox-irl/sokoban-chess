@@ -51,7 +51,7 @@ impl SerializationData {
 
         // @update_components
         // names is omitted
-        serialization_option_quick!([transforms, transform]);
+        serialization_option_quick!([players, player], [transforms, transform]);
 
         self.serialization_option(
             ui,
@@ -116,7 +116,9 @@ impl SerializationData {
             |se, c| {
                 se.follow = Some({
                     let mut clone: super::Follow = c.inner().clone();
-                    clone.target.serialize(&component_database.serialization_data);
+                    clone
+                        .target
+                        .serialize(&component_database.serialization_data);
                     ((clone, c.is_active))
                 });
             },
@@ -145,7 +147,8 @@ impl SerializationData {
 
         // REVERT SAVE
         let mut cursor_pos = 0.0;
-        let (this_size, pressed) = imgui_system::sized_button_padding(ui, im_str!("Revert"), Vec2::ZERO);
+        let (this_size, pressed) =
+            imgui_system::sized_button_padding(ui, im_str!("Revert"), Vec2::ZERO);
         if pressed {
             match serialization_util::entities::load_entity(self) {
                 Ok(se_option) => match se_option {
@@ -185,9 +188,10 @@ impl SerializationData {
     {
         // NAME
         let name = imgui_system::typed_text_ui::<T>();
-        if let Some(serialization_option_sub_menu) =
-            ui.begin_menu(&ImString::new(name), component_list.get(entity_id).is_some())
-        {
+        if let Some(serialization_option_sub_menu) = ui.begin_menu(
+            &ImString::new(name),
+            component_list.get(entity_id).is_some(),
+        ) {
             if let Some(component) = component_list.get(entity_id) {
                 // SERIALIZE
                 if MenuItem::new(im_str!("Serialize")).build(ui) {
@@ -234,7 +238,8 @@ impl SerializationData {
         F: Fn(&mut SerializedEntity),
     {
         if let Some(serialized_data) = serialized_data_list.get(entity) {
-            let serialized_entity = serialization_util::entities::load_entity(serialized_data.inner())?;
+            let serialized_entity =
+                serialization_util::entities::load_entity(serialized_data.inner())?;
 
             if let Some(mut serialized_entity) = serialized_entity {
                 f(&mut serialized_entity);

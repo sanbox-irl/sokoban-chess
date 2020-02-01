@@ -1,7 +1,7 @@
 use super::{
     component_serialization::*, physics_components::*, Component, ComponentBounds,
     ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, Marker, Name,
-    PrefabMarker, SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
+    Player, PrefabMarker, SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
 };
 use uuid::Uuid;
 
@@ -14,6 +14,7 @@ pub struct SerializedEntity {
     pub id: Uuid,
     pub marker: Option<Marker>,
     pub name: SerializedComponentWrapper<Name>,
+    pub player: SerializedComponentWrapper<Player>,
     pub transform: SerializedComponentWrapper<Transform>,
     pub graph_node: SerializedComponentWrapper<GraphNode>,
     pub velocity: SerializedComponentWrapper<Velocity>,
@@ -54,6 +55,7 @@ impl SerializedEntity {
         SerializedEntity {
                 // @update_components
                 name: Self::clone_component(component_database.names.get(entity_id)),
+                player: Self::clone_component(component_database.players.get(entity_id)),
                 transform: Self::clone_component(component_database.transforms.get(entity_id)),
                 graph_node: Self::clone_component(component_database.graph_nodes.get(entity_id)).map(|(mut gn, is_active)| {
                     if let Some(children) = &mut gn.children {

@@ -43,7 +43,12 @@ impl Input {
             }
 
             ElementState::Released => {
-                if let Some(vk_pos) = self.kb_input.held_keys.iter().position(|&item| item == code) {
+                if let Some(vk_pos) = self
+                    .kb_input
+                    .held_keys
+                    .iter()
+                    .position(|&item| item == code)
+                {
                     self.kb_input.held_keys.remove(vk_pos);
                     self.kb_input.released_keys.push(code);
                 }
@@ -131,12 +136,6 @@ pub struct KeyboardInput {
     pub released_keys: Vec<VirtualKeyCode>,
 }
 
-macro_rules! quick_find {
-    ($iterable:expr, $target:expr) => {
-        $iterable.iter().find(|&&x| x == $target)
-    };
-}
-
 impl KeyboardInput {
     pub fn clear(&mut self) {
         self.pressed_keys.clear();
@@ -145,16 +144,16 @@ impl KeyboardInput {
 
     #[allow(dead_code)]
     pub fn is_pressed(&self, target_keycode: VirtualKeyCode) -> bool {
-        quick_find!(self.pressed_keys, target_keycode).is_some()
+        self.pressed_keys.contains(&target_keycode)
     }
 
     #[allow(dead_code)]
     pub fn is_held(&self, target_keycode: VirtualKeyCode) -> bool {
-        quick_find!(self.held_keys, target_keycode).is_some()
+        self.held_keys.contains(&target_keycode)
     }
 
     #[allow(dead_code)]
     pub fn is_released(&self, target_keycode: VirtualKeyCode) -> bool {
-        quick_find!(self.released_keys, target_keycode).is_some()
+        self.released_keys.contains(&target_keycode)
     }
 }

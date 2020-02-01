@@ -1,5 +1,5 @@
 use super::{
-    serialization_util, Camera, Component, ComponentBounds, ComponentList, Entity, Marker, Player,
+    serialization_util, Camera, Component, ComponentBounds, ComponentList, Entity, Marker,
     RenderingUtility, ResourcesDatabase, SingletonComponent,
 };
 use std::collections::HashMap;
@@ -7,7 +7,6 @@ use std::collections::HashMap;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SingletonDatabase {
     pub camera: SingletonComponent<Camera>,
-    pub player: SingletonComponent<Player>,
     #[serde(skip)]
     pub rendering_utility: RenderingUtility,
     #[serde(skip)]
@@ -35,7 +34,10 @@ impl SingletonDatabase {
         None
     }
 
-    pub fn get_associated_entity<T: ComponentBounds>(&self, sc: &SingletonComponent<T>) -> Option<Entity> {
+    pub fn get_associated_entity<T: ComponentBounds>(
+        &self,
+        sc: &SingletonComponent<T>,
+    ) -> Option<Entity> {
         let marker = sc.marker();
 
         if let Some(entity) = self.associated_entities.get(&marker) {
@@ -65,7 +67,9 @@ impl SingletonDatabase {
 
         edit_function(&mut serialized_singletons, live_component);
 
-        serialization_util::singleton_components::serialize_singleton_database(&serialized_singletons)
+        serialization_util::singleton_components::serialize_singleton_database(
+            &serialized_singletons,
+        )
     }
 
     pub fn initialize_with_runtime_resources(
@@ -90,7 +94,6 @@ impl Default for SingletonDatabase {
         SingletonDatabase {
             // @update_singletons
             camera: SingletonComponent::new(Marker::Camera, Camera::default()),
-            player: SingletonComponent::new(Marker::Player, Player::default()),
             rendering_utility: RenderingUtility::default(),
             associated_entities: HashMap::new(),
         }

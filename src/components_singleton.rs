@@ -6,14 +6,12 @@ use super::{
 
 mod camera;
 mod markers;
-mod player;
 mod rendering_utility;
 mod singleton_component;
 mod singleton_database;
 
 pub use camera::{Camera, CameraMode};
 pub use markers::Marker;
-pub use player::Player;
 pub use rendering_utility::{BasicTextures, RenderingUtility};
 pub use singleton_component::SingletonComponent;
 pub use singleton_database::SingletonDatabase;

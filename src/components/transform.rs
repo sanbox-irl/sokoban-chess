@@ -1,6 +1,6 @@
 use super::{
-    component_utils::RawComponent, ComponentBounds, ComponentList, Entity, GraphNode, InspectorParameters,
-    TransformParent, Vec2,
+    component_utils::RawComponent, ComponentBounds, ComponentList, Entity, GraphNode,
+    InspectorParameters, TransformParent, Vec2,
 };
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
@@ -16,6 +16,10 @@ pub struct Transform {
 }
 
 impl Transform {
+    pub const TILE: Vec2 = Vec2::new(8.0, 8.0);
+    pub const TILE_RIGHT: Vec2 = Vec2::new(8.0, 0.0);
+    pub const TILE_UP: Vec2 = Vec2::new(0.0, 8.0);
+
     pub fn new(local_position: Vec2) -> Self {
         Transform {
             local_position,
@@ -39,7 +43,10 @@ impl Transform {
             if let Some(pos) = pos {
                 children.remove(pos);
             } else {
-                error!("Entity {} had a parent, but it was not their parent.", my_id);
+                error!(
+                    "Entity {} had a parent, but it was not their parent.",
+                    my_id
+                );
             }
         }
 
@@ -71,8 +78,14 @@ impl Transform {
         self.local_position = f(self.local_position);
     }
 
-    pub fn local_position_fast(clist: &ComponentList<Transform>, entity_id: &Entity) -> Option<Vec2> {
-        clist.get(entity_id).as_ref().map(|&t| t.inner().local_position)
+    pub fn local_position_fast(
+        clist: &ComponentList<Transform>,
+        entity_id: &Entity,
+    ) -> Option<Vec2> {
+        clist
+            .get(entity_id)
+            .as_ref()
+            .map(|&t| t.inner().local_position)
     }
 
     pub fn update_world_position(&mut self, parent_position: Vec2) -> Vec2 {
@@ -92,7 +105,8 @@ impl ComponentBounds for Transform {
             self.dirty = true;
         }
 
-        ip.ui.checkbox(&im_str!("Dirty##{}", ip.uid), &mut self.dirty);
+        ip.ui
+            .checkbox(&im_str!("Dirty##{}", ip.uid), &mut self.dirty);
 
         self.world_position
             .no_interact_inspector(ip.ui, &im_str!("World Position##{}", ip.uid));

@@ -4,6 +4,7 @@
   name:
     - name: Camera
     - true
+  player: ~
   transform:
     - local_position:
         x: 24.0
@@ -26,9 +27,12 @@
   conversant_npc: ~
   prefab_marker: ~
 - id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
-  marker: Player
+  marker: ~
   name:
     - name: Player
+    - true
+  player:
+    - standing_sprite: PixelMainCharacterStanding
     - true
   transform:
     - local_position:
@@ -62,8 +66,8 @@
           g: 1.0
           b: 1.0
           a: 1.0
-        current_frame: 1
-        frame_time: 0.19720633327960969
+        current_frame: 0
+        frame_time: 0.08613549172878266
         is_animating: true
     - true
   sound_source: ~
@@ -99,12 +103,15 @@
   tilemap: ~
   follow: ~
   conversant_npc: ~
-  prefab_marker: ~
+  prefab_marker:
+    - id: 582159aa-b4f0-4fbd-bdb3-e7dca0b280db
+    - true
 - id: e5738cea-262f-40a7-aad5-e78d0f66026e
   marker: ~
   name:
     - name: BackgroundUI
     - true
+  player: ~
   transform:
     - local_position:
         x: 0.0
@@ -159,3 +166,21 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
+- id: eb80395b-ab30-4be1-90ec-962a6ed517c3
+  marker: ~
+  name: ~
+  player: ~
+  transform: ~
+  graph_node: ~
+  velocity: ~
+  sprite: ~
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker:
+    - id: 582159aa-b4f0-4fbd-bdb3-e7dca0b280db
+    - true

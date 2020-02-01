@@ -7,6 +7,7 @@ extern crate failure;
 #[macro_use]
 extern crate serde;
 
+mod action_map;
 mod clockwork;
 mod components;
 mod components_singleton;
@@ -34,6 +35,7 @@ pub use serialization::*;
 pub use systems::*;
 pub use tick_structs::*;
 pub use utilities::*;
+pub use action_map::ActionMap;
 
 fn main() {
     pretty_env_logger::init();

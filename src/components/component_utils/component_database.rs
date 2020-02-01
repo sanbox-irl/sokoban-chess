@@ -5,6 +5,7 @@ pub struct ComponentDatabase {
     pub names: ComponentList<Name>,
     pub prefab_markers: ComponentList<PrefabMarker>,
     pub transforms: ComponentList<Transform>,
+    pub players: ComponentList<Player>,
     pub graph_nodes: ComponentList<GraphNode>,
     pub velocities: ComponentList<Velocity>,
     pub sprites: ComponentList<Sprite>,
@@ -119,6 +120,7 @@ impl ComponentDatabase {
         clone_list_entry(&mut self.names, original, new_entity);
         clone_list_entry(&mut self.prefab_markers, original, new_entity);
         clone_list_entry(&mut self.transforms, original, new_entity);
+        clone_list_entry(&mut self.players, original, new_entity);
         clone_list_entry(&mut self.graph_nodes, original, new_entity);
         clone_list_entry(&mut self.sprites, original, new_entity);
         clone_list_entry(&mut self.sound_sources, original, new_entity);
@@ -148,6 +150,7 @@ impl ComponentDatabase {
         f(&mut self.prefab_markers);
         f(&mut self.names);
         f(&mut self.transforms);
+        f(&mut self.players);
         f(&mut self.graph_nodes);
         f(&mut self.velocities);
         f(&mut self.sprites);
@@ -167,6 +170,51 @@ impl ComponentDatabase {
         serialized_entity: SerializedEntity,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
     ) {
+        // Make a serialization data thingee on it...
+        self.serialization_data.set(
+            &entity,
+            Component::new(
+                &entity,
+                SerializationData::with_id(serialized_entity.id.clone()),
+            ),
+        );
+
+        // Singleton Components
+        if let Some(singleton_marker) = serialized_entity.marker {
+            marker_map.insert(singleton_marker, *entity);
+        }
+
+        self.load_serialized_entity_into_database(entity, serialized_entity);
+    }
+
+    pub fn load_prefab(&mut self, entity: &Entity, serialized_entity: SerializedEntity) {
+        self.load_serialized_entity_into_database(entity, serialized_entity);
+    }
+
+    fn load_serialized_entity_into_database(
+        &mut self,
+        entity: &Entity,
+        serialized_entity: SerializedEntity,
+    ) {
+        let SerializedEntity {
+            bounding_box,
+            conversant_npc,
+            draw_rectangle,
+            follow,
+            id: _id,
+            marker: _marker, // we handle this in `load_serialized_entity`
+            name,
+            prefab_marker,
+            sound_source,
+            sprite,
+            text_source,
+            tilemap,
+            transform,
+            velocity,
+            graph_node,
+            player,
+        } = serialized_entity;
+
         // Helper macro
         macro_rules! transfer_serialized_components {
             ($component_name: ident, $component_database_name: ident) => {
@@ -179,37 +227,11 @@ impl ComponentDatabase {
             };
         }
 
-        let SerializedEntity {
-            bounding_box,
-            conversant_npc,
-            draw_rectangle,
-            follow,
-            id: _id,
-            marker,
-            name,
-            prefab_marker,
-            sound_source,
-            sprite,
-            text_source,
-            tilemap,
-            transform,
-            velocity,
-            graph_node,
-        } = serialized_entity;
-
-        // Make a serialization data thingee on it...
-        self.serialization_data.set(
-            &entity,
-            Component::new(
-                &entity,
-                SerializationData::with_id(serialized_entity.id.clone()),
-            ),
-        );
-
         // @update_components
         transfer_serialized_components!(prefab_marker, prefab_markers);
         transfer_serialized_components!(name, names);
         transfer_serialized_components!(transform, transforms);
+        transfer_serialized_components!(player, players);
         transfer_serialized_components!(graph_node, graph_nodes);
         transfer_serialized_components!(sound_source, sound_sources);
         transfer_serialized_components!(bounding_box, bounding_boxes);
@@ -237,11 +259,6 @@ impl ComponentDatabase {
 
             self.tilemaps
                 .set(entity, Component::with_active(entity, tilemap, is_active));
-        }
-
-        // Singleton Components
-        if let Some(singleton_marker) = marker {
-            marker_map.insert(singleton_marker, *entity);
         }
     }
 }

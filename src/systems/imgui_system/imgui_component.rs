@@ -52,6 +52,7 @@ pub fn entity_inspector(
             };
 
             component_inspector_quick!(
+                players,
                 transforms,
                 velocities,
                 sprites,
@@ -117,7 +118,9 @@ pub fn entity_inspector(
                     });
 
                 if comp_info.is_deleted {
-                    if let Err(e) = serialization_util::entities::unserialize_entity(&comp.inner().id) {
+                    if let Err(e) =
+                        serialization_util::entities::unserialize_entity(&comp.inner().id)
+                    {
                         error!("Couldn't unserialize! {}", e);
                     }
                     component_database.serialization_data.unset(entity);
@@ -126,9 +129,7 @@ pub fn entity_inspector(
 
             // Menu bar funtimes!
             if let Some(menu_bar) = ui.begin_menu_bar() {
-                if let Some(add_component_submenu) =
-                    ui.begin_menu(im_str!("Add Component"), is_prefab == false)
-                {
+                if let Some(add_component_submenu) = ui.begin_menu(im_str!("Add Component"), true) {
                     macro_rules! add_component_quick {
                         ( $( $x:ident ),* ) => {
                             $(
@@ -140,6 +141,7 @@ pub fn entity_inspector(
                     // ADD COMPONENT?
                     // @update_components
                     add_component_quick!(
+                        players,
                         transforms,
                         velocities,
                         graph_nodes,
@@ -156,7 +158,8 @@ pub fn entity_inspector(
                     // Prefab Marker, Name is omitted
 
                     // When we add a serialize button, we serialize the whole entity.
-                    if component_add_button(ui, &mut component_database.serialization_data, entity) {
+                    if component_add_button(ui, &mut component_database.serialization_data, entity)
+                    {
                         serialization_util::entities::serialize_entity_full(
                             entity,
                             component_database,
@@ -207,9 +210,10 @@ pub fn entity_inspector(
                         }
                     }
 
-                    if let Some(overwrite_submenu) =
-                        ui.begin_menu(im_str!("Overwrite Prefab"), resources.prefabs.is_empty() == false)
-                    {
+                    if let Some(overwrite_submenu) = ui.begin_menu(
+                        im_str!("Overwrite Prefab"),
+                        resources.prefabs.is_empty() == false,
+                    ) {
                         for prefab in resources.prefabs.values() {
                             let name = match &prefab.name {
                                 Some((name, _)) => im_str!("{}", &name.name),
@@ -241,7 +245,9 @@ pub fn entity_inspector(
                             ),
                         );
 
-                        if let Err(e) = serialization_util::prefabs::serialize_prefab(&serialized_entity) {
+                        if let Err(e) =
+                            serialization_util::prefabs::serialize_prefab(&serialized_entity)
+                        {
                             error!("Error Creating Prefab: {}", e);
                         }
 
@@ -249,7 +255,9 @@ pub fn entity_inspector(
                             Ok(prefab) => {
                                 resources.prefabs.insert(prefab.id, prefab);
                             }
-                            Err(e) => error!("We couldn't cycle the Prefab! It wasn't saved! {}", e),
+                            Err(e) => {
+                                error!("We couldn't cycle the Prefab! It wasn't saved! {}", e)
+                            }
                         }
                     }
 

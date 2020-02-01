@@ -5,7 +5,7 @@ use super::{
     hardware_interfaces::HardwareInterface,
     resources::ResourcesDatabase,
     systems::*,
-    GameWorldDrawCommands,
+    ActionMap, GameWorldDrawCommands,
 };
 use failure::Error;
 use lazy_static::lazy_static;
@@ -70,48 +70,28 @@ impl Ecs {
         &mut self,
         delta_time: f32,
         resources: &ResourcesDatabase,
-        hardware_interfaces: &HardwareInterface,
+        actions: &ActionMap,
     ) -> Result<(), Error> {
         // // Player Stuff
-        // player_system::player_update(
-        //     &self.singleton_database.player.inner(),
-        //     self.singleton_database
-        //         .associated_entities
-        //         .get(&self.singleton_database.player.marker()),
-        //     &mut self.component_database,
+        player_system::player_update(
+            &mut self.component_database.players,
+            &mut self.component_database.transforms,
+            actions,
+        );
+
+        // let camera_associated_entity = self
+        //     .singleton_database
+        //     .associated_entities
+        //     .get(&self.singleton_database.camera.marker())
+        //     .unwrap();
+
+        // singleton_systems::update_camera(
+        //     self.singleton_database.camera.inner_mut(),
+        //     camera_associated_entity,
+        //     &mut self.component_database.transforms,
+        //     &mut self.component_database.follows,
         //     &hardware_interfaces.input,
-        //     delta_time,
         // );
-
-        follow_system::update_follows(
-            &mut self.component_database.follows,
-            &mut self.component_database.transforms,
-            &self.component_database.names,
-            delta_time,
-        );
-
-        let camera_associated_entity = self
-            .singleton_database
-            .associated_entities
-            .get(&self.singleton_database.camera.marker())
-            .unwrap();
-
-        singleton_systems::update_camera(
-            self.singleton_database.camera.inner_mut(),
-            camera_associated_entity,
-            &mut self.component_database.transforms,
-            &mut self.component_database.follows,
-            &hardware_interfaces.input,
-        );
-
-        conversant_npc_system::update_conv_npc_ui_sprites(
-            self,
-            &resources,
-            hardware_interfaces
-                .input
-                .kb_input
-                .is_pressed(winit::event::VirtualKeyCode::Return),
-        );
 
         cross_cutting_system::cross_cutting_system(self, resources);
 

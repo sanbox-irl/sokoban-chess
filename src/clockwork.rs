@@ -5,6 +5,7 @@ use failure::Error;
 
 pub struct Clockwork {
     pub ecs: Ecs,
+    pub action_map: ActionMap,
     pub hardware_interfaces: HardwareInterface,
     pub resources: ResourcesDatabase,
     pub time_keeper: TimeKeeper,
@@ -31,6 +32,7 @@ impl Clockwork {
             ecs,
             hardware_interfaces,
             resources,
+            action_map: ActionMap::default(),
             time_keeper: TimeKeeper::new(),
         })
     }
@@ -87,12 +89,16 @@ impl Clockwork {
                 &self.ecs.singleton_database,
             );
 
+            // Make the Action Map:
+            self.action_map
+                .update(&self.hardware_interfaces.input.kb_input);
+
             // Update
             while self.time_keeper.accumulator >= self.time_keeper.delta_time {
                 self.ecs.update(
                     self.time_keeper.delta_time,
                     &self.resources,
-                    &self.hardware_interfaces,
+                    &self.action_map,
                 )?;
                 self.time_keeper.accumulator -= self.time_keeper.delta_time;
             }

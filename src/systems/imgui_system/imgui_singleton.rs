@@ -27,17 +27,17 @@ pub fn singleton_inspector(
             |serialized, live| *live = serialized.camera.clone(),
         );
 
-        inspect_this_singleton_component(
-            &mut sd.player,
-            &mut sd.associated_entities,
-            cd_n,
-            entities,
-            prefab_hashmap,
-            ui_handler,
-            is_open,
-            |serialized, live| serialized.player = live.clone(),
-            |serialized, live| *live = serialized.player.clone(),
-        );
+        // inspect_this_singleton_component(
+        //     &mut sd.player,
+        //     &mut sd.associated_entities,
+        //     cd_n,
+        //     entities,
+        //     prefab_hashmap,
+        //     ui_handler,
+        //     is_open,
+        //     |serialized, live| serialized.player = live.clone(),
+        //     |serialized, live| *live = serialized.player.clone(),
+        // );
         window.end(&ui_handler.ui);
     }
 
