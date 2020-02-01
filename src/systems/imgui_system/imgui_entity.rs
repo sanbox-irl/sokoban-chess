@@ -1,6 +1,10 @@
 use super::*;
 
-pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
+pub fn entity_list(
+    ecs: &mut Ecs,
+    resources: &mut ResourcesDatabase,
+    ui_handler: &mut UiHandler<'_>,
+) {
     let mut open = true;
 
     // Top menu bar!
@@ -40,7 +44,7 @@ pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler:
             menu_bar.end(ui);
         }
 
-        ui_handler.entity_vec.clear();
+        ui_handler.scene_graph_entities.clear();
 
         // SCENE GRAPH
         scene_graph::walk_graph_inspect(
@@ -50,7 +54,7 @@ pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler:
             &ecs.component_database.prefab_markers,
             &ecs.component_database.serialization_data,
             &mut |entity, names, serialization_data, name_inspector_params| {
-                ui_handler.entity_vec.push(*entity);
+                ui_handler.scene_graph_entities.push(*entity);
 
                 display_entity_id(
                     entity,
@@ -64,17 +68,28 @@ pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler:
             },
         );
 
+        ui_handler.ui.separator();
+
         // ENTITY_GRAPH
-        // for this_entity in ecs.entities.iter_mut() {
-        //     display_entity_id(
-        //         this_entity,
-        //         &mut ecs.component_database,
-        //         &ecs.ui_handler,
-        //         &mut entity_to_clone,
-        //         &mut entity_to_delete,
-        //     );
-        //     ui_handler.ui.separator();
-        // }
+        for entity in ecs.entities.iter_mut() {
+            if ui_handler.scene_graph_entities.contains(entity) == false {
+                let nip = NameInspectorParameters {
+                    is_prefab: ecs.component_database.prefab_markers.get(entity).is_some(),
+                    being_inspected: ui_handler.stored_ids.contains(entity),
+                    ..Default::default()
+                };
+
+                display_entity_id(
+                    entity,
+                    nip,
+                    &mut ecs.component_database.names,
+                    &ecs.component_database.serialization_data,
+                    ui_handler,
+                    &mut entity_to_clone,
+                    &mut entity_to_delete,
+                );
+            }
+        }
 
         if let Some(original) = entity_to_clone {
             ecs.clone_entity(&original);
@@ -93,7 +108,7 @@ pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler:
 }
 
 fn display_entity_id(
-    this_entity: &Entity,
+    entity: &Entity,
     mut name_inspector_params: NameInspectorParameters,
     names: &mut ComponentList<Name>,
     serialization_data: &ComponentList<SerializationData>,
@@ -101,61 +116,62 @@ fn display_entity_id(
     clone_me: &mut Option<Entity>,
     delete_me: &mut Option<Entity>,
 ) -> bool {
-    let mut reserialize = false;
-    let mut show_children = true;
-
     // Name Inspector Params
-    name_inspector_params.being_inspected = ui_handler.stored_ids.contains(this_entity);
+    name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
 
-    if let Some(name) = names.get_mut(this_entity) {
-        let result = name.inner_mut().inspect(
-            &ui_handler.ui,
-            name_inspector_params,
-            &this_entity.index().to_string(),
-        );
-
-        if result.reserialize {
-            reserialize = true;
-        }
-
-        if result.clone {
-            *clone_me = Some(*this_entity);
-        }
-
-        if result.delete {
-            *delete_me = Some(*this_entity);
-        }
-
-        // Store or Remove it...
-        if result.inspect {
-            if ui_handler.stored_ids.contains(this_entity) {
-                ui_handler.stored_ids.remove(this_entity);
-            } else {
-                ui_handler.stored_ids.insert(this_entity.clone());
-            }
-        }
-
-        show_children = result.show_children;
+    let name = if let Some(name) = names.get_mut(entity) {
+        name.inner_mut().name.clone()
     } else {
-        ui_handler
-            .ui
-            .label_text(imgui::im_str!("Entity ID"), &im_str!("{}", this_entity));
+        format!("Entity ID {}", entity)
+    };
 
-        if imgui_utility::sized_button(&ui_handler.ui, &im_str!("Name Entity##{:?}", this_entity)) {
-            let name = Name::new(&format!("Entity ID {}", this_entity.index()));
-            names.set(this_entity, Component::new(this_entity, name));
-            reserialize = true;
+    // Get that fucker
+    let entry = match ui_handler.entity_list_information.get_mut(entity) {
+        Some(stuff) => stuff,
+        None => {
+            // for none stuff
+            ui_handler
+                .entity_list_information
+                .insert(*entity, EntityListInformation::default());
+            ui_handler.entity_list_information.get_mut(entity).unwrap()
         }
-    }
+    };
 
-    if reserialize {
+    let result = Name::inspect(
+        &name,
+        entry,
+        name_inspector_params,
+        &ui_handler.ui,
+        &entity.index().to_string(),
+    );
+
+    if result.reserialize {
         // Serialize this Entity and add the name to it...
-        if let Err(e) = SerializationData::edit_serialized_entity(&serialization_data, this_entity, |se| {
-            se.name = names.get(this_entity).unwrap().fast_serialize()
-        }) {
+        if let Err(e) =
+            SerializationData::edit_serialized_entity(&serialization_data, entity, |se| {
+                se.name = names.get(entity).unwrap().fast_serialize()
+            })
+        {
             error!("COULDN'T SERIALIZE NAME: {}", e);
         }
     }
 
-    show_children
+    if result.clone {
+        *clone_me = Some(*entity);
+    }
+
+    if result.delete {
+        *delete_me = Some(*entity);
+    }
+
+    // Store or Remove it...
+    if result.inspect {
+        if ui_handler.stored_ids.contains(entity) {
+            ui_handler.stored_ids.remove(entity);
+        } else {
+            ui_handler.stored_ids.insert(entity.clone());
+        }
+    }
+
+    result.show_children
 }

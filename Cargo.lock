@@ -258,46 +258,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f86c952727a495bda7abaf09bafdee1a939194dd793d9a8e26281df55ac43b00"
 
 [[package]]
-name = "clockwork"
-version = "0.1.0"
-dependencies = [
- "arrayvec 0.4.12",
- "bincode",
- "bitflags",
- "clockwork_build_shared",
- "failure",
- "gfx-backend-dx12",
- "gfx-backend-metal",
- "gfx-backend-vulkan",
- "gfx-hal",
- "glob",
- "glyph_brush",
- "image",
- "imgui",
- "imgui-winit-support",
- "lazy_static",
- "log",
- "log-once",
- "log4rs",
- "maplit",
- "memoffset",
- "num-derive 0.3.0",
- "num-traits",
- "pretty_env_logger",
- "rodio",
- "serde",
- "serde_json",
- "serde_yaml",
- "shaderc",
- "sheep",
- "strum",
- "strum_macros",
- "typename",
- "uuid",
- "winit",
-]
-
-[[package]]
 name = "clockwork_build_shared"
 version = "0.1.0"
 dependencies = [
@@ -1930,6 +1890,46 @@ dependencies = [
  "nix",
  "wayland-client",
  "wayland-protocols",
+]
+
+[[package]]
+name = "sokoban-chess"
+version = "0.1.0"
+dependencies = [
+ "arrayvec 0.4.12",
+ "bincode",
+ "bitflags",
+ "clockwork_build_shared",
+ "failure",
+ "gfx-backend-dx12",
+ "gfx-backend-metal",
+ "gfx-backend-vulkan",
+ "gfx-hal",
+ "glob",
+ "glyph_brush",
+ "image",
+ "imgui",
+ "imgui-winit-support",
+ "lazy_static",
+ "log",
+ "log-once",
+ "log4rs",
+ "maplit",
+ "memoffset",
+ "num-derive 0.3.0",
+ "num-traits",
+ "pretty_env_logger",
+ "rodio",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "shaderc",
+ "sheep",
+ "strum",
+ "strum_macros",
+ "typename",
+ "uuid",
+ "winit",
 ]
 
 [[package]]

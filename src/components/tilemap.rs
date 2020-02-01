@@ -1,6 +1,7 @@
 use super::{
-    component_utils::EditingMode, imgui_system, tile_resources::*, Color, ComponentBounds, DrawOrder,
-    InspectorParameters, PositionalRect, StandardQuad, TextureDescription, Tile, Vec2, Vec2Int,
+    component_utils::EditingMode, imgui_system, tile_resources::*, Color, ComponentBounds,
+    DrawOrder, InspectorParameters, PositionalRect, StandardQuad, TextureDescription, Tile, Vec2,
+    Vec2Int,
 };
 
 // @techdebt This is pretty messy. Can we clean this up a bit?
@@ -23,8 +24,9 @@ impl Tilemap {
             if tileset.visual_data.sprite_data.is_some() {
                 for (i, this_tile) in self.tiles.iter().enumerate() {
                     if let Some(this_tile) = this_tile {
-                        if let Some((texture_info, tile_native_size)) =
-                            tileset.visual_data.tileset_texture_description(this_tile.index)
+                        if let Some((texture_info, tile_native_size)) = tileset
+                            .visual_data
+                            .tileset_texture_description(this_tile.index)
                         {
                             let pos = self.get_tile_position(i, root_position, tile_native_size);
 
@@ -101,8 +103,11 @@ use imgui::im_str;
 impl ComponentBounds for Tilemap {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
         // Set New Tile Set...
-        self.new_tileset =
-            imgui_system::typed_enum_selection_option(ip.ui, &self.tileset.as_ref().map(|i| i.name), ip.uid);
+        self.new_tileset = imgui_system::typed_enum_selection_option(
+            ip.ui,
+            &self.tileset.as_ref().map(|i| i.name),
+            ip.uid,
+        );
 
         self.size.vec2int_inspector_like_ints(
             ip.ui,
@@ -140,14 +145,20 @@ impl ComponentBounds for Tilemap {
                                 if let Some(sprite_data) = &tileset.visual_data.sprite_data {
                                     let max_size = {
                                         let tileset_dims = sprite_data.size;
-                                        let tile_size =
-                                            tileset_dims.cwise_div(tileset.visual_data.rows_and_columns);
+                                        let tile_size = tileset_dims
+                                            .cwise_div(tileset.visual_data.rows_and_columns);
 
-                                        (tileset_dims.x / tile_size.x).max(tileset_dims.y / tile_size.y) - 1
+                                        (tileset_dims.x / tile_size.x)
+                                            .max(tileset_dims.y / tile_size.y)
+                                            - 1
                                     };
 
                                     let mut temp: i32 = *tile_to_edit as i32;
-                                    if ip.ui.input_int(&im_str!("Tile##{}", ip.uid), &mut temp).build() {
+                                    if ip
+                                        .ui
+                                        .input_int(&im_str!("Tile##{}", ip.uid), &mut temp)
+                                        .build()
+                                    {
                                         if temp < 0 {
                                             temp = 0;
                                         }
@@ -157,7 +168,9 @@ impl ComponentBounds for Tilemap {
                                         *tile_to_edit = temp as usize;
                                     }
                                 } else {
-                                    ip.ui.text_disabled("Tilset has No Associated Sprite. Cannot Edit!");
+                                    ip.ui.text_disabled(
+                                        "Tilset has No Associated Sprite. Cannot Edit!",
+                                    );
                                 }
 
                                 false

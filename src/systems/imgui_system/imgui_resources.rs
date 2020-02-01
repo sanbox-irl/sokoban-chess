@@ -41,7 +41,10 @@ pub fn sprite_viewer(
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let sprite_resource_window = imgui::Window::new(imgui::im_str!("Sprite Resource"))
-        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
+        .size(
+            Vec2::new(290.0, 400.0).into(),
+            imgui::Condition::FirstUseEver,
+        )
         .opened(&mut close);
 
     if let Some(window) = sprite_resource_window.begin(ui) {
@@ -167,7 +170,10 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let tileset_viewer_window = imgui::Window::new(imgui::im_str!("Tileset Resources"))
-        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
+        .size(
+            Vec2::new(290.0, 400.0).into(),
+            imgui::Condition::FirstUseEver,
+        )
         .opened(&mut close);
 
     if let Some(window) = tileset_viewer_window.begin(ui) {
@@ -198,12 +204,12 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             // Visual Data
             this_tileset.visual_data.inspector(ui, &unique_id);
 
-            let mut current_editing_tile = if let EditingMode::Editing(Some(v), _) = this_tileset.editing_mode
-            {
-                v
-            } else {
-                0
-            };
+            let mut current_editing_tile =
+                if let EditingMode::Editing(Some(v), _) = this_tileset.editing_mode {
+                    v
+                } else {
+                    0
+                };
 
             let tileset_size = (this_tileset.size as i32).max(0);
 
@@ -255,13 +261,16 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             }
 
             if current_editing_tile != 0 {
-                this_tileset.editing_mode = EditingMode::Editing(Some(current_editing_tile), vec![]);
+                this_tileset.editing_mode =
+                    EditingMode::Editing(Some(current_editing_tile), vec![]);
             }
 
             // Serialize, Deserialize
             let serialize_label = im_str!("Serialize##{}", unique_id);
             if imgui_utility::sized_button(ui, &serialize_label) {
-                if let Err(e) = serialization_util::tilesets::serialize_tileset(this_tileset.clone()) {
+                if let Err(e) =
+                    serialization_util::tilesets::serialize_tileset(this_tileset.clone())
+                {
                     error!(
                         "Couldn't serialize the tile set! Warning! Your data may be lost! {}",
                         e
@@ -273,7 +282,8 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             if imgui_utility::sized_button(ui, &im_str!("Revert##{}", unique_id)) {
                 this_tileset.revert = true;
 
-                if let Ok(Some(reverted_tset)) = serialization_util::tilesets::load_tileset(this_tileset.name)
+                if let Ok(Some(reverted_tset)) =
+                    serialization_util::tilesets::load_tileset(this_tileset.name)
                 {
                     *this_tileset = reverted_tset;
                 }
@@ -286,17 +296,25 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
     close
 }
 
-pub fn game_config_editor(config: &mut game_config::Config, ui_handler: &mut UiHandler<'_>) -> bool {
+pub fn game_config_editor(
+    config: &mut game_config::Config,
+    ui_handler: &mut UiHandler<'_>,
+) -> bool {
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let game_config_window = imgui::Window::new(imgui::im_str!("Game Config Editor"))
-        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
+        .size(
+            Vec2::new(290.0, 400.0).into(),
+            imgui::Condition::FirstUseEver,
+        )
         .opened(&mut close);
 
     if let Some(window) = game_config_window.begin(ui) {
         let uid = "game_config";
 
-        config.window_size.inspector(ui, &im_str!("Window Size##{}", uid));
+        config
+            .window_size
+            .inspector(ui, &im_str!("Window Size##{}", uid));
 
         // Serialize
         if imgui_utility::sized_button(ui, &im_str!("Serialize##{}", uid)) {
@@ -313,7 +331,10 @@ pub fn game_config_editor(config: &mut game_config::Config, ui_handler: &mut UiH
     close
 }
 
-pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) -> bool {
+pub fn prefab_entity_viewer(
+    resources: &mut ResourcesDatabase,
+    ui_handler: &mut UiHandler<'_>,
+) -> bool {
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
 
     let mut open = true;
@@ -321,7 +342,10 @@ pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut 
     let mut prefab_to_delete: Option<uuid::Uuid> = None;
 
     let prefab_editor = imgui::Window::new(imgui::im_str!("Prefab Inspector"))
-        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
+        .size(
+            Vec2::new(290.0, 400.0).into(),
+            imgui::Condition::FirstUseEver,
+        )
         .opened(&mut open);
 
     if let Some(window) = prefab_editor.begin(ui) {
@@ -331,12 +355,18 @@ pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut 
 
             // BUTTONS
             let mut size = {
-                let (size, pressed) =
-                    imgui_utility::sized_button_padding(ui, &im_str!("Inspect##{}", prefab.id), Vec2::ZERO);
+                let (size, pressed) = imgui_utility::sized_button_padding(
+                    ui,
+                    &im_str!("Inspect##{}", prefab.id),
+                    Vec2::ZERO,
+                );
                 if pressed {
                     // Store or Remove it...
                     if ui_handler.stored_prefabs.contains(&prefab.id) {
-                        if let Some(position) = ui_handler.stored_prefabs.iter().position(|x| *x == prefab.id)
+                        if let Some(position) = ui_handler
+                            .stored_prefabs
+                            .iter()
+                            .position(|x| *x == prefab.id)
                         {
                             ui_handler.stored_prefabs.swap_remove(position);
                         }
@@ -350,8 +380,11 @@ pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut 
 
             // CLONE
             size += {
-                let (size, pressed) =
-                    imgui_utility::sized_button_padding(ui, &im_str!("Clone##{}", prefab.id), Vec2::ZERO);
+                let (size, pressed) = imgui_utility::sized_button_padding(
+                    ui,
+                    &im_str!("Clone##{}", prefab.id),
+                    Vec2::ZERO,
+                );
                 if pressed {
                     prefab_to_clone = Some(prefab.id.clone());
                 }
@@ -362,8 +395,11 @@ pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut 
 
             // DELETE
             size += {
-                let (_, pressed) =
-                    imgui_utility::sized_button_padding(ui, &im_str!("Delete##{}", prefab.id), Vec2::ZERO);
+                let (_, pressed) = imgui_utility::sized_button_padding(
+                    ui,
+                    &im_str!("Delete##{}", prefab.id),
+                    Vec2::ZERO,
+                );
                 if pressed {
                     prefab_to_delete = Some(prefab.id.clone());
                 }
@@ -392,14 +428,16 @@ pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut 
 // @techdebt this doesn't handle changing prefab names!
 fn display_prefab_id(prefab: &mut SerializedEntity, ui: &Ui<'_>) {
     if let Some((name, _)) = &mut prefab.name {
-        name.inspect(
-            ui,
+        Name::inspect(
+            &name.name,
+            &mut EntityListInformation::default(),
             NameInspectorParameters {
                 depth: 0,
                 has_children: false,
                 is_prefab: true,
                 being_inspected: false,
             },
+            ui,
             &prefab.id.to_string(),
         );
     } else {

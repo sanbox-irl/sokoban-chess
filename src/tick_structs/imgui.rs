@@ -1,7 +1,9 @@
-use super::{Entity, EntityAllocator, Window};
+use super::{Entity, EntityAllocator, EntityListInformation, Window};
 use failure::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
+use std::collections::HashMap;
+use uuid::Uuid;
 use winit::{event::Event, window::Window as WinitWindow};
 
 #[allow(dead_code)]
@@ -61,7 +63,9 @@ impl ImGui {
         let mut meta_data: ImGuiMetaData = serde_yaml::from_str(data).unwrap_or_default();
 
         // Fix the meta_data!
-        meta_data.stored_ids.retain(|&id| entity_allocator.is_live(id));
+        meta_data
+            .stored_ids
+            .retain(|&id| entity_allocator.is_live(id));
 
         Self {
             imgui,
@@ -78,10 +82,15 @@ impl ImGui {
     }
 
     pub fn take_input(&mut self, window: &WinitWindow, event: &Event<'_, ()>) {
-        self.platform.handle_event(self.imgui.io_mut(), window, event);
+        self.platform
+            .handle_event(self.imgui.io_mut(), window, event);
     }
 
-    pub fn begin_frame<'a>(&'a mut self, window: &Window, delta_time: f32) -> Result<UiHandler<'a>, Error> {
+    pub fn begin_frame<'a>(
+        &'a mut self,
+        window: &Window,
+        delta_time: f32,
+    ) -> Result<UiHandler<'a>, Error> {
         self.platform
             .prepare_frame(self.imgui.io_mut(), &window.window)
             .map_err(|e| format_err!("{}", e))?;
@@ -96,7 +105,8 @@ impl ImGui {
             stored_ids: &mut self.meta_data.stored_ids,
             stored_prefabs: &mut self.meta_data.stored_prefabs,
             popup_id: &mut self.meta_data.popup_id,
-            entity_vec: &mut self.meta_data.entity_vec,
+            scene_graph_entities: &mut self.meta_data.entity_vec,
+            entity_list_information: &mut self.meta_data.entity_list_information,
         })
     }
 
@@ -116,7 +126,8 @@ impl ImGui {
         style.colors[imgui::StyleColor::Text as usize] = [0.95, 0.96, 0.98, 1.00];
         style.colors[imgui::StyleColor::TextDisabled as usize] = [0.36, 0.42, 0.47, 1.00];
         style.colors[imgui::StyleColor::WindowBg as usize] = [0.11, 0.15, 0.17, 1.00];
-        style.colors[imgui::StyleColor::ChildBg as usize] = [27.0 / 255.0, 32.0 / 255.0, 46.0 / 255.0, 1.00];
+        style.colors[imgui::StyleColor::ChildBg as usize] =
+            [27.0 / 255.0, 32.0 / 255.0, 46.0 / 255.0, 1.00];
         style.colors[imgui::StyleColor::PopupBg as usize] = [0.08, 0.08, 0.08, 0.94];
         style.colors[imgui::StyleColor::Border as usize] = [0.08, 0.10, 0.12, 1.00];
         style.colors[imgui::StyleColor::BorderShadow as usize] = [0.00, 0.00, 0.00, 0.00];
@@ -173,32 +184,13 @@ pub struct UiHandler<'a> {
     pub platform: &'a WinitPlatform,
     pub flags: &'a mut ImGuiFlags,
     pub stored_ids: &'a mut HashSet<Entity>,
-    pub stored_prefabs: &'a mut Vec<uuid::Uuid>,
+    pub stored_prefabs: &'a mut Vec<Uuid>,
     pub popup_id: &'a mut Option<Entity>,
-    pub entity_vec: &'a mut Vec<Entity>,
+    pub scene_graph_entities: &'a mut Vec<Entity>,
+    pub entity_list_information: &'a mut HashMap<Entity, EntityListInformation>,
 }
 
 impl<'a> UiHandler<'a> {
-    pub fn new(
-        ui: Ui<'a>,
-        platform: &'a WinitPlatform,
-        flags: &'a mut ImGuiFlags,
-        stored_ids: &'a mut HashSet<Entity>,
-        stored_prefabs: &'a mut Vec<uuid::Uuid>,
-        popup_id: &'a mut Option<Entity>,
-        entity_vec: &'a mut Vec<Entity>,
-    ) -> Self {
-        Self {
-            ui,
-            platform,
-            flags,
-            stored_ids,
-            stored_prefabs,
-            popup_id,
-            entity_vec,
-        }
-    }
-
     pub fn prepare_render(&self, window: &Window) {
         self.platform.prepare_render(&self.ui, &window.window);
     }
@@ -208,10 +200,11 @@ impl<'a> UiHandler<'a> {
 pub struct ImGuiMetaData {
     pub flags: ImGuiFlags,
     pub stored_ids: HashSet<Entity>,
-    pub stored_prefabs: Vec<uuid::Uuid>,
+    pub stored_prefabs: Vec<Uuid>,
     pub popup_id: Option<Entity>,
     #[serde(skip)]
     pub entity_vec: Vec<Entity>,
+    pub entity_list_information: HashMap<Entity, EntityListInformation>,
 }
 
 use bitflags::bitflags;

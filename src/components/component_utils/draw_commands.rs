@@ -20,6 +20,7 @@ impl<'a> DrawCommand<'a> {
         camera_entity: &'a Entity,
         camera: &'a Camera,
         rendering_utility: &'a mut RenderingUtility,
+        window_size: Vec2,
     ) {
         self.game_world = Some(GameWorldDrawCommands {
             sprites,
@@ -30,6 +31,7 @@ impl<'a> DrawCommand<'a> {
             camera,
             camera_entity,
             rendering_utility,
+            window_size,
         });
     }
 
@@ -50,6 +52,7 @@ pub struct GameWorldDrawCommands<'a> {
     pub rendering_utility: &'a mut RenderingUtility,
     pub camera_entity: &'a Entity,
     pub camera: &'a Camera,
+    pub window_size: Vec2,
 }
 
 pub struct ImGuiDrawCommands<'a> {

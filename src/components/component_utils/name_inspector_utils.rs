@@ -1,3 +1,5 @@
+use super::Color;
+
 pub struct NameInspectorResult {
     pub reserialize: bool,
     pub inspect: bool,
@@ -25,4 +27,19 @@ pub struct NameInspectorParameters {
     pub is_prefab: bool,
     pub depth: usize,
     pub being_inspected: bool,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct EntityListInformation {
+    pub open: bool,
+    pub color: Color,
+}
+
+impl Default for EntityListInformation {
+    fn default() -> Self {
+        EntityListInformation {
+            open: false,
+            color: Color::WHITE,
+        }
+    }
 }

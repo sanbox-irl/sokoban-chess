@@ -1,9 +1,14 @@
-use gfx_hal::{buffer::*, command::*, pso::ShaderStageFlags, Backend, IndexType};
+use gfx_hal::{
+    buffer::*,
+    command::*,
+    pso::{Rect, ShaderStageFlags, Viewport},
+    Backend, IndexType,
+};
 
 use super::{
-    BasicTextures, DrawingError, GameWorldDrawCommands, LoadedImage, PipelineBundle, RenderingUtility,
-    StandardPushConstants, StandardQuadFactory, StandardTexture, TextureDescription,
-    VertexIndexPairBufferBundle,
+    BasicTextures, DrawingError, GameWorldDrawCommands, LoadedImage, PipelineBundle,
+    RenderingUtility, StandardPushConstants, StandardQuadFactory, StandardTexture,
+    TextureDescription, VertexIndexPairBufferBundle,
 };
 
 #[cfg(feature = "dx12")]
@@ -31,16 +36,32 @@ pub(super) unsafe fn draw_game_world<'a>(
         camera,
         camera_entity,
         rendering_utility,
+        window_size,
     } = gameworld_draw_commands;
 
     // Bind pipeline and Verts
     encoder.bind_graphics_pipeline(&quad_pipeline.graphics_pipeline);
-    encoder.bind_vertex_buffers(0, Some((standard_render_bundle.vertex_buffer.buffer.deref(), 0)));
+    encoder.bind_vertex_buffers(
+        0,
+        Some((standard_render_bundle.vertex_buffer.buffer.deref(), 0)),
+    );
     encoder.bind_index_buffer(IndexBufferView {
         buffer: &standard_render_bundle.index_buffer.buffer,
         offset: 0,
         index_type: IndexType::U16,
     });
+
+    let viewport = Viewport {
+        rect: Rect {
+            x: (1920 - 480) / 2,
+            y: (1080 - 840) / 2,
+            w: 480,
+            h: 840,
+        },
+        depth: 0.0..1.0,
+    };
+
+    encoder.set_viewports(0, &[viewport]);
 
     // Deconstruct for ease of use...
     let RenderingUtility {
@@ -98,7 +119,11 @@ pub(super) unsafe fn draw_game_world<'a>(
         &[],
     );
 
-    let camera_position = transforms.get(camera_entity).unwrap().inner().world_position();
+    let camera_position = transforms
+        .get(camera_entity)
+        .unwrap()
+        .inner()
+        .world_position();
 
     for quad in quad_buffer {
         let mut push_constants = StandardPushConstants::with_camera_data(camera_position, camera);

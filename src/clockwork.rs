@@ -58,8 +58,10 @@ impl Clockwork {
                 break;
             }
 
-            let mut ui_handler =
-                imgui.begin_frame(&self.hardware_interfaces.window, self.time_keeper.delta_time)?;
+            let mut ui_handler = imgui.begin_frame(
+                &self.hardware_interfaces.window,
+                self.time_keeper.delta_time,
+            )?;
 
             // CFG Resource Updates
             imgui_system::imgui_main(
@@ -122,7 +124,10 @@ impl Clockwork {
 
         let mut draw_commands = DrawCommand::default();
 
-        self.ecs.render(&mut draw_commands);
+        self.ecs.render(
+            &mut draw_commands,
+            self.hardware_interfaces.window.get_window_size(),
+        );
         draw_commands.take_imgui_commands(
             ui_handler.ui.render(),
             ui_handler

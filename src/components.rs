@@ -25,7 +25,7 @@ pub use {
         bounding_circle::BoundingCircle, component_database::ComponentDatabase, component_traits::*,
         draw_layer::*, prefabs, Approach, DrawCommand, EditingMode, GameWorldDrawCommands, ImGuiDrawCommands,
         NameInspectorParameters, PositionalRect, SerializableEntityReference, SerializablePrefabReference,
-        Tile, TransformParent,
+        Tile, TransformParent, EntityListInformation,
     },
     conversant_npc::ConversantNPC,
     draw_rectangle::DrawRectangle,

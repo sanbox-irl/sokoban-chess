@@ -1,5 +1,5 @@
 use super::{
-    component_utils::{NameInspectorParameters, NameInspectorResult},
+    component_utils::{EntityListInformation, NameInspectorParameters, NameInspectorResult},
     imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
 };
 
@@ -7,10 +7,6 @@ use super::{
 #[serde(default)]
 pub struct Name {
     pub name: String,
-    #[serde(skip)]
-    pub open: bool,
-    #[serde(skip)]
-    pub color: Color,
 }
 
 impl Name {
@@ -19,15 +15,14 @@ impl Name {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_owned(),
-            open: false,
-            color: Color::WHITE,
         }
     }
 
     pub fn inspect(
-        &mut self,
-        ui: &imgui::Ui<'_>,
+        name: &str,
+        eli: &mut EntityListInformation,
         nip: NameInspectorParameters,
+        ui: &imgui::Ui<'_>,
         uid: &str,
     ) -> NameInspectorResult {
         let mut res = NameInspectorResult::default();
@@ -47,7 +42,7 @@ impl Name {
         if nip.has_children {
             ui.text(&imgui::im_str!(
                 "{}",
-                if self.open == false {
+                if eli.open == false {
                     '\u{f105}' // Right Chevron
                 } else {
                     '\u{f107}' // Down Chevron
@@ -55,14 +50,14 @@ impl Name {
             ));
 
             if imgui_system::left_clicked_item(ui) {
-                self.open = !self.open;
+                eli.open = !eli.open;
             }
         } else {
             // this is here actually just to make the lower
             // same_line call work for both branches, for simplicity!
             ui.dummy([10.0, 0.0]);
         }
-        res.show_children = self.open;
+        res.show_children = eli.open;
 
         // Get us to the next evenish column:
         ui.same_line(
@@ -86,12 +81,14 @@ impl Name {
         ui.same_line(0.0);
 
         // Actually Name:
-        ui.text_colored(self.color.into(), &imgui::im_str!("{}", self.name));
+        ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
 
         // Manage the color...
-        self.color = Color::WHITE;
-        if (ui.is_item_hovered() && ui.is_mouse_down(imgui::MouseButton::Left)) || nip.being_inspected {
-            self.color = Color::with_u8(252, 195, 108, 255); // nice orange
+        eli.color = Color::WHITE;
+        if (ui.is_item_hovered() && ui.is_mouse_down(imgui::MouseButton::Left))
+            || nip.being_inspected
+        {
+            eli.color = Color::with_u8(252, 195, 108, 255); // nice orange
         }
 
         if imgui_system::left_clicked_item(ui) {

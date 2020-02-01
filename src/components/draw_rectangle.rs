@@ -1,6 +1,6 @@
 use super::{
-    Color, ComponentBounds, DrawOrder, InspectorParameters, Rect, StandardQuad, StandardQuadFactory,
-    TextureDescription, Vec2,
+    Color, ComponentBounds, DrawOrder, InspectorParameters, Rect, StandardQuad,
+    StandardQuadFactory, TextureDescription, Vec2,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, typename::TypeName)]
@@ -27,6 +27,8 @@ impl ComponentBounds for DrawRectangle {
         }
 
         self.rect.rect_inspector(ui, uid);
+        self.draw_order.inspect(ui, uid);
+
         ui.checkbox(
             &imgui::im_str!("Bind to Bounding Box##{}", uid),
             &mut self.bind_to_bounding_box,

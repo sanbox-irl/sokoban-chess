@@ -5,6 +5,7 @@ use super::{
     hardware_interfaces::HardwareInterface,
     resources::ResourcesDatabase,
     systems::*,
+    Vec2,
 };
 use failure::Error;
 use lazy_static::lazy_static;
@@ -57,7 +58,10 @@ impl Ecs {
         self.singleton_database
             .initialize_with_runtime_resources(resources, hardware_interfaces);
 
-        tilemap_system::initialize_tilemaps(&mut self.component_database.tilemaps, &resources.tilesets);
+        tilemap_system::initialize_tilemaps(
+            &mut self.component_database.tilemaps,
+            &resources.tilesets,
+        );
         conversant_npc_system::initialize_conv_npc_ui(self, resources);
         Ok(())
     }
@@ -114,7 +118,7 @@ impl Ecs {
         Ok(())
     }
 
-    pub fn render<'a, 'b>(&'a mut self, draw_commands: &'b mut DrawCommand<'a>) {
+    pub fn render<'a, 'b>(&'a mut self, draw_commands: &'b mut DrawCommand<'a>, size: Vec2) {
         let camera_entity = self
             .singleton_database
             .associated_entities
@@ -130,6 +134,7 @@ impl Ecs {
             camera_entity,
             self.singleton_database.camera.inner(),
             &mut self.singleton_database.rendering_utility,
+            size,
         );
     }
 }
@@ -175,8 +180,11 @@ impl Ecs {
 
     pub fn clone_entity(&mut self, original: &Entity) -> Entity {
         let new_entity = self.create_entity();
-        self.component_database
-            .clone_components(original, &new_entity, &mut self.singleton_database);
+        self.component_database.clone_components(
+            original,
+            &new_entity,
+            &mut self.singleton_database,
+        );
 
         new_entity
     }

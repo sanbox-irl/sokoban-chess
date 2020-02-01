@@ -6,8 +6,8 @@
     - true
   transform:
     - local_position:
-        x: -3.5
-        y: 1.03125
+        x: 0.0
+        y: 0.0
       world_position:
         x: 0.0
         y: 0.0
@@ -30,11 +30,9 @@
         y: 0.0
       target:
         target_serialized_id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
-    - true
+    - false
   conversant_npc: ~
-  prefab_marker:
-    - id: 49205a8f-3e0c-46fd-ac25-911216f72c07
-    - true
+  prefab_marker: ~
 - id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
   marker: Player
   name:
@@ -42,8 +40,8 @@
     - true
   transform:
     - local_position:
-        x: 58.299041748046878
-        y: 28.347457885742189
+        x: 0.0
+        y: 0.0
       world_position:
         x: 0.0
         y: 0.0
@@ -73,7 +71,7 @@
           b: 1.0
           a: 1.0
         current_frame: 0
-        frame_time: 0.0670035183429718
+        frame_time: 0.05955513194203377
         is_animating: true
     - true
   sound_source: ~
@@ -110,10 +108,10 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
-- id: a12b15bb-8cd3-423c-a07c-8e38b2bf7835
+- id: 2972dcfa-309c-4f9f-99a7-482ff4c09b61
   marker: ~
   name:
-    - name: Floor Tilemap
+    - name: BackgroundUI
     - true
   transform:
     - local_position:
@@ -129,133 +127,27 @@
   velocity: ~
   sprite: ~
   sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap:
-    - tiles:
-        relative_path: a12b15bb-8cd3-423c-a07c-8e38b2bf7835.tile
-        marker: ~
-      tileset_name: Floors
-      color:
-        r: 1.0
-        g: 1.0
-        b: 1.0
-        a: 1.0
-      size:
-        x: 300
-        y: 300
+  draw_rectangle:
+    - rect:
+        min:
+          x: -100.0
+          y: -100.0
+        max:
+          x: 100.0
+          y: 100.0
       draw_order:
         draw_layer: Background
         order: 0
-    - true
-  follow: ~
-  conversant_npc: ~
-  prefab_marker: ~
-- id: 4be290fd-afe4-4ee0-9a9e-4a74f5053a0b
-  marker: ~
-  name:
-    - name: Entity Wall Tilemap
-    - true
-  transform:
-    - local_position:
-        x: -16.0
-        y: -32.0
-      world_position:
-        x: 0.0
-        y: 0.0
-      parent:
-        target_serialized_id: ~
-    - true
-  graph_node: ~
-  velocity: ~
-  sprite: ~
-  sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap:
-    - tiles:
-        relative_path: 4be290fd-afe4-4ee0-9a9e-4a74f5053a0b.tile
-        marker: ~
-      tileset_name: Walls
-      color:
-        r: 1.0
-        g: 1.0
-        b: 1.0
+      tint:
+        r: 0.572549045085907
+        g: 0.8705882430076599
+        b: 0.6901960968971252
         a: 1.0
-      size:
-        x: 300
-        y: 300
-      draw_order:
-        draw_layer: Instance
-        order: 0
+      bind_to_bounding_box: false
     - true
-  follow: ~
-  conversant_npc: ~
-  prefab_marker: ~
-- id: b157ac81-560d-4c3e-82f8-974114575772
-  marker: ~
-  name:
-    - name: Entity NPC
-    - true
-  transform:
-    - local_position:
-        x: 94.0
-        y: 10.0
-      world_position:
-        x: 94.0
-        y: 10.0
-      parent:
-        target_serialized_id: ~
-    - true
-  graph_node: ~
-  velocity: ~
-  sprite:
-    - sprite_name: NormalNPC
-      serialized_running_data:
-        draw_order:
-          draw_layer: Instance
-          order: 0
-        facing_horizontal: Right
-        facing_vertical: Up
-        scale:
-          x: 1.0
-          y: 1.0
-        tint:
-          r: 1.0
-          g: 1.0
-          b: 1.0
-          a: 1.0
-        current_frame: 0
-        frame_time: 0.01944071426987648
-        is_animating: true
-    - true
-  sound_source: ~
-  draw_rectangle: ~
   bounding_box: ~
   text_source: ~
   tilemap: ~
   follow: ~
-  conversant_npc:
-    - conversation_partner:
-        target_serialized_id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
-      initial_ui_prefab:
-        target: b59f9ce9-6b95-4f44-8664-bb75ffe51d91
-      text_ui_prefab:
-        target: 145f1306-1cf4-44d3-b6e4-265b0daa872e
-      distance: 36.0
-      color_on_close:
-        r: 1.0
-        g: 0.9999990463256836
-        b: 0.0
-        a: 1.0
-      color_on_far:
-        r: 1.0
-        g: 0.9999899864196777
-        b: 0.9999973773956299
-        a: 1.0
-      converse_with_input: false
-      converse_text: ""
-    - true
+  conversant_npc: ~
   prefab_marker: ~
