@@ -5,7 +5,12 @@ pub fn wrap_f32(basic: f32, min: f32, max: f32) -> f32 {
 }
 
 #[allow(dead_code)]
-pub fn wrap_usize(basic: i32, min: i32, max: i32) -> i32 {
+pub fn wrap_usize(basic: usize, min: usize, max: usize) -> usize {
+    assert!(
+        max > min,
+        "Passed a range into wrap_usize which was incorrect."
+    );
     let range = max - min;
-    basic - (f32::floor(basic as f32 / range as f32) as i32) * range + min
+    // we're taking advantage of flooring here...
+    basic - (basic / range) * range + min
 }

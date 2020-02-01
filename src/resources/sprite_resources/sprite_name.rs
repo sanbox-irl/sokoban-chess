@@ -17,7 +17,6 @@ use strum_macros::{Display, EnumCount, EnumIter, EnumString};
     Deserialize,
     typename::TypeName,
 )]
-#[strum(serialize_all = "snake_case")]
 pub enum SpriteName {
     WhitePixel,
     Background,

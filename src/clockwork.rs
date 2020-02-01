@@ -1,4 +1,6 @@
-use super::{systems::*, Ecs, HardwareInterface, ImGui, ResourcesDatabase, TimeKeeper};
+use super::{
+    systems::*, Ecs, HardwareInterface, ImGui, ImGuiDrawCommands, ResourcesDatabase, TimeKeeper,
+};
 use failure::Error;
 
 pub struct Clockwork {
@@ -73,7 +75,7 @@ impl Clockwork {
             );
             sprite_system::update_sprites(
                 &mut self.ecs.component_database.sprites,
-                &self.resources,
+                &mut self.resources,
                 self.time_keeper.delta_time,
             );
             tilemap_system::update_tilemaps_and_tilesets(
@@ -124,13 +126,10 @@ impl Clockwork {
 
         let mut draw_commands = DrawCommand::default();
 
-        self.ecs.render(
-            &mut draw_commands,
-            self.hardware_interfaces.window.get_window_size(),
-        );
-        draw_commands.take_imgui_commands(
-            ui_handler.ui.render(),
-            ui_handler
+        self.ecs.render(&mut draw_commands, &self.resources);
+        draw_commands.imgui = Some(ImGuiDrawCommands {
+            draw_data: ui_handler.ui.render(),
+            imgui_dimensions: ui_handler
                 .platform
                 .scale_size_from_winit(
                     &self.hardware_interfaces.window.window,
@@ -141,7 +140,7 @@ impl Clockwork {
                         .to_logical(self.hardware_interfaces.window.window.scale_factor()),
                 )
                 .into(),
-        );
+        });
 
         renderer_system::render(
             &mut self.hardware_interfaces.renderer,

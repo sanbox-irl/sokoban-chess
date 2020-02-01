@@ -6,7 +6,7 @@ use gfx_hal::{
 };
 
 use super::{
-    BasicTextures, DrawingError, GameWorldDrawCommands, LoadedImage, PipelineBundle,
+    sprite_system, BasicTextures, DrawingError, GameWorldDrawCommands, LoadedImage, PipelineBundle,
     RenderingUtility, StandardPushConstants, StandardQuadFactory, StandardTexture,
     TextureDescription, VertexIndexPairBufferBundle,
 };
@@ -36,7 +36,7 @@ pub(super) unsafe fn draw_game_world<'a>(
         camera,
         camera_entity,
         rendering_utility,
-        window_size: _,
+        resources,
     } = gameworld_draw_commands;
 
     // Bind pipeline and Verts
@@ -72,11 +72,11 @@ pub(super) unsafe fn draw_game_world<'a>(
     quad_buffer.clear();
     for this_sprite in sprites.iter() {
         if let Some(transform) = transforms.get(&this_sprite.entity_id) {
-            quad_buffer.push(
-                this_sprite
-                    .inner()
-                    .to_standard_quad(transform.inner().world_position()),
-            );
+            quad_buffer.push(sprite_system::to_standard_quad(
+                this_sprite.inner(),
+                transform.inner().world_position(),
+                resources,
+            ));
         }
     }
 

@@ -23,7 +23,10 @@ pub fn prefab_editor(
         };
 
         let prefab_editor = imgui::Window::new(&name)
-            .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
+            .size(
+                Vec2::new(290.0, 400.0).into(),
+                imgui::Condition::FirstUseEver,
+            )
             .opened(&mut open);
 
         if let Some(window) = prefab_editor.begin(ui) {
@@ -77,21 +80,10 @@ pub fn prefab_editor(
             }
 
             // @update_components
-            prefab_inspector_quick!([transform, transforms], [velocity, velocities]);
-
-            // Weird sprite funtimes yay!
-            prefab_serialized_inspector(
-                &mut prefab.sprite,
-                "Sprite",
-                &uid,
-                &stubbed_names_list,
-                &mut component_info,
-                &fake_prefab_map,
-                ui,
-                true,
-            );
-
             prefab_inspector_quick!(
+                [transform, transforms],
+                [velocity, velocities],
+                [sprite, sprites],
                 [sound_source, sound_sources],
                 [draw_rectangle, draw_rectangles],
                 [bounding_box, bounding_boxes],
@@ -99,17 +91,18 @@ pub fn prefab_editor(
             );
 
             // Custom Tilemap inspector! Except not, cause it's confusing
-            // fuck that
-            prefab_serialized_inspector(
-                &mut prefab.tilemap,
-                "Tilemap",
-                &uid,
-                &stubbed_names_list,
-                &mut component_info,
-                &fake_prefab_map,
-                ui,
-                true,
-            );
+            // fuck that. So we just uh don't do this. Because what is a prefab
+            // tilemap anyway?
+            // prefab_serialized_inspector(
+            //     &mut prefab.tilemap,
+            //     "Tilemap",
+            //     &uid,
+            //     &stubbed_names_list,
+            //     &mut component_info,
+            //     &fake_prefab_map,
+            //     ui,
+            //     true,
+            // );
 
             prefab_inspector_quick!([follow, follows], [conversant_npc, conversant_npcs]);
 
@@ -248,42 +241,42 @@ fn prefab_inspector<
     }
 }
 
-fn prefab_serialized_inspector<T: ComponentSerializedBounds>(
-    prefab_wrapper: &mut Option<(T, bool)>,
-    typename: &str,
-    uid: &str,
-    entity_names: &ComponentList<Name>,
-    component_info: &mut ComponentInfo,
-    prefabs: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
-    ui: &mut Ui<'_>,
-    is_open: bool,
-) {
-    if let Some(prefab_wrapper) = prefab_wrapper {
-        // SEPARATE
-        ui.separator();
+// fn prefab_serialized_inspector<T: ComponentSerializedBounds>(
+//     prefab_wrapper: &mut Option<(T, bool)>,
+//     typename: &str,
+//     uid: &str,
+//     entity_names: &ComponentList<Name>,
+//     component_info: &mut ComponentInfo,
+//     prefabs: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+//     ui: &mut Ui<'_>,
+//     is_open: bool,
+// ) {
+//     if let Some(prefab_wrapper) = prefab_wrapper {
+//         // SEPARATE
+//         ui.separator();
 
-        // COMPONENT INFO
-        component_info.is_deleted = false;
-        component_info.is_active = prefab_wrapper.1;
-        super::imgui_component::component_name_and_status(typename, ui, component_info);
-        prefab_wrapper.1 = component_info.is_active;
+//         // COMPONENT INFO
+//         component_info.is_deleted = false;
+//         component_info.is_active = prefab_wrapper.1;
+//         super::imgui_component::component_name_and_status(typename, ui, component_info);
+//         prefab_wrapper.1 = component_info.is_active;
 
-        ui.tree_node(&imgui::ImString::new(typename))
-            .default_open(true)
-            .build(|| {
-                // DELETE ENTITY
-                let inspector_parameters = InspectorParameters {
-                    is_open,
-                    uid: &format!("{}{}", uid, typename),
-                    ui,
-                    entities: &[],
-                    entity_names,
-                    prefabs,
-                };
-                prefab_wrapper.0.entity_inspector(inspector_parameters);
-            });
-    }
-}
+//         ui.tree_node(&imgui::ImString::new(typename))
+//             .default_open(true)
+//             .build(|| {
+//                 // DELETE ENTITY
+//                 let inspector_parameters = InspectorParameters {
+//                     is_open,
+//                     uid: &format!("{}{}", uid, typename),
+//                     ui,
+//                     entities: &[],
+//                     entity_names,
+//                     prefabs,
+//                 };
+//                 prefab_wrapper.0.entity_inspector(inspector_parameters);
+//             });
+//     }
+// }
 
 enum PrefabComponentInspectorResult {
     NoChange,

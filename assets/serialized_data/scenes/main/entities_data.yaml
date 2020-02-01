@@ -32,11 +32,11 @@
     - true
   transform:
     - local_position:
-        x: 12.0
-        y: 4.0
+        x: 8.0
+        y: 8.0
       world_position:
-        x: 12.0
-        y: 4.0
+        x: 8.0
+        y: 8.0
       parent:
         target_serialized_id: ~
     - true
@@ -48,7 +48,7 @@
     - true
   sprite:
     - sprite_name: PixelMainCharacterStanding
-      serialized_running_data:
+      running_data:
         draw_order:
           draw_layer: Instance
           order: 0
@@ -62,8 +62,8 @@
           g: 1.0
           b: 1.0
           a: 1.0
-        current_frame: 0
-        frame_time: 0.38194039463996889
+        current_frame: 1
+        frame_time: 0.19720633327960969
         is_animating: true
     - true
   sound_source: ~

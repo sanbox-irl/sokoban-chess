@@ -20,7 +20,7 @@ pub struct SpriteData {
 #[derive(Debug, PartialEq, Clone)]
 pub struct FrameData {
     pub normalized_coord: Vec2,
-    pub duration: Option<f32>,
+    pub duration: f32,
 }
 
 impl SpriteData {
@@ -36,13 +36,16 @@ impl SpriteData {
             sprite_resource.frames[0].height as i32,
         );
 
+        // Check
+        assert_eq!(
+            sprite_meta_data.frame_durations.len(),
+            sprite_resource.frames.len(),
+            "SpriteInGameData does not have enough frames!"
+        );
+
         // Iterate over our durations and our SpriteSheet data
         for (i, this_frame) in sprite_resource.frames.iter().enumerate() {
-            let duration = if sprite_meta_data.frame_durations.len() < i {
-                sprite_meta_data.frame_durations[i]
-            } else {
-                Some(0.1)
-            };
+            let duration = sprite_meta_data.frame_durations[i];
 
             frames.push(FrameData {
                 normalized_coord: Vec2::new(

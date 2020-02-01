@@ -1,11 +1,11 @@
 ---
-pixel_main_character_walking:
+Background:
   created:
-    secs_since_epoch: 1580533280
-    nanos_since_epoch: 286231494
+    secs_since_epoch: 1580532941
+    nanos_since_epoch: 144317389
   modified:
-    secs_since_epoch: 1580533280
-    nanos_since_epoch: 286934491
+    secs_since_epoch: 1580585175
+    nanos_since_epoch: 622000000
 white_pixel:
   created:
     secs_since_epoch: 1574358069
@@ -27,3 +27,31 @@ background:
   modified:
     secs_since_epoch: 1580539735
     nanos_since_epoch: 756596338
+WhitePixel:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 189385891
+  modified:
+    secs_since_epoch: 1580585183
+    nanos_since_epoch: 422000000
+PixelMainCharacterWalking:
+  created:
+    secs_since_epoch: 1580533280
+    nanos_since_epoch: 286231494
+  modified:
+    secs_since_epoch: 1580585210
+    nanos_since_epoch: 381000000
+pixel_main_character_walking:
+  created:
+    secs_since_epoch: 1580533280
+    nanos_since_epoch: 286231494
+  modified:
+    secs_since_epoch: 1580533280
+    nanos_since_epoch: 286934491
+PixelMainCharacterStanding:
+  created:
+    secs_since_epoch: 1580533274
+    nanos_since_epoch: 99589121
+  modified:
+    secs_since_epoch: 1580585199
+    nanos_since_epoch: 169000000

@@ -1,9 +1,13 @@
-use super::{physics_components::BoundingBox, ComponentList, DrawRectangle, Sprite, Ecs};
+use super::{
+    physics_components::BoundingBox, ComponentList, DrawRectangle, Ecs, Rect, ResourcesDatabase,
+    Sprite,
+};
 
-pub fn cross_cutting_system(ecs: &mut Ecs) {
+pub fn cross_cutting_system(ecs: &mut Ecs, resources: &ResourcesDatabase) {
     bounding_box_and_sprite(
         &mut ecs.component_database.bounding_boxes,
         &ecs.component_database.sprites,
+        resources,
     );
 
     draw_rectangle_and_bounding_box(
@@ -12,16 +16,26 @@ pub fn cross_cutting_system(ecs: &mut Ecs) {
     );
 }
 
-fn bounding_box_and_sprite(bbs: &mut ComponentList<BoundingBox>, sprites: &ComponentList<Sprite>) {
+fn bounding_box_and_sprite(
+    bbs: &mut ComponentList<BoundingBox>,
+    sprites: &ComponentList<Sprite>,
+    resources: &ResourcesDatabase,
+) {
     for this_bb in bbs.iter_mut() {
         let this_entity_id = this_bb.entity_id.clone();
         let this_bounding_box: &mut BoundingBox = this_bb.inner_mut();
 
         if this_bounding_box.bind_to_sprite {
             if let Some(this_sprite) = sprites.get(&this_entity_id) {
-                if let Some(new_rect) = BoundingBox::rect_from_sprite(this_sprite) {
-                    this_bounding_box.rect = new_rect;
-                }
+                if let Some(sprite_name) = &this_sprite.inner().sprite_name {
+                    let sprite_data = resources.sprites.get(sprite_name).unwrap();
+                    let rel_location = sprite_data
+                        .origin
+                        .sprite_location_relative(sprite_data.size);
+
+                    this_bounding_box.rect =
+                        Rect::point_width(rel_location, sprite_data.size.into());
+                };
             } else {
                 this_bounding_box.bind_to_sprite = false;
             }

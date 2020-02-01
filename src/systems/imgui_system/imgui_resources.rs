@@ -1,17 +1,11 @@
 use super::*;
 use sprite_resources::*;
 
-pub fn create_resources_windows(
-    resources: &mut ResourcesDatabase,
-    ui_handler: &mut UiHandler<'_>,
-    component_database: &mut ComponentDatabase,
-) {
+pub fn create_resources_windows(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     imgui_utility::create_window(
         ui_handler,
         ImGuiFlags::SPRITE_RESOURCE,
-        |ui_handler: &mut UiHandler<'_>| {
-            sprite_viewer(resources, ui_handler, &mut component_database.sprites)
-        },
+        |ui_handler: &mut UiHandler<'_>| sprite_viewer(resources, ui_handler),
     );
 
     imgui_utility::create_window(
@@ -33,11 +27,7 @@ pub fn create_resources_windows(
     );
 }
 
-pub fn sprite_viewer(
-    resources: &mut ResourcesDatabase,
-    ui_handler: &mut UiHandler<'_>,
-    sprites: &mut ComponentList<Sprite>,
-) -> bool {
+pub fn sprite_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) -> bool {
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let sprite_resource_window = imgui::Window::new(imgui::im_str!("Sprite Resource"))
@@ -55,26 +45,20 @@ pub fn sprite_viewer(
         };
 
         for (i, sprite_data) in current_spd.into_iter().enumerate() {
-            let mut dirty = false;
-
             let uid = &format!("{}{}", sprite_data.sprite_name, i);
             ui.text(im_str!("{}", sprite_data.sprite_name.better_display()));
 
             ui.spacing();
-            if sprite_data.origin.inspect(ui, uid, sprite_data.size) {
-                dirty = true;
-            }
+            sprite_data.origin.inspect(ui, uid, sprite_data.size);
             ui.spacing();
 
             // FACING DIRECTIONS
-            if cardinals::inspect_facing(
+            cardinals::inspect_facing(
                 ui,
                 uid,
                 &mut sprite_data.facing_horizontal,
                 &mut sprite_data.facing_vertical,
-            ) {
-                dirty = true;
-            }
+            );
 
             ui.spacing();
             ui.label_text(&im_str!("Size##{}", uid), &im_str!("{}", sprite_data.size));
@@ -88,8 +72,8 @@ pub fn sprite_viewer(
             if let Some(_) = sprite_data.texture_page {
                 let l = sprite_data.frames.len();
 
-                if l > 1 && sprite_data.frames[0].duration.is_some() {
-                    let mut val = sprite_data.frames[0].duration.unwrap();
+                if l > 1 {
+                    let mut val = sprite_data.frames[0].duration;
                     if ui
                         .drag_float(&im_str!("All##{}", uid), &mut val)
                         .min(0.0)
@@ -97,31 +81,18 @@ pub fn sprite_viewer(
                         .speed(0.005)
                         .build()
                     {
-                        dirty = true;
                         for this_frame in &mut sprite_data.frames {
-                            this_frame.duration = Some(val);
+                            this_frame.duration = val;
                         }
                     }
                 }
 
                 for (i, this_frame) in sprite_data.frames.iter_mut().enumerate() {
-                    match &mut this_frame.duration {
-                        Some(dur) => {
-                            if ui
-                                .drag_float(&im_str!("Frame {}##{}", i, uid), dur)
-                                .min(0.0)
-                                .max(0.5)
-                                .speed(0.005)
-                                .build()
-                            {
-                                dirty = true;
-                            }
-                        }
-
-                        None => {
-                            ui.label_text(&im_str!("No Duration"), &im_str!("~"));
-                        }
-                    }
+                    ui.drag_float(&im_str!("Frame {}##{}", i, uid), &mut this_frame.duration)
+                        .min(0.0)
+                        .max(0.5)
+                        .speed(0.005)
+                        .build();
                 }
             }
 
@@ -142,19 +113,7 @@ pub fn sprite_viewer(
                     sprite_data.sprite_name,
                     sprite_data.texture_page.unwrap(),
                 ) {
-                    dirty = true;
                     *sprite_data = sprite_ingame_data;
-                }
-            }
-
-            // Update dirty sprites to sprite components
-            if dirty {
-                for sprite_comp in sprites.iter_mut() {
-                    if let Some(comp_sprite_data) = &mut sprite_comp.inner_mut().sprite_data {
-                        if comp_sprite_data.sprite_name == sprite_data.sprite_name {
-                            *comp_sprite_data = sprite_data.clone();
-                        }
-                    }
                 }
             }
 

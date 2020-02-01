@@ -46,7 +46,7 @@ pub fn imgui_main(
     });
 
     // Resources Windows
-    imgui_resources::create_resources_windows(resources, ui_handler, &mut ecs.component_database);
+    imgui_resources::create_resources_windows(resources, ui_handler);
 
     // Window for each Prefabs
     imgui_prefab::prefab_editor(ui_handler, resources, &mut ecs.component_database);
@@ -139,7 +139,12 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
     }
 }
 
-fn menu_option(imstr: &imgui::ImStr, flag: ImGuiFlags, ui: &Ui<'_>, flags_to_change: &mut ImGuiFlags) {
+fn menu_option(
+    imstr: &imgui::ImStr,
+    flag: ImGuiFlags,
+    ui: &Ui<'_>,
+    flags_to_change: &mut ImGuiFlags,
+) {
     if imgui::MenuItem::new(imstr)
         .selected(flags_to_change.contains(flag))
         .build(ui)

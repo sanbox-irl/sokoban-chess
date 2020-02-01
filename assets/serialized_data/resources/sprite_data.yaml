@@ -1,8 +1,8 @@
 ---
 - sprite_name: PixelMainCharacterStanding
   origin:
-    horizontal: Center
-    vertical: Center
+    horizontal: Left
+    vertical: Top
   facing_horizontal: Right
   facing_vertical: Up
   frame_durations:

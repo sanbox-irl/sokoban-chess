@@ -8,7 +8,7 @@ pub struct SpriteInGameData {
     pub origin: Origin,
     pub facing_horizontal: FacingHorizontal,
     pub facing_vertical: FacingVertical,
-    pub frame_durations: Vec<Option<f32>>,
+    pub frame_durations: Vec<f32>,
 }
 
 impl From<SpriteData> for SpriteInGameData {
@@ -32,7 +32,7 @@ impl SpriteInGameData {
     pub fn create_default(o: &SpriteResource, name: SpriteName) -> Self {
         let mut frame_durations = Vec::new();
         for _ in &o.frames {
-            frame_durations.push(Some(0.1));
+            frame_durations.push(0.1);
         }
 
         Self {

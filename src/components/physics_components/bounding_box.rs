@@ -1,4 +1,4 @@
-pub use super::*;
+use super::{ComponentBounds, InspectorParameters, Rect, Vec2};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
@@ -13,19 +13,6 @@ impl BoundingBox {
             rect: Rect::new(min, max),
             bind_to_sprite: false,
         }
-    }
-
-    pub fn with_sprite(this_sprite: &Component<Sprite>, bind_to_sprite: bool) -> Self {
-        let rect = Self::rect_from_sprite(this_sprite).unwrap_or_default();
-        Self { rect, bind_to_sprite }
-    }
-
-    pub fn rect_from_sprite(this_sprite: &Component<Sprite>) -> Option<Rect> {
-        this_sprite.inner().sprite_data.as_ref().map(|sprite_data| {
-            let rel_location = sprite_data.origin.sprite_location_relative(sprite_data.size);
-
-            Rect::point_width(rel_location, sprite_data.size.into())
-        })
     }
 }
 

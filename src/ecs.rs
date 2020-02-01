@@ -5,7 +5,7 @@ use super::{
     hardware_interfaces::HardwareInterface,
     resources::ResourcesDatabase,
     systems::*,
-    Vec2,
+    GameWorldDrawCommands,
 };
 use failure::Error;
 use lazy_static::lazy_static;
@@ -38,7 +38,7 @@ impl Ecs {
 
         // serialization panic guard
         if entities.is_empty() {
-            bail!("We have an empty ECS! Something probably went wrong in deserialization!");
+            error!("We have an empty ECS! Something probably went wrong in deserialization!");
         }
 
         Ok(Ecs {
@@ -113,29 +113,37 @@ impl Ecs {
                 .is_pressed(winit::event::VirtualKeyCode::Return),
         );
 
-        cross_cutting_system::cross_cutting_system(self);
+        cross_cutting_system::cross_cutting_system(self, resources);
 
         Ok(())
     }
 
-    pub fn render<'a, 'b>(&'a mut self, draw_commands: &'b mut DrawCommand<'a>, size: Vec2) {
-        let camera_entity = self
+    pub fn render<'a, 'b>(
+        &'a mut self,
+        draw_commands: &'b mut DrawCommand<'a>,
+        resources: &'a ResourcesDatabase,
+    ) {
+        if let Some(camera_entity) = self
             .singleton_database
             .associated_entities
             .get(&self.singleton_database.camera.marker())
-            .expect("We couldn't find the camera. We require a valid camera!");
-
-        draw_commands.take_game_world(
-            &self.component_database.text_sources,
-            &self.component_database.sprites,
-            &self.component_database.draw_rectangles,
-            &self.component_database.tilemaps,
-            &self.component_database.transforms,
-            camera_entity,
-            self.singleton_database.camera.inner(),
-            &mut self.singleton_database.rendering_utility,
-            size,
-        );
+        {
+            draw_commands.game_world = Some(GameWorldDrawCommands {
+                text_sources: &self.component_database.text_sources,
+                sprites: &self.component_database.sprites,
+                rects: &self.component_database.draw_rectangles,
+                tilemaps: &self.component_database.tilemaps,
+                transforms: &self.component_database.transforms,
+                camera_entity,
+                camera: self.singleton_database.camera.inner(),
+                rendering_utility: &mut self.singleton_database.rendering_utility,
+                resources,
+            })
+        } else {
+            log_once::error_once!(
+                "No camera is present! The game world cannot draw without a camera entity!"
+            );
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 use super::{
-    component_serialization::*, physics_components::*, Component, ComponentBounds, ComponentDatabase,
-    ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, Marker, Name, PrefabMarker, SingletonDatabase,
-    SoundSource, TextSource, Transform, Velocity,
+    component_serialization::*, physics_components::*, Component, ComponentBounds,
+    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, Marker, Name,
+    PrefabMarker, SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
 };
 use uuid::Uuid;
 
@@ -17,7 +17,7 @@ pub struct SerializedEntity {
     pub transform: SerializedComponentWrapper<Transform>,
     pub graph_node: SerializedComponentWrapper<GraphNode>,
     pub velocity: SerializedComponentWrapper<Velocity>,
-    pub sprite: SerializedComponentWrapper<SpriteSerialized>,
+    pub sprite: SerializedComponentWrapper<Sprite>,
     pub sound_source: SerializedComponentWrapper<SoundSource>,
     pub draw_rectangle: SerializedComponentWrapper<DrawRectangle>,
     pub bounding_box: SerializedComponentWrapper<BoundingBox>,

@@ -2,7 +2,7 @@
 texture_width: 67
 texture_height: 16
 sprites:
-  - name: background
+  - name: Background
     x: 0
     y: 0
     width: 40
@@ -12,7 +12,7 @@ sprites:
         y: 0
         width: 40
         height: 8
-  - name: pixel_main_character_walking
+  - name: PixelMainCharacterWalking
     x: 40
     y: 0
     width: 27
@@ -30,7 +30,7 @@ sprites:
         y: 0
         width: 9
         height: 10
-  - name: pixel_main_character_standing
+  - name: PixelMainCharacterStanding
     x: 0
     y: 8
     width: 16
@@ -44,7 +44,7 @@ sprites:
         y: 8
         width: 8
         height: 8
-  - name: white_pixel
+  - name: WhitePixel
     x: 16
     y: 8
     width: 1
