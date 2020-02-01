@@ -19,22 +19,10 @@ use strum_macros::{Display, EnumCount, EnumIter, EnumString};
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum SpriteName {
-    Zelda,
-    Link,
-    CenterDot,
-    KennyPlayerDown,
-    KennyPlayerLeft,
-    KennyPlayerRight,
-    KennyPlayerUp,
     WhitePixel,
-    PixelGreenFloors,
-    PixelGreenWalls,
+    Background,
     PixelMainCharacterWalking,
     PixelMainCharacterStanding,
-    NormalNPC,
-    BangUI,
-    HookUI,
-    SpeechBubble
 }
 
 impl SpriteName {

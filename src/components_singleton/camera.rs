@@ -23,26 +23,32 @@ impl Camera {
         let transformed_to_world = {
             let window_size = self
                 .display_size
-                .as_ref()
                 .expect("The Window size was not set for the camera!");
 
-            let percentage_of_screen =
-                Vec2::new(display_pos.x / window_size.x, display_pos.y / window_size.y);
+            let refactored_display_pos =
+                Vec2::new(display_pos.x, -display_pos.y + window_size.y) - Vec2::new(720.0, 120.0);
+
+            let percentage_of_screen = refactored_display_pos.cwise_div(Vec2::new(480.0, 840.0));
+            info!("Percentage of screen: {}", percentage_of_screen);
+            info!("--");
 
             let clip_space = Vec2::new(
                 percentage_of_screen.x * 2.0 - 1.0,
                 percentage_of_screen.y * 2.0 - 1.0,
             );
+
             let in_game_size = self.ingame_camera_size() / 2.0;
             let mut ret = clip_space;
 
             ret.x *= in_game_size.x;
-            ret.y *= -in_game_size.y;
+            ret.y *= in_game_size.y;
 
             ret
         };
 
-        transformed_to_world + camera_position
+        let fin = transformed_to_world + camera_position;
+        info!("Fin {}", fin);
+        fin
     }
 }
 

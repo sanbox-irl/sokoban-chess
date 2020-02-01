@@ -6,7 +6,7 @@ camera:
       x: 48.0
       y: 84.0
     zoom_level: 1.0
-    current_mode: Debug
+    current_mode: Standard
 player:
   marker: Player
   inner:

@@ -1,208 +1,52 @@
 ---
-texture_width: 3524
-texture_height: 720
+texture_width: 45
+texture_height: 10
 sprites:
-  - name: zelda
+  - name: pixel_main_character_walking
     x: 0
     y: 0
-    width: 1280
-    height: 720
-    frames:
-      - x: 0
-        y: 0
-        width: 1280
-        height: 720
-  - name: link
-    x: 1280
-    y: 0
-    width: 476
-    height: 600
-    frames:
-      - x: 1280
-        y: 0
-        width: 476
-        height: 600
-  - name: kenny_player_down
-    x: 1756
-    y: 0
-    width: 384
-    height: 128
-    frames:
-      - x: 1756
-        y: 0
-        width: 128
-        height: 128
-      - x: 1884
-        y: 0
-        width: 128
-        height: 128
-      - x: 2012
-        y: 0
-        width: 128
-        height: 128
-  - name: kenny_player_left
-    x: 2140
-    y: 0
-    width: 384
-    height: 128
-    frames:
-      - x: 2140
-        y: 0
-        width: 128
-        height: 128
-      - x: 2268
-        y: 0
-        width: 128
-        height: 128
-      - x: 2396
-        y: 0
-        width: 128
-        height: 128
-  - name: kenny_player_right
-    x: 2524
-    y: 0
-    width: 384
-    height: 128
-    frames:
-      - x: 2524
-        y: 0
-        width: 128
-        height: 128
-      - x: 2652
-        y: 0
-        width: 128
-        height: 128
-      - x: 2780
-        y: 0
-        width: 128
-        height: 128
-  - name: kenny_player_up
-    x: 2908
-    y: 0
-    width: 384
-    height: 128
-    frames:
-      - x: 2908
-        y: 0
-        width: 128
-        height: 128
-      - x: 3036
-        y: 0
-        width: 128
-        height: 128
-      - x: 3164
-        y: 0
-        width: 128
-        height: 128
-  - name: pixel_green_floors
-    x: 3292
-    y: 0
-    width: 104
-    height: 8
-    frames:
-      - x: 3292
-        y: 0
-        width: 104
-        height: 8
-  - name: pixel_green_walls
-    x: 3396
-    y: 0
-    width: 96
-    height: 8
-    frames:
-      - x: 3396
-        y: 0
-        width: 96
-        height: 8
-  - name: center_dot
-    x: 3492
-    y: 0
-    width: 32
-    height: 32
-    frames:
-      - x: 3492
-        y: 0
-        width: 32
-        height: 32
-  - name: speech_bubble
-    x: 3292
-    y: 8
-    width: 30
-    height: 19
-    frames:
-      - x: 3292
-        y: 8
-        width: 30
-        height: 19
-  - name: pixel_main_character_walking
-    x: 3322
-    y: 8
     width: 27
     height: 10
     frames:
-      - x: 3322
-        y: 8
+      - x: 0
+        y: 0
         width: 9
         height: 10
-      - x: 3331
-        y: 8
+      - x: 9
+        y: 0
         width: 9
         height: 10
-      - x: 3340
-        y: 8
+      - x: 18
+        y: 0
         width: 9
         height: 10
-  - name: normal_npc
-    x: 3349
-    y: 8
-    width: 16
-    height: 8
-    frames:
-      - x: 3349
-        y: 8
-        width: 8
-        height: 8
-      - x: 3357
-        y: 8
-        width: 8
-        height: 8
   - name: pixel_main_character_standing
-    x: 3365
-    y: 8
+    x: 27
+    y: 0
     width: 9
     height: 10
     frames:
-      - x: 3365
-        y: 8
+      - x: 27
+        y: 0
         width: 9
         height: 10
-  - name: bang_ui
-    x: 3349
-    y: 16
+  - name: background
+    x: 36
+    y: 0
     width: 8
     height: 8
     frames:
-      - x: 3349
-        y: 16
-        width: 8
-        height: 8
-  - name: hook_ui
-    x: 3357
-    y: 16
-    width: 8
-    height: 8
-    frames:
-      - x: 3357
-        y: 16
+      - x: 36
+        y: 0
         width: 8
         height: 8
   - name: white_pixel
-    x: 3322
-    y: 18
+    x: 44
+    y: 0
     width: 1
     height: 1
     frames:
-      - x: 3322
-        y: 18
+      - x: 44
+        y: 0
         width: 1
         height: 1

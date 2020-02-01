@@ -36,7 +36,7 @@ pub(super) unsafe fn draw_game_world<'a>(
         camera,
         camera_entity,
         rendering_utility,
-        window_size,
+        window_size: _,
     } = gameworld_draw_commands;
 
     // Bind pipeline and Verts

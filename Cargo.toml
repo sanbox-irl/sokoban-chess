@@ -3,7 +3,7 @@ name = "sokoban-chess"
 version = "0.1.0"
 authors = ["Jack Spira <jjspira@gmail.com>"]
 edition = "2018"
-# build = "build/build_scripts/build_main.rs"
+build = "build/build_scripts/build_main.rs"
 
 [features]
 metal = ["gfx-backend-metal"]

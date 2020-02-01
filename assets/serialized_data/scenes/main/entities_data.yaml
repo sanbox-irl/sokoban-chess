@@ -6,11 +6,11 @@
     - true
   transform:
     - local_position:
-        x: 0.0
-        y: 0.0
+        x: 24.0
+        y: 42.0
       world_position:
-        x: 0.0
-        y: 0.0
+        x: 24.0
+        y: 42.0
       parent:
         target_serialized_id: ~
     - true
@@ -22,15 +22,7 @@
   bounding_box: ~
   text_source: ~
   tilemap: ~
-  follow:
-    - approach:
-        Asymptotic: 2.200000047683716
-      offset:
-        x: 0.0
-        y: 0.0
-      target:
-        target_serialized_id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
-    - false
+  follow: ~
   conversant_npc: ~
   prefab_marker: ~
 - id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
@@ -40,11 +32,11 @@
     - true
   transform:
     - local_position:
-        x: 0.0
-        y: 0.0
+        x: 24.0
+        y: 48.0
       world_position:
-        x: 0.0
-        y: 0.0
+        x: 24.0
+        y: 48.0
       parent:
         target_serialized_id: ~
     - true
@@ -71,7 +63,7 @@
           b: 1.0
           a: 1.0
         current_frame: 0
-        frame_time: 0.05955513194203377
+        frame_time: 0.05280296504497528
         is_animating: true
     - true
   sound_source: ~
@@ -108,7 +100,7 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
-- id: 2972dcfa-309c-4f9f-99a7-482ff4c09b61
+- id: e5738cea-262f-40a7-aad5-e78d0f66026e
   marker: ~
   name:
     - name: BackgroundUI
@@ -137,17 +129,33 @@
           y: 100.0
       draw_order:
         draw_layer: Background
-        order: 0
+        order: -1
       tint:
-        r: 0.572549045085907
-        g: 0.8705882430076599
-        b: 0.6901960968971252
+        r: 1.0
+        g: 1.0
+        b: 1.0
         a: 1.0
       bind_to_bounding_box: false
     - true
   bounding_box: ~
   text_source: ~
-  tilemap: ~
+  tilemap:
+    - tiles:
+        relative_path: e5738cea-262f-40a7-aad5-e78d0f66026e.tile
+        marker: ~
+      tileset_name: Floors
+      color:
+        r: 1.0
+        g: 1.0
+        b: 1.0
+        a: 1.0
+      size:
+        x: 20
+        y: 20
+      draw_order:
+        draw_layer: Background
+        order: 0
+    - true
   follow: ~
   conversant_npc: ~
   prefab_marker: ~

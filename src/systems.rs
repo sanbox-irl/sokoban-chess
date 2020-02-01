@@ -6,7 +6,6 @@ pub mod follow_system;
 pub mod imgui_system;
 pub mod input_system;
 pub mod physics_system;
-pub mod player_system;
 pub mod renderer_system;
 pub mod singleton_systems;
 pub mod sound_system;

@@ -72,16 +72,16 @@ impl Ecs {
         resources: &ResourcesDatabase,
         hardware_interfaces: &HardwareInterface,
     ) -> Result<(), Error> {
-        // Player Stuff
-        player_system::player_update(
-            &self.singleton_database.player.inner(),
-            self.singleton_database
-                .associated_entities
-                .get(&self.singleton_database.player.marker()),
-            &mut self.component_database,
-            &hardware_interfaces.input,
-            delta_time,
-        );
+        // // Player Stuff
+        // player_system::player_update(
+        //     &self.singleton_database.player.inner(),
+        //     self.singleton_database
+        //         .associated_entities
+        //         .get(&self.singleton_database.player.marker()),
+        //     &mut self.component_database,
+        //     &hardware_interfaces.input,
+        //     delta_time,
+        // );
 
         follow_system::update_follows(
             &mut self.component_database.follows,
