@@ -29,12 +29,14 @@ impl ComponentDatabase {
         if update_serialization::UPDATE_COMPONENT_DATABASE {
             update_serialization::update_component_database()?;
         }
-        let saved_entities: Vec<SerializedEntity> = serialization_util::entities::load_all_entities()?;
+        let saved_entities: Vec<SerializedEntity> =
+            serialization_util::entities::load_all_entities()?;
 
         let mut component_database = ComponentDatabase::default();
 
         for s_entity in saved_entities {
-            let new_entity = Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
+            let new_entity =
+                Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
             component_database.load_serialized_entity(&new_entity, s_entity, marker_map);
         }
 
@@ -133,7 +135,11 @@ impl ComponentDatabase {
             let new_component = SerializationData::new();
             self.serialization_data
                 .set(new_entity, Component::new(new_entity, new_component));
-            super::serialization_util::entities::serialize_entity_full(new_entity, self, singleton_database);
+            super::serialization_util::entities::serialize_entity_full(
+                new_entity,
+                self,
+                singleton_database,
+            );
         }
     }
 
@@ -194,7 +200,10 @@ impl ComponentDatabase {
         // Make a serialization data thingee on it...
         self.serialization_data.set(
             &entity,
-            Component::new(&entity, SerializationData::with_id(serialized_entity.id.clone())),
+            Component::new(
+                &entity,
+                SerializationData::with_id(serialized_entity.id.clone()),
+            ),
         );
 
         // @update_components

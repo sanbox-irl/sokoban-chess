@@ -6,13 +6,6 @@ pixel_main_character_walking:
   modified:
     secs_since_epoch: 1580533280
     nanos_since_epoch: 286934491
-background:
-  created:
-    secs_since_epoch: 1580532941
-    nanos_since_epoch: 144317389
-  modified:
-    secs_since_epoch: 1580532941
-    nanos_since_epoch: 144635789
 white_pixel:
   created:
     secs_since_epoch: 1574358069
@@ -25,5 +18,12 @@ pixel_main_character_standing:
     secs_since_epoch: 1580533274
     nanos_since_epoch: 99589121
   modified:
-    secs_since_epoch: 1580533274
-    nanos_since_epoch: 100369393
+    secs_since_epoch: 1580540580
+    nanos_since_epoch: 435360874
+background:
+  created:
+    secs_since_epoch: 1580532941
+    nanos_since_epoch: 144317389
+  modified:
+    secs_since_epoch: 1580539735
+    nanos_since_epoch: 756596338

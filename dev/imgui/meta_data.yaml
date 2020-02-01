@@ -1,21 +1,11 @@
 ---
 flags:
-  bits: 136
-stored_ids:
-  - index: 2
-    generation: 0
+  bits: 130
+stored_ids: []
 stored_prefabs: []
 popup_id: ~
 entity_list_information:
   ? index: 2
-    generation: 0
-  : open: false
-    color:
-      r: 0.97430020570755
-      g: 0.5542271137237549
-      b: 0.15105804800987245
-      a: 1.0
-  ? index: 0
     generation: 0
   : open: false
     color:
@@ -24,6 +14,14 @@ entity_list_information:
       b: 1.0
       a: 1.0
   ? index: 1
+    generation: 0
+  : open: false
+    color:
+      r: 0.97430020570755
+      g: 0.5542271137237549
+      b: 0.15105804800987245
+      a: 1.0
+  ? index: 0
     generation: 0
   : open: false
     color:

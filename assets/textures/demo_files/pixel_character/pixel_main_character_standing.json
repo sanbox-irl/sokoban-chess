@@ -1,19 +1,27 @@
 { "frames": {
-   "pixel_main_character_standing.png": {
-    "frame": { "x": 0, "y": 0, "w": 9, "h": 10 },
+   "pixel_main_character_standing 0.png": {
+    "frame": { "x": 0, "y": 0, "w": 8, "h": 8 },
     "rotated": false,
     "trimmed": false,
-    "spriteSourceSize": { "x": 0, "y": 0, "w": 9, "h": 10 },
-    "sourceSize": { "w": 9, "h": 10 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 8, "h": 8 },
+    "sourceSize": { "w": 8, "h": 8 },
+    "duration": 100
+   },
+   "pixel_main_character_standing 1.png": {
+    "frame": { "x": 8, "y": 0, "w": 8, "h": 8 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 8, "h": 8 },
+    "sourceSize": { "w": 8, "h": 8 },
     "duration": 100
    }
  },
  "meta": {
   "app": "http://www.aseprite.org/",
-  "version": "1.2.10-beta4-x64",
-  "image": "C:\\Users\\jjspi\\Documents\\Code\\Rust\\clockwork\\assets\\textures\\pixel_character\\pixel_main_character_standing.png",
+  "version": "1.2.15",
+  "image": "pixel_main_character_standing.png",
   "format": "RGBA8888",
-  "size": { "w": 9, "h": 10 },
+  "size": { "w": 16, "h": 8 },
   "scale": "1"
  }
 }

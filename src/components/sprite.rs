@@ -83,7 +83,9 @@ impl ComponentBounds for Sprite {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>) {
         let InspectorParameters { uid, ui, .. } = inspector_parameters;
 
-        if let Some(new_sprite) = imgui_system::typed_enum_selection_option(ui, &self.sprite_name(), uid) {
+        if let Some(new_sprite) =
+            imgui_system::typed_enum_selection_option(ui, &self.sprite_name(), uid)
+        {
             self.reset_animation();
             self.new_sprite = new_sprite;
         };
@@ -120,7 +122,8 @@ impl StandardQuadFactory for Sprite {
                     .cwise_product(self.running_data.scale);
 
             let image_size = {
-                let mut size: Vec2 = Vec2::from(sprite_data.size).cwise_product(self.running_data.scale);
+                let mut size: Vec2 =
+                    Vec2::from(sprite_data.size).cwise_product(self.running_data.scale);
                 if self.running_data.facing_horizontal != sprite_data.facing_horizontal {
                     position.x += size.x;
                     size.reflected(Axis::X);

@@ -1,20 +1,4 @@
 ---
-- sprite_name: WhitePixel
-  origin:
-    horizontal: Center
-    vertical: Center
-  facing_horizontal: Right
-  facing_vertical: Up
-  frame_durations:
-    - 0.10000000149011612
-- sprite_name: PixelGreenFloors
-  origin:
-    horizontal: Center
-    vertical: Center
-  facing_horizontal: Right
-  facing_vertical: Up
-  frame_durations:
-    - 0.10000000149011612
 - sprite_name: PixelMainCharacterStanding
   origin:
     horizontal: Center
@@ -22,5 +6,5 @@
   facing_horizontal: Right
   facing_vertical: Up
   frame_durations:
-    - 0.4000000059604645
-    - 0.4000000059604645
+    - 0.6000000238418579
+    - 0.6000000238418579

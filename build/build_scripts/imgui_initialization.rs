@@ -7,7 +7,10 @@ pub fn initialize_imgui() -> Result<(), Error> {
         "dev/imgui/imgui_log.txt",
         "dev/imgui/meta_data.yaml",
     ];
-    let paths: Vec<&std::path::Path> = our_paths.iter().map(|path| std::path::Path::new(path)).collect();
+    let paths: Vec<&std::path::Path> = our_paths
+        .iter()
+        .map(|path| std::path::Path::new(path))
+        .collect();
     for this_path in paths {
         if this_path.exists() == false {
             std::fs::File::create(this_path)?;

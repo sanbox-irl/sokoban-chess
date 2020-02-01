@@ -46,9 +46,7 @@ impl Camera {
             ret
         };
 
-        let fin = transformed_to_world + camera_position;
-        info!("Fin {}", fin);
-        fin
+        transformed_to_world + camera_position
     }
 }
 

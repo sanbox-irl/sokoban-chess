@@ -1,52 +1,56 @@
 ---
-texture_width: 45
-texture_height: 10
+texture_width: 67
+texture_height: 16
 sprites:
-  - name: pixel_main_character_walking
+  - name: background
     x: 0
+    y: 0
+    width: 40
+    height: 8
+    frames:
+      - x: 0
+        y: 0
+        width: 40
+        height: 8
+  - name: pixel_main_character_walking
+    x: 40
     y: 0
     width: 27
     height: 10
     frames:
-      - x: 0
+      - x: 40
         y: 0
         width: 9
         height: 10
-      - x: 9
+      - x: 49
         y: 0
         width: 9
         height: 10
-      - x: 18
+      - x: 58
         y: 0
         width: 9
         height: 10
   - name: pixel_main_character_standing
-    x: 27
-    y: 0
-    width: 9
-    height: 10
-    frames:
-      - x: 27
-        y: 0
-        width: 9
-        height: 10
-  - name: background
-    x: 36
-    y: 0
-    width: 8
+    x: 0
+    y: 8
+    width: 16
     height: 8
     frames:
-      - x: 36
-        y: 0
+      - x: 0
+        y: 8
+        width: 8
+        height: 8
+      - x: 8
+        y: 8
         width: 8
         height: 8
   - name: white_pixel
-    x: 44
-    y: 0
+    x: 16
+    y: 8
     width: 1
     height: 1
     frames:
-      - x: 44
-        y: 0
+      - x: 16
+        y: 8
         width: 1
         height: 1

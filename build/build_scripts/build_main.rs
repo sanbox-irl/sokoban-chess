@@ -34,5 +34,7 @@ fn initiate_logging() -> Result<(), Error> {
 
     log4rs::init_config(config)?;
 
+    
+
     Ok(())
 }
