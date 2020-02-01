@@ -1,0 +1,64 @@
+---
+id: 145f1306-1cf4-44d3-b6e4-265b0daa872e
+marker: ~
+name:
+  - name: Entity NPC Text
+  - true
+transform:
+  - position:
+      x: 81.0
+      y: 25.0
+  - true
+velocity: ~
+sprite:
+  - sprite_name: SpeechBubble
+    serialized_running_data:
+      draw_order:
+        draw_layer: Foreground
+        order: 0
+      facing_horizontal: Right
+      facing_vertical: Up
+      scale:
+        x: 1.0
+        y: 1.0
+      tint:
+        r: 1.0
+        g: 0.9999899864196777
+        b: 0.9999973773956299
+        a: 1.0
+      current_frame: 0
+      frame_time: 0.05627012997865677
+      is_animating: true
+  - true
+sound_source: ~
+draw_rectangle: ~
+bounding_box: ~
+text_source:
+  - font: SpaceLoot
+    text: "Welcome to the Clockwork.\nThis is a game engine demo!"
+    scale:
+      x: 0.0
+      y: 0.0
+    screen_scale: 6.0
+    color:
+      r: 1.0
+      g: 1.0
+      b: 1.0
+      a: 1.0
+    horizontal_align: Left
+    vertical_align: Bottom
+    draw_order:
+      draw_layer: Foreground
+      order: -15
+  - true
+tilemap: ~
+follow:
+  - approach: Instant
+    offset:
+      x: -13.0
+      y: 15.0
+    target:
+      target_serialized_id: b157ac81-560d-4c3e-82f8-974114575772
+  - true
+conversant_npc: ~
+prefab_marker: ~

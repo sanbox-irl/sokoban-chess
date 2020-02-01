@@ -1,0 +1,19 @@
+{ "frames": {
+   "pixel_main_character_standing.png": {
+    "frame": { "x": 0, "y": 0, "w": 9, "h": 10 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 9, "h": 10 },
+    "sourceSize": { "w": 9, "h": 10 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.10-beta4-x64",
+  "image": "C:\\Users\\jjspi\\Documents\\Code\\Rust\\clockwork\\assets\\textures\\pixel_character\\pixel_main_character_standing.png",
+  "format": "RGBA8888",
+  "size": { "w": 9, "h": 10 },
+  "scale": "1"
+ }
+}

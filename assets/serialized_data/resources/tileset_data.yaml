@@ -1,0 +1,115 @@
+---
+- name: Floors
+  size: 13
+  visual_data_serialized:
+    sprite_name: PixelGreenFloors
+    rows_and_columns:
+      x: 13
+      y: 1
+  physics_data:
+    bounding_boxes: ~
+    dirty: false
+- name: Walls
+  size: 12
+  visual_data_serialized:
+    sprite_name: PixelGreenWalls
+    rows_and_columns:
+      x: 12
+      y: 1
+  physics_data:
+    bounding_boxes:
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 0.5
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+      - rect:
+          min:
+            x: 0.0
+            y: 0.0
+          max:
+            x: 1.0
+            y: 1.0
+    dirty: false
+- name: Default
+  size: 0
+  visual_data_serialized:
+    sprite_name: ~
+    rows_and_columns:
+      x: 0
+      y: 0
+  physics_data:
+    bounding_boxes: ~
+    dirty: false

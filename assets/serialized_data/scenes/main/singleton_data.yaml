@@ -1,0 +1,17 @@
+---
+camera:
+  marker: Camera
+  inner:
+    native_resolution:
+      x: 160.0
+      y: 90.0
+    zoom_level: 1.0
+    current_mode: Debug
+player:
+  marker: Player
+  inner:
+    move_speed: 1200.0
+    friction_moving: 17.0
+    friction_standstill: 50.0
+    standing_sprite: ~
+    walking_sprite: ~

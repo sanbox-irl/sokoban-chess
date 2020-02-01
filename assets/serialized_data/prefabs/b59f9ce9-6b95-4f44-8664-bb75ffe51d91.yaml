@@ -1,0 +1,46 @@
+---
+id: b59f9ce9-6b95-4f44-8664-bb75ffe51d91
+marker: ~
+name:
+  - name: Entity NPC Bang
+  - true
+transform:
+  - local_position:
+      x: 0.0
+      y: 10.0
+    world_position:
+      x: 0.0
+      y: 0.0
+    parent:
+      target_serialized_id: ~
+  - true
+graph_node: ~
+velocity: ~
+sprite:
+  - sprite_name: BangUI
+    serialized_running_data:
+      draw_order:
+        draw_layer: Foreground
+        order: 0
+      facing_horizontal: Right
+      facing_vertical: Up
+      scale:
+        x: 1.0
+        y: 1.0
+      tint:
+        r: 1.0
+        g: 0.9999899864196777
+        b: 0.9999973773956299
+        a: 1.0
+      current_frame: 0
+      frame_time: 0.05627012997865677
+      is_animating: true
+  - true
+sound_source: ~
+draw_rectangle: ~
+bounding_box: ~
+text_source: ~
+tilemap: ~
+follow: ~
+conversant_npc: ~
+prefab_marker: ~

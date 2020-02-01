@@ -1,0 +1,134 @@
+---
+normal_npc:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 473951936
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 474011183
+kenny_player_up:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185419679
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185510874
+bang_ui:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 473440886
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 473500371
+exclamation:
+  created:
+    secs_since_epoch: 1575123109
+    nanos_since_epoch: 950928100
+  modified:
+    secs_since_epoch: 1575123109
+    nanos_since_epoch: 952881300
+link:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185791850
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 186725616
+kenny_player_left:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 184717178
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 184824347
+white_pixel:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 189385891
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 189485908
+pixel_main_character_walking:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 474763632
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 474843621
+pixel_main_character:
+  created:
+    secs_since_epoch: 1574269385
+    nanos_since_epoch: 258405400
+  modified:
+    secs_since_epoch: 1574877961
+    nanos_since_epoch: 969846600
+zelda:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 186844826
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 188788891
+speech_bubble:
+  created:
+    secs_since_epoch: 1575525128
+    nanos_since_epoch: 407513022
+  modified:
+    secs_since_epoch: 1575525128
+    nanos_since_epoch: 407775402
+pixel_green_walls:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 475138664
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 475220799
+hook_ui:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 473608255
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 473663330
+pixel_main_character_standing:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 474360228
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 474486709
+pixel_green_floors:
+  created:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 474993825
+  modified:
+    secs_since_epoch: 1575174516
+    nanos_since_epoch: 475060701
+center_dot:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185652375
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185719252
+hook:
+  created:
+    secs_since_epoch: 1575123155
+    nanos_since_epoch: 918728400
+  modified:
+    secs_since_epoch: 1575123155
+    nanos_since_epoch: 919726200
+kenny_player_down:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 184256434
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 184468627
+kenny_player_right:
+  created:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185043573
+  modified:
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 185201287
