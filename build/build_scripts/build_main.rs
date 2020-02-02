@@ -19,11 +19,6 @@ fn main() -> Result<(), Error> {
     shader_builder::build()?;
     sprite_packer::pack_sprites()?;
 
-
-    
-
-
-
     Ok(())
 }
 
@@ -39,7 +34,7 @@ fn initiate_logging() -> Result<(), Error> {
 
     log4rs::init_config(config)?;
 
-    
-
     Ok(())
 }
+
+

@@ -20,8 +20,14 @@ use strum_macros::{Display, EnumCount, EnumIter, EnumString};
 pub enum SpriteName {
     WhitePixel,
     Background,
-    PixelMainCharacterWalking,
     PixelMainCharacterStanding,
+    PlayerDead,
+    Grass,
+    Block,
+    Fire,
+    Flag,
+    PushableBlock,
+    Wall,
 }
 
 impl SpriteName {

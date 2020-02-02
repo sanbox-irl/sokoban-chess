@@ -29,7 +29,6 @@ impl Sprite {
     fn reset_animation(&mut self) {
         self.running_data.current_frame = 0;
         self.running_data.frame_time = 0.0;
-        self.running_data.is_animating = true;
     }
 
     // pub fn origin(&self) -> Option<Origin> {

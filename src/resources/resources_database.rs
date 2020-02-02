@@ -15,12 +15,14 @@ use super::{
 };
 use strum::IntoEnumIterator;
 
+pub type PrefabMap = std::collections::HashMap<uuid::Uuid, SerializedEntity>;
+
 pub struct ResourcesDatabase {
     pub sprites: HashMap<SpriteName, SpriteData>,
     pub tilesets: HashMap<TileSetName, TileSet>,
     pub sounds: HashMap<SoundResource, Cursor<&'static [u8]>>,
     pub fonts: HashMap<FontName, FontData>,
-    pub prefabs: HashMap<uuid::Uuid, SerializedEntity>,
+    pub prefabs: PrefabMap,
     pub config: Config,
 }
 

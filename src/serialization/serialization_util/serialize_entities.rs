@@ -20,6 +20,7 @@ pub fn process_serialized_command(
     command: ImGuiSerializationDataCommand,
     component_database: &mut ComponentDatabase,
     singleton_database: &mut SingletonDatabase,
+    prefab_map: &PrefabMap,
 ) {
     match command {
         ImGuiSerializationDataCommand::Revert(serialized_entity) => {
@@ -31,6 +32,7 @@ pub fn process_serialized_command(
                 entity,
                 serialized_entity,
                 &mut singleton_database.associated_entities,
+                prefab_map,
             );
         }
         ImGuiSerializationDataCommand::Overwrite => {

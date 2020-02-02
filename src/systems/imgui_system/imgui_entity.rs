@@ -27,14 +27,18 @@ pub fn entity_list(
 
             // PREFABS
             if let Some(prefab_submenu) = ui.begin_menu(im_str!("Instantiate Prefabs"), true) {
-                for prefab in resources.prefabs.values_mut() {
-                    let name = match &mut prefab.name {
-                        Some((name, _)) => im_str!("{}##EntityInspector", &name.name),
-                        None => im_str!("ID: {}##EntityInspector", prefab.id),
+                for (prefab_id, prefab) in resources.prefabs.iter() {
+                    let name = match &prefab.name {
+                        Some((name, _)) => im_str!("{}##MenuItem", &name.name),
+                        None => im_str!("ID: {}##MenuItem", prefab.id),
                     };
 
                     if imgui::MenuItem::new(&name).build(ui) {
-                        prefabs::instantiate_prefab(prefab, ecs);
+                        prefab_system::create_new_prefab_entity(
+                            ecs,
+                            *prefab_id,
+                            &resources.prefabs,
+                        );
                     }
                 }
 

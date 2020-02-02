@@ -2,7 +2,7 @@
 id: 582159aa-b4f0-4fbd-bdb3-e7dca0b280db
 marker: ~
 name:
-  - name: PlayerPrefab
+  - name: Player - Prefab
   - true
 player:
   - standing_sprite: PixelMainCharacterStanding

@@ -26,88 +26,8 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
-- id: f1e3580a-0338-4a7e-80b4-102980cbf9a4
-  marker: ~
-  name:
-    - name: Player
-    - true
-  player:
-    - standing_sprite: PixelMainCharacterStanding
-    - true
-  transform:
-    - local_position:
-        x: 8.0
-        y: 8.0
-      world_position:
-        x: 8.0
-        y: 8.0
-      parent:
-        target_serialized_id: ~
-    - true
-  graph_node: ~
-  velocity:
-    - velocity:
-        x: 0.0
-        y: 0.0
-    - true
-  sprite:
-    - sprite_name: PixelMainCharacterStanding
-      running_data:
-        draw_order:
-          draw_layer: Instance
-          order: 0
-        facing_horizontal: Right
-        facing_vertical: Up
-        scale:
-          x: 1.0
-          y: 1.0
-        tint:
-          r: 1.0
-          g: 1.0
-          b: 1.0
-          a: 1.0
-        current_frame: 0
-        frame_time: 0.08613549172878266
-        is_animating: true
-    - true
-  sound_source: ~
-  draw_rectangle:
-    - rect:
-        min:
-          x: -4.5
-          y: -5.0
-        max:
-          x: 4.5
-          y: -2.0
-      draw_order:
-        draw_layer: Instance
-        order: 0
-      tint:
-        r: 1.0
-        g: 1.0
-        b: 1.0
-        a: 0.03921568766236305
-      bind_to_bounding_box: true
-    - false
-  bounding_box:
-    - rect:
-        min:
-          x: -4.5
-          y: -5.0
-        max:
-          x: 4.5
-          y: -2.0
-      bind_to_sprite: false
-    - true
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker:
-    - id: 582159aa-b4f0-4fbd-bdb3-e7dca0b280db
-    - true
 - id: e5738cea-262f-40a7-aad5-e78d0f66026e
-  marker: ~
+  marker: ExemptFromGrid
   name:
     - name: BackgroundUI
     - true
@@ -166,14 +86,48 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
-- id: eb80395b-ab30-4be1-90ec-962a6ed517c3
+- id: 905c4f1f-da04-462c-ae09-e420abe4c296
   marker: ~
-  name: ~
-  player: ~
-  transform: ~
+  name:
+    - name: Player
+    - true
+  player:
+    - standing_sprite: ~
+    - true
+  transform:
+    - local_position:
+        x: 16.0
+        y: 40.0
+      world_position:
+        x: 16.0
+        y: 40.0
+      parent:
+        target_serialized_id: ~
+    - true
   graph_node: ~
-  velocity: ~
-  sprite: ~
+  velocity:
+    - intended_direction: ~
+    - true
+  sprite:
+    - sprite_name: PixelMainCharacterStanding
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.3985030949115753
+        is_animating: true
+    - true
   sound_source: ~
   draw_rectangle: ~
   bounding_box: ~
@@ -181,6 +135,54 @@
   tilemap: ~
   follow: ~
   conversant_npc: ~
-  prefab_marker:
-    - id: 582159aa-b4f0-4fbd-bdb3-e7dca0b280db
+  prefab_marker: ~
+- id: a7aa1c6e-49e6-415c-9b49-f1daafeb9008
+  marker: ~
+  name:
+    - name: Player (0)
     - true
+  player:
+    - standing_sprite: ~
+    - true
+  transform:
+    - local_position:
+        x: 8.0
+        y: 8.0
+      world_position:
+        x: 8.0
+        y: 8.0
+      parent:
+        target_serialized_id: ~
+    - true
+  graph_node: ~
+  velocity:
+    - intended_direction: ~
+    - true
+  sprite:
+    - sprite_name: PixelMainCharacterStanding
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 1
+        frame_time: 0.10925561934709549
+        is_animating: true
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~

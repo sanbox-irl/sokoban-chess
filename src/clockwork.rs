@@ -1,11 +1,13 @@
 use super::{
     systems::*, Ecs, HardwareInterface, ImGui, ImGuiDrawCommands, ResourcesDatabase, TimeKeeper,
 };
+use array2d::Array2D;
 use failure::Error;
 
 pub struct Clockwork {
     pub ecs: Ecs,
     pub action_map: ActionMap,
+    pub grid: Array2D<Option<Entity>>,
     pub hardware_interfaces: HardwareInterface,
     pub resources: ResourcesDatabase,
     pub time_keeper: TimeKeeper,
@@ -18,9 +20,16 @@ impl Clockwork {
         let mut hardware_interfaces = HardwareInterface::new(&resources.config)?;
         resources.initialize(&mut hardware_interfaces.renderer)?;
 
+        // Grid
+        let mut grid = Array2D::filled_with(None, 5, 10);
+
         // Initialize the ECS
-        let mut ecs = Ecs::new()?;
-        ecs.game_start(&mut resources, &mut hardware_interfaces)?;
+        let mut ecs = Ecs::new(&resources.prefabs)?;
+        ecs.game_start(
+            &mut resources,
+            &mut hardware_interfaces,
+            &mut grid
+        )?;
 
         // Load in the Scene Graph
         scene_graph::build_flat(
@@ -34,6 +43,7 @@ impl Clockwork {
             resources,
             action_map: ActionMap::default(),
             time_keeper: TimeKeeper::new(),
+            grid,
         })
     }
 
@@ -95,11 +105,8 @@ impl Clockwork {
 
             // Update
             while self.time_keeper.accumulator >= self.time_keeper.delta_time {
-                self.ecs.update(
-                    self.time_keeper.delta_time,
-                    &self.resources,
-                    &self.action_map,
-                )?;
+                self.ecs.update(&mut self.grid, &self.action_map)?;
+                self.ecs.update_resources(&self.resources);
                 self.time_keeper.accumulator -= self.time_keeper.delta_time;
             }
 

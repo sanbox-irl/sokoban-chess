@@ -15,7 +15,7 @@ pub fn entity_inspector(
 
         let name = {
             match component_database.names.get_mut(entity) {
-                Some(name) => im_str!("{} (Scene Entity)", &name.inner().name),
+                Some(name) => im_str!("{} (Scene Entity)##{}", &name.inner().name, entity),
                 None => im_str!("{} (Scene Entity)", entity),
             }
         };
@@ -140,9 +140,18 @@ pub fn entity_inspector(
 
                     // ADD COMPONENT?
                     // @update_components
+                    add_component_quick!(players);
+
+                    if let Some(new_transform) =
+                        component_add_button(ui, &mut component_database.transforms, entity)
+                    {
+                        scene_graph::add_to_scene_graph(
+                            new_transform,
+                            &mut component_database.serialization_data,
+                        );
+                    }
+
                     add_component_quick!(
-                        players,
-                        transforms,
                         velocities,
                         graph_nodes,
                         sprites,
@@ -159,6 +168,7 @@ pub fn entity_inspector(
 
                     // When we add a serialize button, we serialize the whole entity.
                     if component_add_button(ui, &mut component_database.serialization_data, entity)
+                        .is_some()
                     {
                         serialization_util::entities::serialize_entity_full(
                             entity,
@@ -185,6 +195,7 @@ pub fn entity_inspector(
                                     command,
                                     component_database,
                                     singleton_database,
+                                    &resources.prefabs,
                                 );
                             }
                             Ok(None) => {}
@@ -204,7 +215,7 @@ pub fn entity_inspector(
                     let mut prefab_to_instantiate: Option<uuid::Uuid> = None;
 
                     if imgui::MenuItem::new(im_str!("New Prefab")).build(ui) {
-                        match prefabs::create_blank_prefab(resources) {
+                        match prefab_system::create_blank_prefab(resources) {
                             Ok(uuid) => prefab_to_instantiate = Some(uuid),
                             Err(e) => error!("Couldn't create prefab: {}", e),
                         }
@@ -355,18 +366,18 @@ pub fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &m
     ui.spacing();
 }
 
-fn component_add_button<T: ComponentBounds + typename::TypeName + Default>(
+fn component_add_button<'a, T: ComponentBounds + typename::TypeName + Default>(
     ui: &mut Ui<'_>,
-    component_list: &mut ComponentList<T>,
+    component_list: &'a mut ComponentList<T>,
     entity: &Entity,
-) -> bool {
+) -> Option<&'a mut Component<T>> {
     if imgui::MenuItem::new(&imgui::ImString::new(imgui_utility::typed_text_ui::<T>()))
         .enabled(component_list.get(entity).is_none())
         .build(ui)
     {
         component_list.set(entity, Component::new(entity, T::default()));
-        true
+        Some(component_list.get_mut(entity).unwrap())
     } else {
-        false
+        None
     }
 }

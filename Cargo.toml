@@ -36,6 +36,7 @@ clockwork_build_shared = { path = "build/clockwork_build_shared" }
 glyph_brush = "0.6.1"
 num-traits = "0.2"
 num-derive = "0.3"
+array2d = "0.2.1"
 
 [patch.crates-io]
 winit = { git = 'https://github.com/rust-windowing/winit.git' }

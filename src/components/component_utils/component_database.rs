@@ -1,4 +1,6 @@
 use super::*;
+use std::collections::HashMap;
+use uuid::Uuid;
 
 #[derive(Default)]
 pub struct ComponentDatabase {
@@ -25,6 +27,7 @@ impl ComponentDatabase {
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
+        prefabs: &HashMap<Uuid, SerializedEntity>,
     ) -> Result<ComponentDatabase, failure::Error> {
         // CFG if
         if update_serialization::UPDATE_COMPONENT_DATABASE {
@@ -38,12 +41,13 @@ impl ComponentDatabase {
         for s_entity in saved_entities {
             let new_entity =
                 Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
-            component_database.load_serialized_entity(&new_entity, s_entity, marker_map);
+            component_database.load_serialized_entity(&new_entity, s_entity, marker_map, prefabs);
         }
 
         // Post-Deserialization Work...
         // @update_components
         // @techdebt This probably can turn into a trait on a ComponentBound
+
         for af in component_database.follows.iter_mut() {
             af.inner_mut()
                 .target
@@ -164,11 +168,15 @@ impl ComponentDatabase {
         f(&mut self.serialization_data);
     }
 
+    /// We can load anything using this function. The key thing to note here,
+    /// however, is that this adds a SerializationData marker to whatever is being
+    /// loaded. Ie -- if you load something with this function, it is now serialized.
     pub fn load_serialized_entity(
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,
-        marker_map: &mut std::collections::HashMap<Marker, Entity>,
+        marker_map: &mut HashMap<Marker, Entity>,
+        prefabs: &HashMap<Uuid, SerializedEntity>,
     ) {
         // Make a serialization data thingee on it...
         self.serialization_data.set(
@@ -179,19 +187,42 @@ impl ComponentDatabase {
             ),
         );
 
-        // Singleton Components
-        if let Some(singleton_marker) = serialized_entity.marker {
-            marker_map.insert(singleton_marker, *entity);
+        // If it's got a prefab, load the prefab. Otherwise,
+        // load it like a normal serialized entity:
+        if let Some((prefab_marker, _)) = &serialized_entity.prefab_marker {
+            self.load_serialized_prefab(entity, &prefab_marker.id, prefabs);
+        } else {
+            // Singleton Components
+            if let Some(singleton_marker) = serialized_entity.marker {
+                marker_map.insert(singleton_marker, *entity);
+            }
+
+            self.load_serialized_entity_into_database(entity, serialized_entity);
         }
-
-        self.load_serialized_entity_into_database(entity, serialized_entity);
     }
 
-    pub fn load_prefab(&mut self, entity: &Entity, serialized_entity: SerializedEntity) {
-        self.load_serialized_entity_into_database(entity, serialized_entity);
+    /// This function loads a prefab directly. Note though, it will not make the resulting
+    /// Scene Entity be serialized. To do that, please use `load_serialized_entity`, which
+    /// will load the prefab and keep it serialized.
+    ///
+    /// This function should be used by editor code to instantiate a prefab!
+    pub fn load_serialized_prefab(
+        &mut self,
+        entity_to_load_into: &Entity,
+        prefab_id: &Uuid,
+        prefabs: &HashMap<Uuid, SerializedEntity>,
+    ) {
+        if let Some(serialized_data) = prefabs.get(&prefab_id) {
+            self.load_serialized_entity_into_database(entity_to_load_into, serialized_data.clone());
+        }
     }
 
-    fn load_serialized_entity_into_database(
+    /// This directly loads a serialized entity into the Ecs. Be careful with this function,
+    /// as it does only exactly that. Remember that SerializedEntities do not have a SerializedData
+    /// component on them -- we make that for them in `load_serialized_entity`. Maybe we shouldn't do that...
+
+    /// Generally, prefer `load_serialized_entity` or `instantiate_prefab` over this.
+    pub fn load_serialized_entity_into_database(
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,

@@ -1,5 +1,5 @@
 use super::{
-    ComponentList, Entity, GraphNode, Name, NameInspectorParameters, PrefabMarker,
+    Component, ComponentList, Entity, GraphNode, Name, NameInspectorParameters, PrefabMarker,
     SerializationData, Transform, Vec2,
 };
 use lazy_static::lazy_static;
@@ -9,6 +9,16 @@ lazy_static! {
     pub static ref ROOT_NODES: Mutex<GraphNode> = Mutex::new(GraphNode {
         children: Some(vec![])
     });
+}
+
+pub fn add_to_scene_graph(
+    transform_c: &mut Component<Transform>,
+    serializations: &ComponentList<SerializationData>,
+) {
+    ROOT_NODES
+        .lock()
+        .unwrap()
+        .add_child_directly(None, transform_c, serializations);
 }
 
 pub fn build_flat(

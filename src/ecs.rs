@@ -24,15 +24,19 @@ pub struct Ecs {
 }
 
 impl Ecs {
-    pub fn new() -> Result<Self, Error> {
+    pub fn new(prefabs: &PrefabMap) -> Result<Self, Error> {
         // Es and Cs
         let mut entity_allocator = EntityAllocator::new();
         let mut entities = Vec::new();
 
         // Deserialize Entities and Singletons
         let mut marker_map = std::collections::HashMap::new();
-        let component_database =
-            ComponentDatabase::new(&mut entity_allocator, &mut entities, &mut marker_map)?;
+        let component_database = ComponentDatabase::new(
+            &mut entity_allocator,
+            &mut entities,
+            &mut marker_map,
+            prefabs,
+        )?;
 
         let singleton_database = SingletonDatabase::new(marker_map)?;
 
@@ -54,6 +58,7 @@ impl Ecs {
         &mut self,
         resources: &mut ResourcesDatabase,
         hardware_interfaces: &mut HardwareInterface,
+        grid: &mut grid_system::Grid,
     ) -> Result<(), Error> {
         self.singleton_database
             .initialize_with_runtime_resources(resources, hardware_interfaces);
@@ -62,21 +67,40 @@ impl Ecs {
             &mut self.component_database.tilemaps,
             &resources.tilesets,
         );
-        conversant_npc_system::initialize_conv_npc_ui(self, resources);
+
+        player_system::initialize_players(
+            &mut self.component_database.players,
+            &mut self.component_database.sprites,
+        );
+
+        grid_system::initialize_transforms(
+            &mut self.component_database.transforms,
+            grid,
+            &self.singleton_database.associated_entities,
+        );
+
         Ok(())
     }
 
     pub fn update(
         &mut self,
-        delta_time: f32,
-        resources: &ResourcesDatabase,
+        grid: &mut grid_system::Grid,
         actions: &ActionMap,
     ) -> Result<(), Error> {
         // // Player Stuff
         player_system::player_update(
             &mut self.component_database.players,
-            &mut self.component_database.transforms,
+            &mut self.component_database.sprites,
+            &mut self.component_database.velocities,
             actions,
+        );
+
+        // Movement Stuff
+        grid_system::update_grid_positions(
+            &mut self.component_database.transforms,
+            &mut self.component_database.velocities,
+            &self.component_database.players,
+            grid,
         );
 
         // let camera_associated_entity = self
@@ -93,9 +117,11 @@ impl Ecs {
         //     &hardware_interfaces.input,
         // );
 
-        cross_cutting_system::cross_cutting_system(self, resources);
-
         Ok(())
+    }
+
+    pub fn update_resources(&mut self, resources: &ResourcesDatabase) {
+        cross_cutting_system::cross_cutting_system(self, resources);
     }
 
     pub fn render<'a, 'b>(

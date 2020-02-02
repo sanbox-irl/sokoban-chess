@@ -17,7 +17,7 @@ pub mod bounding_circle;
 pub mod component_database;
 pub mod component_traits;
 pub mod draw_layer;
-pub mod prefabs;
+
 pub use approach::Approach;
 pub use draw_commands::*;
 pub use edit_mode::EditingMode;

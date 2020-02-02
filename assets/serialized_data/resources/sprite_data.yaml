@@ -8,3 +8,11 @@
   frame_durations:
     - 0.6000000238418579
     - 0.6000000238418579
+- sprite_name: PlayerDead
+  origin:
+    horizontal: Left
+    vertical: Top
+  facing_horizontal: Right
+  facing_vertical: Up
+  frame_durations:
+    - 0.10000000149011612

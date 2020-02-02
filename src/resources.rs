@@ -8,6 +8,6 @@ mod sound_resource;
 pub mod sprite_resources;
 pub mod tile_resources;
 
-pub use resources_database::ResourcesDatabase;
+pub use resources_database::{PrefabMap, ResourcesDatabase};
 pub use scene_name::SceneName;
 pub use sound_resource::SoundResource;
