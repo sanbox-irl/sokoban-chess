@@ -114,10 +114,13 @@ impl ComponentDatabase {
             component_list: &mut ComponentList<T>,
             original: &Entity,
             new_entity: &Entity,
-        ) {
+        ) -> bool {
             if component_list.get(original).is_some() {
                 let new_component = component_list.get(original).unwrap().inner().clone();
                 component_list.set(new_entity, Component::new(new_entity, new_component));
+                true
+            } else {
+                false
             }
         }
 
@@ -125,7 +128,12 @@ impl ComponentDatabase {
         clone_list_entry(&mut self.names, original, new_entity);
         clone_list_entry(&mut self.grid_objects, original, new_entity);
         clone_list_entry(&mut self.prefab_markers, original, new_entity);
-        clone_list_entry(&mut self.transforms, original, new_entity);
+        if clone_list_entry(&mut self.transforms, original, new_entity) {
+            scene_graph::add_to_scene_graph(
+                self.transforms.get_mut(new_entity).unwrap(),
+                &self.serialization_data,
+            )
+        }
         clone_list_entry(&mut self.players, original, new_entity);
         clone_list_entry(&mut self.graph_nodes, original, new_entity);
         clone_list_entry(&mut self.sprites, original, new_entity);

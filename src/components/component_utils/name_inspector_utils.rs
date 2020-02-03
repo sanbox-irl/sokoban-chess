@@ -43,12 +43,13 @@ impl Default for EntityListInformation {
         EntityListInformation {
             open: false,
             color: Color::WHITE,
-            edit_name: false,
+            edit_name: NameEdit::NoEdit,
             new_name: None,
         }
     }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum NameEdit {
     First,
     Editing,

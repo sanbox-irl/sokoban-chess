@@ -50,8 +50,8 @@ impl SerializationData {
         }
 
         // @update_components
-        // names is omitted
         serialization_option_quick!(
+            [names, name],
             [players, player],
             [transforms, transform],
             [grid_objects, grid_object]

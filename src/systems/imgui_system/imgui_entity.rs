@@ -96,10 +96,12 @@ pub fn entity_list(
         }
 
         if let Some(original) = entity_to_clone {
+            info!("Attempting to clone...");
             ecs.clone_entity(&original);
         }
 
         if let Some(entity_to_delete) = entity_to_delete {
+            info!("Attempting to delete...");
             ecs.remove_entity(&entity_to_delete);
         }
 
@@ -176,6 +178,13 @@ fn display_entity_id(
         } else {
             ui_handler.stored_ids.insert(entity.clone());
         }
+    }
+
+    // Should we change the name?
+    if let Some(new_name) = result.serialize_name {
+        info!("Guah!");
+        let name_component = names.get_mut_or_default(entity);
+        name_component.inner_mut().name = new_name;
     }
 
     result.show_children

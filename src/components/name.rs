@@ -1,7 +1,10 @@
 use super::{
-    component_utils::{EntityListInformation, NameInspectorParameters, NameInspectorResult},
+    component_utils::{
+        EntityListInformation, NameEdit, NameInspectorParameters, NameInspectorResult,
+    },
     imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
 };
+use imgui::im_str;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
@@ -81,9 +84,9 @@ impl Name {
         ui.same_line(0.0);
 
         // Actually Name:
-        if eli.edit_name {
+        if eli.edit_name != NameEdit::NoEdit {
             let mut current_name = imgui::im_str!("{}", name);
-            ui.set_keyboard_focus_here(imgui::FocusedWidget::Next);
+
             if ui
                 .input_text(&imgui::im_str!("##New Name{}", uid), &mut current_name)
                 .build()
@@ -91,12 +94,9 @@ impl Name {
                 eli.new_name = Some(current_name.to_string());
             }
 
-            if ui.is_item_active() == false {
-                info!("Not active...");
-                if ui.is_item_activated() == false {
-                    info!("It ain't active...");
-                    // eli.edit_name = false;
-                }
+            if ui.is_item_deactivated_after_edit() {
+                eli.edit_name = NameEdit::NoEdit;
+                eli.new_name = Some(current_name.to_string());
             }
         } else {
             ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
@@ -118,12 +118,20 @@ impl Name {
 
         // Rename on Double Click
         if ui.is_item_hovered() && ui.is_mouse_double_clicked(imgui::MouseButton::Left) {
-            eli.edit_name = true;
+            eli.edit_name = NameEdit::First;
             eli.new_name = Some(name.to_string());
         }
 
         // Clone and Delete will be here!
-        imgui_system::right_click_popup(ui, uid, || {});
+        imgui_system::right_click_popup(ui, uid, || {
+            if ui.button(&im_str!("Clone##{}", uid), [0.0, 0.0]) {
+                res.clone = true;
+            }
+
+            if ui.button(&im_str!("Delete##{}", uid), [0.0, 0.0]) {
+                res.delete = true;
+            }
+        });
 
         res
     }

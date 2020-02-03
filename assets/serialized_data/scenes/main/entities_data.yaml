@@ -239,3 +239,54 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
+- id: 10cc1e45-e75d-4d9c-91d6-5f15c96f7322
+  marker: ~
+  name:
+    - name: Player (0)
+    - true
+  player:
+    - standing_sprite: ~
+    - true
+  transform:
+    - local_position:
+        x: 8.0
+        y: 8.0
+      world_position:
+        x: 8.0
+        y: 8.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: PixelMainCharacterStanding
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.10925561934709549
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
