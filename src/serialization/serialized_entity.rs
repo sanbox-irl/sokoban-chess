@@ -1,7 +1,8 @@
 use super::{
     component_serialization::*, physics_components::*, Component, ComponentBounds,
-    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, Marker, Name,
-    Player, PrefabMarker, SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
+    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker,
+    Name, Player, PrefabMarker, SingletonDatabase, SoundSource, Sprite, TextSource, Transform,
+    Velocity,
 };
 use uuid::Uuid;
 
@@ -16,6 +17,7 @@ pub struct SerializedEntity {
     pub name: SerializedComponentWrapper<Name>,
     pub player: SerializedComponentWrapper<Player>,
     pub transform: SerializedComponentWrapper<Transform>,
+    pub grid_object: SerializedComponentWrapper<GridObject>,
     pub graph_node: SerializedComponentWrapper<GraphNode>,
     pub velocity: SerializedComponentWrapper<Velocity>,
     pub sprite: SerializedComponentWrapper<Sprite>,
@@ -65,9 +67,9 @@ impl SerializedEntity {
                     }
                     (gn, is_active)
                 }),
+                grid_object: Self::clone_component(component_database.grid_objects.get(entity_id)),
                 velocity: Self::clone_component(component_database.velocities.get(entity_id)),
-                sprite: Self::clone_component(component_database.sprites.get(entity_id))
-                    .map(|spr| (spr.0.into(), spr.1)),
+                sprite: Self::clone_component(component_database.sprites.get(entity_id)),
                 draw_rectangle: Self::clone_component(component_database.draw_rectangles.get(entity_id)),
                 sound_source: Self::clone_component(component_database.sound_sources.get(entity_id)),
                 bounding_box: Self::clone_component(component_database.bounding_boxes.get(entity_id)),

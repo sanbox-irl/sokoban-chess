@@ -99,7 +99,7 @@ impl Ecs {
         grid_system::update_grid_positions(
             &mut self.component_database.transforms,
             &mut self.component_database.velocities,
-            &self.component_database.players,
+            &self.component_database.grid_objects,
             grid,
         );
 

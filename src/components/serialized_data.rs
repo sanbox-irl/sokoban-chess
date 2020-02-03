@@ -51,7 +51,11 @@ impl SerializationData {
 
         // @update_components
         // names is omitted
-        serialization_option_quick!([players, player], [transforms, transform]);
+        serialization_option_quick!(
+            [players, player],
+            [transforms, transform],
+            [grid_objects, grid_object]
+        );
 
         self.serialization_option(
             ui,

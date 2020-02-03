@@ -69,7 +69,7 @@ pub fn sprite_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandl
             );
 
             // Texture page fun times!
-            if let Some(_) = sprite_data.texture_page {
+            if sprite_data.texture_page.is_some() {
                 let l = sprite_data.frames.len();
 
                 if l > 1 {
@@ -181,7 +181,7 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
                 &unique_id,
                 &mut this_tileset.physics_data.bounding_boxes,
                 |bounding_boxes| {
-                    if bounding_boxes.len() == 0 {
+                    if bounding_boxes.is_empty() {
                         for _ in 0..tileset_size as usize {
                             bounding_boxes.push(physics_components::RelativeBoundingBox::default());
                         }
@@ -345,7 +345,7 @@ pub fn prefab_entity_viewer(
                     Vec2::ZERO,
                 );
                 if pressed {
-                    prefab_to_clone = Some(prefab.id.clone());
+                    prefab_to_clone = Some(prefab.id);
                 }
 
                 size
@@ -360,7 +360,7 @@ pub fn prefab_entity_viewer(
                     Vec2::ZERO,
                 );
                 if pressed {
-                    prefab_to_delete = Some(prefab.id.clone());
+                    prefab_to_delete = Some(prefab.id);
                 }
                 size
             };

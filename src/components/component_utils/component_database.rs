@@ -8,6 +8,7 @@ pub struct ComponentDatabase {
     pub prefab_markers: ComponentList<PrefabMarker>,
     pub transforms: ComponentList<Transform>,
     pub players: ComponentList<Player>,
+    pub grid_objects: ComponentList<GridObject>,
     pub graph_nodes: ComponentList<GraphNode>,
     pub velocities: ComponentList<Velocity>,
     pub sprites: ComponentList<Sprite>,
@@ -122,6 +123,7 @@ impl ComponentDatabase {
 
         // @update_components
         clone_list_entry(&mut self.names, original, new_entity);
+        clone_list_entry(&mut self.grid_objects, original, new_entity);
         clone_list_entry(&mut self.prefab_markers, original, new_entity);
         clone_list_entry(&mut self.transforms, original, new_entity);
         clone_list_entry(&mut self.players, original, new_entity);
@@ -154,6 +156,7 @@ impl ComponentDatabase {
         f(&mut self.prefab_markers);
         f(&mut self.names);
         f(&mut self.transforms);
+        f(&mut self.grid_objects);
         f(&mut self.players);
         f(&mut self.graph_nodes);
         f(&mut self.velocities);
@@ -227,6 +230,7 @@ impl ComponentDatabase {
         entity: &Entity,
         serialized_entity: SerializedEntity,
     ) {
+        // @update_components
         let SerializedEntity {
             bounding_box,
             conversant_npc,
@@ -244,6 +248,7 @@ impl ComponentDatabase {
             velocity,
             graph_node,
             player,
+            grid_object,
         } = serialized_entity;
 
         // Helper macro
@@ -262,6 +267,7 @@ impl ComponentDatabase {
         transfer_serialized_components!(prefab_marker, prefab_markers);
         transfer_serialized_components!(name, names);
         transfer_serialized_components!(transform, transforms);
+        transfer_serialized_components!(grid_object, grid_objects);
         transfer_serialized_components!(player, players);
         transfer_serialized_components!(graph_node, graph_nodes);
         transfer_serialized_components!(sound_source, sound_sources);

@@ -141,15 +141,14 @@ fn build_text(
                             glyph_vert.pixel_coords.height() as f32,
                         );
 
-                        let ret = StandardQuad {
+                         StandardQuad {
                             pos,
                             image_size,
                             texture_info: TextureDescription::Standard(standard_tex),
 
                             color: super::Color::default(),
                             draw_order: super::DrawOrder::default(),
-                        };
-                        ret
+                        }
                     },
                 );
 

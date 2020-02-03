@@ -33,15 +33,23 @@ impl Vertex {
     }
 }
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
 pub const QUAD_VERTICES: [Vertex; 4] = [
-    Vertex { xyz: [0.0, 0.0, 0.0], uv: [0.0, 1.0] }, /* bottom left */
-    Vertex { xyz: [0.0, 1.0, 0.0], uv: [0.0, 0.0] }, /* top left */
-    Vertex { xyz: [1.0, 0.0, 0.0], uv: [1.0, 1.0] }, /* bottom right */
-    Vertex { xyz: [1.0, 1.0, 0.0], uv: [1.0, 0.0] }, /* top right */
+    Vertex {
+        xyz: [0.0, 0.0, 0.0],
+        uv: [0.0, 1.0],
+    }, /* bottom left */
+    Vertex {
+        xyz: [0.0, 1.0, 0.0],
+        uv: [0.0, 0.0],
+    }, /* top left */
+    Vertex {
+        xyz: [1.0, 0.0, 0.0],
+        uv: [1.0, 1.0],
+    }, /* bottom right */
+    Vertex {
+        xyz: [1.0, 1.0, 0.0],
+        uv: [1.0, 0.0],
+    }, /* top right */
 ];
 
-#[cfg_attr(rustfmt, rustfmt_skip)]
-pub const QUAD_INDICES: [u16; 6] = [
-    0,  1,  2,  2,  1,  3,
-];
+pub const QUAD_INDICES: [u16; 6] = [0, 1, 2, 2, 1, 3];

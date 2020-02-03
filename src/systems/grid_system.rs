@@ -1,6 +1,6 @@
 use super::{
-    cardinals::CardinalPrime, Component, ComponentList, Entity, Marker, Player, Transform, Vec2,
-    Velocity,
+    cardinals::CardinalPrime, Component, ComponentList, Entity, GridObject, GridType, Marker,
+    Transform, Vec2, Velocity,
 };
 use array2d::Array2D;
 
@@ -15,7 +15,7 @@ pub type Grid = Array2D<Option<Entity>>;
 pub fn update_grid_positions(
     transforms: &mut ComponentList<Transform>,
     velocities: &mut ComponentList<Velocity>,
-    players: &ComponentList<Player>,
+    grid_objects: &ComponentList<GridObject>,
     grid: &mut Grid,
 ) {
     // Core movement:
@@ -27,9 +27,26 @@ pub fn update_grid_positions(
                     world_to_grid_position(transform.inner_mut().world_position());
 
                 if let Some(valid_next_position) = move_position(current_position, movement) {
+                    let mut move_to_spot = true;
+
+                    // Check the Entity
                     if let Some(entity_in_grid) = grid[valid_next_position] {
-                        // Check if we can move on the entity...I guess?
-                    } else {
+                        if let Some(grid) = grid_objects.get(&entity_in_grid) {
+                            match grid.inner().grid_type() {
+                                GridType::Pushable => {
+                                    // Attempt to execute push..
+                                }
+                                GridType::Blockable => {
+                                    move_to_spot = false;
+                                }
+                                GridType::NonInteractable => {
+                                    // good to go!
+                                }
+                            }
+                        }
+                    }
+
+                    if move_to_spot {
                         move_entity(transform, grid, valid_next_position, current_position);
                     }
                 } else {

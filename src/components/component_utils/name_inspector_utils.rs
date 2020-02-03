@@ -1,6 +1,7 @@
 use super::Color;
 
 pub struct NameInspectorResult {
+    pub serialize_name: Option<String>,
     pub reserialize: bool,
     pub inspect: bool,
     pub show_children: bool,
@@ -12,7 +13,7 @@ impl Default for NameInspectorResult {
     fn default() -> Self {
         Self {
             show_children: true,
-
+            serialize_name: None,
             reserialize: false,
             inspect: false,
             clone: false,
@@ -33,6 +34,8 @@ pub struct NameInspectorParameters {
 pub struct EntityListInformation {
     pub open: bool,
     pub color: Color,
+    pub edit_name: NameEdit,
+    pub new_name: Option<String>,
 }
 
 impl Default for EntityListInformation {
@@ -40,6 +43,14 @@ impl Default for EntityListInformation {
         EntityListInformation {
             open: false,
             color: Color::WHITE,
+            edit_name: false,
+            new_name: None,
         }
     }
+}
+
+pub enum NameEdit {
+    First,
+    Editing,
+    NoEdit,
 }

@@ -55,6 +55,7 @@ pub fn entity_inspector(
                 players,
                 transforms,
                 velocities,
+                grid_objects,
                 sprites,
                 sound_sources,
                 bounding_boxes,
@@ -147,12 +148,13 @@ pub fn entity_inspector(
                     {
                         scene_graph::add_to_scene_graph(
                             new_transform,
-                            &mut component_database.serialization_data,
+                            &component_database.serialization_data,
                         );
                     }
 
                     add_component_quick!(
                         velocities,
+                        grid_objects,
                         graph_nodes,
                         sprites,
                         sound_sources,
@@ -281,7 +283,7 @@ pub fn entity_inspector(
         }
 
         if is_open == false {
-            remove_this_entity = Some(entity.clone());
+            remove_this_entity = Some(*entity);
         }
     }
 

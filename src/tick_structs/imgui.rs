@@ -212,13 +212,13 @@ use bitflags::bitflags;
 bitflags! {
     #[derive(Default, Serialize, Deserialize)]
     pub struct ImGuiFlags: u32 {
-        const TIME_KEEPER           =   0b00000001;
-        const SPRITE_RESOURCE       =   0b00000010;
-        const TILEMAP_RESOURCE      =   0b00000100;
-        const ENTITY_VIEWER         =   0b00001000;
-        const SINGLETONS            =   0b00010000;
-        const GAME_CONFIG           =   0b00100000;
-        const PREFAB_INSPECTOR      =   0b01000000;
-        const MAIN_MENU_BAR         =   0b10000000;
+        const TIME_KEEPER           =   0b0000_0001;
+        const SPRITE_RESOURCE       =   0b0000_0010;
+        const TILEMAP_RESOURCE      =   0b0000_0100;
+        const ENTITY_VIEWER         =   0b0000_1000;
+        const SINGLETONS            =   0b0001_0000;
+        const GAME_CONFIG           =   0b0010_0000;
+        const PREFAB_INSPECTOR      =   0b0100_0000;
+        const MAIN_MENU_BAR         =   0b1000_0000;
     }
 }

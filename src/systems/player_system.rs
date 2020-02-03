@@ -39,12 +39,10 @@ pub fn player_update(
 
             let active_player = if active_player == -1 {
                 (players.iter().count() - 1) as isize
+            } else if active_player == players.iter().count() as isize {
+                0
             } else {
-                if active_player == players.iter().count() as isize {
-                    0
-                } else {
-                    active_player
-                }
+                active_player
             } as usize;
 
             // The Players
@@ -59,12 +57,10 @@ pub fn player_update(
                 sprites,
             );
         }
+    } else if let Some(zeroeth) = players.iter_mut().nth(0) {
+        zeroeth.inner_mut().active = true;
     } else {
-        if let Some(zeroeth) = players.iter_mut().nth(0) {
-            zeroeth.inner_mut().active = true;
-        } else {
-            log_once::error_once!("We have no active players. That seems bad.");
-        }
+        log_once::error_once!("We have no active players. That seems bad.");
     }
 }
 

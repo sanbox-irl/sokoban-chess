@@ -84,6 +84,7 @@ pub fn prefab_editor(
                 [player, players],
                 [transform, transforms],
                 [velocity, velocities],
+                [grid_object, grid_objects],
                 [sprite, sprites],
                 [sound_source, sound_sources],
                 [draw_rectangle, draw_rectangles],
@@ -233,12 +234,10 @@ fn prefab_inspector<
 
     if delete {
         PrefabComponentInspectorResult::Deleted
+    } else if change {
+        PrefabComponentInspectorResult::Update
     } else {
-        if change {
-            PrefabComponentInspectorResult::Update
-        } else {
-            PrefabComponentInspectorResult::NoChange
-        }
+        PrefabComponentInspectorResult::NoChange
     }
 }
 

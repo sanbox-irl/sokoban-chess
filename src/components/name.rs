@@ -81,23 +81,49 @@ impl Name {
         ui.same_line(0.0);
 
         // Actually Name:
-        ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
+        if eli.edit_name {
+            let mut current_name = imgui::im_str!("{}", name);
+            ui.set_keyboard_focus_here(imgui::FocusedWidget::Next);
+            if ui
+                .input_text(&imgui::im_str!("##New Name{}", uid), &mut current_name)
+                .build()
+            {
+                eli.new_name = Some(current_name.to_string());
+            }
+
+            if ui.is_item_active() == false {
+                info!("Not active...");
+                if ui.is_item_activated() == false {
+                    info!("It ain't active...");
+                    // eli.edit_name = false;
+                }
+            }
+        } else {
+            ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
+        }
 
         // Manage the color...
-        eli.color = Color::WHITE;
-        if (ui.is_item_hovered() && ui.is_mouse_down(imgui::MouseButton::Left))
-            || nip.being_inspected
-        {
+        eli.color = Color::with_u8(202, 205, 210, 255);
+        if ui.is_item_hovered() {
+            eli.color = Color::WHITE;
+        }
+        if nip.being_inspected {
             eli.color = Color::with_u8(252, 195, 108, 255); // nice orange
         }
 
+        // Inspect on Single Click
         if imgui_system::left_clicked_item(ui) {
             res.inspect = true;
         }
 
-        imgui_system::right_click_popup(ui, uid, || {
-            ui.text("Hey there lassie, this isn't done yet. But Rename, Delete, and Clone will be here..");
-        });
+        // Rename on Double Click
+        if ui.is_item_hovered() && ui.is_mouse_double_clicked(imgui::MouseButton::Left) {
+            eli.edit_name = true;
+            eli.new_name = Some(name.to_string());
+        }
+
+        // Clone and Delete will be here!
+        imgui_system::right_click_popup(ui, uid, || {});
 
         res
     }

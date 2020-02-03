@@ -126,11 +126,11 @@ fn display_entity_id(
     let name = if let Some(name) = names.get_mut(entity) {
         name.inner_mut().name.clone()
     } else {
-        format!("Entity ID {}", entity)
+        format!("ID {}", entity)
     };
 
     // Get that fucker
-    let entry = match ui_handler.entity_list_information.get_mut(entity) {
+    let mut entry = match ui_handler.entity_list_information.get_mut(entity) {
         Some(stuff) => stuff,
         None => {
             // for none stuff
@@ -140,6 +140,7 @@ fn display_entity_id(
             ui_handler.entity_list_information.get_mut(entity).unwrap()
         }
     };
+    entry.new_name = None;
 
     let result = Name::inspect(
         &name,

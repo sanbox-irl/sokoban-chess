@@ -46,8 +46,12 @@ pub fn poll_events<F>(
                 event: WindowEvent::Resized(logical),
                 ..
             } => {
-                input_component.new_frame_size = Some(Vec2::new(logical.width as f32, logical.height as f32));
-                info!("New Requested Frame Size: {:?}", input_component.new_frame_size);
+                input_component.new_frame_size =
+                    Some(Vec2::new(logical.width as f32, logical.height as f32));
+                info!(
+                    "New Requested Frame Size: {:?}",
+                    input_component.new_frame_size
+                );
             }
 
             Event::DeviceEvent {
@@ -64,7 +68,8 @@ pub fn poll_events<F>(
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
-                input_component.mouse_input.mouse_position = Vec2::new(position.x as f32, position.y as f32);
+                input_component.mouse_input.mouse_position =
+                    Vec2::new(position.x as f32, position.y as f32);
             }
 
             Event::WindowEvent {
@@ -116,14 +121,15 @@ pub fn poll_events<F>(
             }
 
             Event::WindowEvent {
-                event: WindowEvent::MouseWheel {
-                    delta: scroll_delta, ..
-                },
+                event:
+                    WindowEvent::MouseWheel {
+                        delta: scroll_delta,
+                        ..
+                    },
                 ..
             } => match scroll_delta {
                 MouseScrollDelta::PixelDelta(LogicalPosition {
-                    x: _,
-                    y: vertical_move,
+                    y: vertical_move, ..
                 }) => {
                     input_component.mouse_input.mouse_vertical_scroll_delta = -vertical_move as f32;
                 }

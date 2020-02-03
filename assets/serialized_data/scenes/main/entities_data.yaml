@@ -15,6 +15,7 @@
       parent:
         target_serialized_id: ~
     - true
+  grid_object: ~
   graph_node: ~
   velocity: ~
   sprite: ~
@@ -42,6 +43,7 @@
       parent:
         target_serialized_id: ~
     - true
+  grid_object: ~
   graph_node: ~
   velocity: ~
   sprite: ~
@@ -104,6 +106,9 @@
       parent:
         target_serialized_id: ~
     - true
+  grid_object:
+    - grid_type: Blockable
+    - true
   graph_node: ~
   velocity:
     - intended_direction: ~
@@ -125,7 +130,7 @@
           b: 1.0
           a: 1.0
         current_frame: 0
-        frame_time: 0.3985030949115753
+        frame_time: 0.5113973617553711
         is_animating: true
     - true
   sound_source: ~
@@ -154,6 +159,9 @@
       parent:
         target_serialized_id: ~
     - true
+  grid_object:
+    - grid_type: Blockable
+    - true
   graph_node: ~
   velocity:
     - intended_direction: ~
@@ -177,6 +185,51 @@
         current_frame: 1
         frame_time: 0.10925561934709549
         is_animating: true
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: a5475c41-6106-4e55-a828-2f45bab6d1ae
+  marker: ~
+  name: ~
+  player: ~
+  transform:
+    - local_position:
+        x: 24.0
+        y: 24.0
+      world_position:
+        x: 24.0
+        y: 24.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object: ~
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Grass
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
     - true
   sound_source: ~
   draw_rectangle: ~

@@ -22,7 +22,7 @@ fn bounding_box_and_sprite(
     resources: &ResourcesDatabase,
 ) {
     for this_bb in bbs.iter_mut() {
-        let this_entity_id = this_bb.entity_id.clone();
+        let this_entity_id = this_bb.entity_id;
         let this_bounding_box: &mut BoundingBox = this_bb.inner_mut();
 
         if this_bounding_box.bind_to_sprite {
@@ -48,7 +48,7 @@ fn draw_rectangle_and_bounding_box(
     bbs: &ComponentList<BoundingBox>,
 ) {
     for this_draw_rect in draw_rects.iter_mut() {
-        let this_entity_id = this_draw_rect.entity_id.clone();
+        let this_entity_id = this_draw_rect.entity_id;
         let this_draw_rect_inner: &mut DrawRectangle = this_draw_rect.inner_mut();
 
         if this_draw_rect_inner.bind_to_bounding_box {

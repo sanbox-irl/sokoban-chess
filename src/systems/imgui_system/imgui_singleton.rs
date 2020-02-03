@@ -10,7 +10,10 @@ pub fn singleton_inspector(
 ) -> bool {
     let mut is_open = true;
     let tileset_viewer_window = imgui::Window::new(imgui::im_str!("Singleton Inspector"))
-        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
+        .size(
+            Vec2::new(290.0, 400.0).into(),
+            imgui::Condition::FirstUseEver,
+        )
         .opened(&mut is_open);
 
     if let Some(window) = tileset_viewer_window.begin(&ui_handler.ui) {
@@ -24,7 +27,7 @@ pub fn singleton_inspector(
             ui_handler,
             is_open,
             |serialized, live| serialized.camera = live.clone(),
-            |serialized, live| *live = serialized.camera.clone(),
+            |serialized, live| *live = serialized.camera,
         );
 
         // inspect_this_singleton_component(
@@ -75,10 +78,9 @@ fn inspect_this_singleton_component<T: ComponentBounds, F, F2>(
                 ui_handler.stored_ids.insert(*assoc_entity);
             }
         }
-    } else {
-        if imgui_utility::sized_button(ui, &im_str!("Select Associated Entity##{}", marker_name)) {
-            ui.open_popup(&popup_name);
-        }
+    } else if imgui_utility::sized_button(ui, &im_str!("Select Associated Entity##{}", marker_name))
+    {
+        ui.open_popup(&popup_name);
     }
 
     // Inspector
@@ -100,9 +102,10 @@ fn inspect_this_singleton_component<T: ComponentBounds, F, F2>(
     // Serde
     ui.spacing();
     if imgui_utility::sized_button(ui, &im_str!("Serialize##{}", marker_name)) {
-        if let Err(e) =
-            SingletonDatabase::edit_serialized_singleton_database(singleton_component, edit_function)
-        {
+        if let Err(e) = SingletonDatabase::edit_serialized_singleton_database(
+            singleton_component,
+            edit_function,
+        ) {
             error!("Error in Serialization: {}", e);
         }
     }
