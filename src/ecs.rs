@@ -33,11 +33,6 @@ impl Ecs {
 
         let singleton_database = SingletonDatabase::new(marker_map)?;
 
-        // serialization panic guard
-        if entities.is_empty() {
-            error!("We have an empty ECS! Something probably went wrong in deserialization!");
-        }
-
         Ok(Ecs {
             entities,
             entity_allocator,
@@ -49,8 +44,8 @@ impl Ecs {
     /// The difference between GameStart and New is that everyting in initialized by now.
     pub fn game_start(
         &mut self,
-        resources: &mut ResourcesDatabase,
-        hardware_interfaces: &mut HardwareInterface,
+        resources: &ResourcesDatabase,
+        hardware_interfaces: &HardwareInterface,
         grid: &mut grid_system::Grid,
     ) -> Result<(), Error> {
         self.singleton_database

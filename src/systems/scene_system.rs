@@ -5,8 +5,8 @@ use lazy_static::lazy_static;
 use std::sync::Mutex;
 
 lazy_static! {
-    pub static ref CURRENT_SCENE: Mutex<String> = Mutex::new("Main".to_string());
-    pub static ref NEXT_SCENE: Mutex<Option<String>> = Mutex::new(None);
+    pub static ref CURRENT_SCENE: Mutex<String> = Mutex::new("NULL".to_string());
+    pub static ref NEXT_SCENE: Mutex<Option<String>> = Mutex::new(Some("Main".to_string()));
 }
 
 pub fn set_next_scene(name: &str) -> bool {

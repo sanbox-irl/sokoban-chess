@@ -19,8 +19,6 @@ impl SingletonDatabase {
             serialization_util::singleton_components::load_singleton_database()?;
 
         serialized_singletons.associated_entities = marker_map;
-
-        info!("✔ Loaded Serialized Singletons");
         Ok(serialized_singletons)
     }
 
@@ -77,15 +75,8 @@ impl SingletonDatabase {
         resources: &ResourcesDatabase,
         hwi: &super::HardwareInterface,
     ) {
-        info!("Initializing Singletons with Runtime Resources...");
-
-        info!("..Initializing Rendering Utility");
         self.rendering_utility.initialize(resources);
-
-        info!("..Initializing Singletons");
         self.camera.inner_mut().initialize_with_hwi(hwi);
-
-        info!("..Initialized Singletons")
     }
 }
 

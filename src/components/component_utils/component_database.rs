@@ -73,7 +73,6 @@ impl ComponentDatabase {
             }
         }
 
-        info!("✔ Loaded Serialized Entities");
         Ok(component_database)
     }
 

@@ -99,6 +99,9 @@ impl Clockwork {
             // RENDER
             self.pre_render()?;
             self.render(ui_handler)?;
+
+            // CHANGE SCENE?
+            self.check_scene_change(&mut imgui)?;
         }
 
         imgui.save_meta_data()?;
@@ -150,6 +153,28 @@ impl Clockwork {
         Ok(())
     }
 
+    fn check_scene_change(&mut self, imgui: &mut ImGui) -> Result<(), Error> {
+        let should_change_scene = {
+            let next_scene = scene_system::NEXT_SCENE.lock().unwrap();
+            next_scene.is_some()
+        };
+
+        if should_change_scene {
+            let (ecs, grid) =
+                Clockwork::start_scene(&mut self.resources, &mut self.hardware_interfaces)?;
+            self.ecs = ecs;
+            self.grid = grid;
+
+            // Clear up the ImGui
+            imgui.meta_data.entity_list_information.clear();
+            imgui.meta_data.entity_vec.clear();
+            imgui.meta_data.stored_ids.clear();
+            imgui.meta_data.stored_prefabs.clear();
+        }
+
+        Ok(())
+    }
+
     fn start_scene(
         resources: &mut ResourcesDatabase,
         hardware_interfaces: &mut HardwareInterface,
@@ -159,6 +184,7 @@ impl Clockwork {
             let next_scene = scene_system::NEXT_SCENE.lock().unwrap().take();
             let mut value = scene_system::CURRENT_SCENE.lock().unwrap();
             if let Some(next_scene) = next_scene {
+                info!("Loading Scene {}", next_scene);
                 *value = next_scene;
             }
         }
@@ -175,6 +201,8 @@ impl Clockwork {
             &mut ecs.component_database.transforms,
             &ecs.component_database.serialization_data,
         );
+
+        info!("..Scene Loaded!");
 
         Ok((ecs, grid))
     }

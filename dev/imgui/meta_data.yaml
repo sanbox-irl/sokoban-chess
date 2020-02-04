@@ -1,7 +1,5 @@
 ---
 flags:
   bits: 128
-stored_ids:
-  - index: 3
-    generation: 0
+stored_ids: []
 stored_prefabs: []

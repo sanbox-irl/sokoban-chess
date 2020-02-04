@@ -77,83 +77,53 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                 &im_str!("Scene: {}", &scene_system::CURRENT_SCENE.lock().unwrap()),
                 true,
             ) {
-                if let Some(switch_scene_submenu) = ui.begin_menu(im_str!("Switch Scene"), true) {
-                    let mut switch_scene_name =
-                        imgui::im_str!("{}", ui_handler.scene_changing_info.switch_scene_name);
-                    if ui
-                        .input_text(im_str!("##NoLabelAddScene"), &mut switch_scene_name)
-                        .resize_buffer(true)
-                        .build()
-                    {
-                        ui_handler.scene_changing_info.switch_scene_name =
-                            switch_scene_name.to_string();
-                    }
-
-                    ui.same_line(0.0);
-                    if ui.button(im_str!("Switch"), [0.0, 0.0]) {
-                        scene_system::set_next_scene(
-                            &ui_handler.scene_changing_info.switch_scene_name,
-                        );
-                    }
-
-                    switch_scene_submenu.end(ui);
-                }
-
-                if let Some(add_scene_submenu) = ui.begin_menu(im_str!("Create Scene"), true) {
-                    let mut create_scene =
-                        imgui::im_str!("{}", ui_handler.scene_changing_info.create_scene);
-                    if ui
-                        .input_text(im_str!("##NoLabelAddScene"), &mut create_scene)
-                        .resize_buffer(true)
-                        .build()
-                    {
-                        ui_handler.scene_changing_info.create_scene = create_scene.to_string();
-                    }
-
-                    ui.same_line(0.0);
-                    if ui.button(im_str!("Create Scene"), [0.0, 0.0]) {
-                        if let Err(e) =
-                            scene_system::create_scene(&ui_handler.scene_changing_info.create_scene)
-                        {
-                            error!(
-                                "Couldn't create Scene {}",
-                                ui_handler.scene_changing_info.create_scene
-                            );
-                            error!("E: {}", e);
-                        } else {
-                            info!("We did it!");
+                scene_change(
+                    "Switch Scene",
+                    ui,
+                    &mut ui_handler.scene_changing_info.switch_scene_name,
+                    |new_name| {
+                        if scene_system::set_next_scene(new_name) == false {
+                            error!("Couldn't switch to Scene {}", new_name);
+                            error!("Does a Scene by that name exist?");
                         }
-                    }
-                    add_scene_submenu.end(ui);
-                }
+                    },
+                );
 
-                if let Some(delete_scene_submenu) = ui.begin_menu(im_str!("Delete Scene"), true) {
-                    let mut delete_scene_name =
-                        imgui::im_str!("{}", ui_handler.scene_changing_info.delete_scene_name);
-                    if ui
-                        .input_text(im_str!("##NoLabelAddScene"), &mut delete_scene_name)
-                        .resize_buffer(true)
-                        .build()
-                    {
-                        ui_handler.scene_changing_info.delete_scene_name =
-                            delete_scene_name.to_string();
-                    }
-
-                    ui.same_line(0.0);
-                    if ui.button(im_str!("Delete Scene"), [0.0, 0.0]) {
-                        if let Err(e) = scene_system::delete_scene(
-                            &ui_handler.scene_changing_info.delete_scene_name,
-                        ) {
-                            error!(
-                                "Couldn't create Scene {}",
-                                ui_handler.scene_changing_info.delete_scene_name
-                            );
+                scene_change(
+                    "Create Scene",
+                    ui,
+                    &mut ui_handler.scene_changing_info.switch_scene_name,
+                    |new_name| match scene_system::create_scene(new_name) {
+                        Ok(made_scene) => {
+                            if made_scene == false {
+                                error!("Couldn't create Scene {}", new_name);
+                                error!("Does another scene already exist with that name?");
+                            }
+                        }
+                        Err(e) => {
+                            error!("Couldn't create Scene {}", new_name);
                             error!("E: {}", e);
                         }
-                    }
+                    },
+                );
 
-                    delete_scene_submenu.end(ui);
-                }
+                scene_change(
+                    "Delete Scene",
+                    ui,
+                    &mut ui_handler.scene_changing_info.switch_scene_name,
+                    |new_name| match scene_system::delete_scene(&new_name) {
+                        Ok(deleted_scene) => {
+                            if deleted_scene == false {
+                                error!("Couldn't delete Scene {}", new_name);
+                                error!("Does a Scene with that name exist?");
+                            }
+                        }
+                        Err(e) => {
+                            error!("Couldn't delete Scene {}", new_name);
+                            error!("E: {}", e);
+                        }
+                    },
+                );
 
                 menu.end(ui);
             }
@@ -237,5 +207,32 @@ fn menu_option(
         .build(ui)
     {
         flags_to_change.toggle(flag);
+    }
+}
+
+fn scene_change<F: Fn(&str)>(
+    prompt: &str,
+    ui: &imgui::Ui<'_>,
+    scene_name: &mut String,
+    on_click: F,
+) {
+    let im_prompt = imgui::ImString::new(prompt);
+
+    if let Some(scene_submenu) = ui.begin_menu(&im_prompt, true) {
+        let mut im_scene_name = imgui::im_str!("{}", scene_name);
+        if ui
+            .input_text(&im_str!("##NoLabel{}", im_prompt), &mut im_scene_name)
+            .resize_buffer(true)
+            .build()
+        {
+            *scene_name = im_scene_name.to_string();
+        }
+
+        ui.same_line(0.0);
+        if ui.button(&im_prompt, [0.0, 0.0]) {
+            on_click(scene_name);
+        }
+
+        scene_submenu.end(ui);
     }
 }

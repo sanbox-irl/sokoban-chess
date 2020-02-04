@@ -26,6 +26,7 @@ pub fn build_flat(
     serializations: &ComponentList<SerializationData>,
 ) {
     let mut root_nodes = ROOT_NODES.lock().unwrap();
+    root_nodes.children.as_mut().unwrap().clear();
 
     for transform_c in transforms.iter_mut() {
         if transform_c.inner_mut().parent_exists() == false {
