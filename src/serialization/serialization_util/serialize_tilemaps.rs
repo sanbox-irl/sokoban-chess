@@ -4,7 +4,7 @@ pub fn full_path(sub_path: &str) -> String {
     format!(
         "{}/{}/tiles/{}",
         SCENE_DIRECTORY,
-        CURRENT_SCENE.lock().unwrap(),
+        scene_system::CURRENT_SCENE.lock().unwrap(),
         sub_path
     )
 }

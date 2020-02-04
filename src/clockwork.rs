@@ -1,5 +1,6 @@
 use super::{
-    systems::*, Ecs, HardwareInterface, ImGui, ImGuiDrawCommands, ResourcesDatabase, TimeKeeper,
+    systems::grid_system::Grid, systems::*, Ecs, HardwareInterface, ImGui, ImGuiDrawCommands,
+    ResourcesDatabase, TimeKeeper,
 };
 use array2d::Array2D;
 use failure::Error;
@@ -7,7 +8,7 @@ use failure::Error;
 pub struct Clockwork {
     pub ecs: Ecs,
     pub action_map: ActionMap,
-    pub grid: Array2D<Option<Entity>>,
+    pub grid: grid_system::Grid,
     pub hardware_interfaces: HardwareInterface,
     pub resources: ResourcesDatabase,
     pub time_keeper: TimeKeeper,
@@ -20,22 +21,7 @@ impl Clockwork {
         let mut hardware_interfaces = HardwareInterface::new(&resources.config)?;
         resources.initialize(&mut hardware_interfaces.renderer)?;
 
-        // Grid
-        let mut grid = Array2D::filled_with(None, 5, 10);
-
-        // Initialize the ECS
-        let mut ecs = Ecs::new(&resources.prefabs)?;
-        ecs.game_start(
-            &mut resources,
-            &mut hardware_interfaces,
-            &mut grid
-        )?;
-
-        // Load in the Scene Graph
-        scene_graph::build_flat(
-            &mut ecs.component_database.transforms,
-            &ecs.component_database.serialization_data,
-        );
+        let (ecs, grid) = Clockwork::start_scene(&mut resources, &mut hardware_interfaces)?;
 
         Ok(Clockwork {
             ecs,
@@ -162,5 +148,34 @@ impl Clockwork {
         )?;
 
         Ok(())
+    }
+
+    fn start_scene(
+        resources: &mut ResourcesDatabase,
+        hardware_interfaces: &mut HardwareInterface,
+    ) -> Result<(Ecs, Grid), Error> {
+        // Change the Scene Name!
+        {
+            let next_scene = scene_system::NEXT_SCENE.lock().unwrap().take();
+            let mut value = scene_system::CURRENT_SCENE.lock().unwrap();
+            if let Some(next_scene) = next_scene {
+                *value = next_scene;
+            }
+        }
+
+        // Grid
+        let mut grid = Array2D::filled_with(None, 5, 10);
+
+        // Initialize the ECS
+        let mut ecs = Ecs::new(&resources.prefabs)?;
+        ecs.game_start(resources, hardware_interfaces, &mut grid)?;
+
+        // Load in the Scene Graph
+        scene_graph::build_flat(
+            &mut ecs.component_database.transforms,
+            &ecs.component_database.serialization_data,
+        );
+
+        Ok((ecs, grid))
     }
 }

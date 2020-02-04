@@ -211,7 +211,7 @@ pub struct ImGuiMetaData {
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct SceneImGuiManager {
-    pub new_scene_name: String,
+    pub create_scene: String,
     pub switch_scene_name: String,
     pub delete_scene_name: String,
 }

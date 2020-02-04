@@ -1,11 +1,11 @@
 use super::*;
-const ENTITY_SUBPATH: &str = "entities_data.yaml";
+pub const ENTITY_SUBPATH: &str = "entities_data.yaml";
 
 pub fn path() -> String {
     format!(
         "{}/{}/{}",
         SCENE_DIRECTORY,
-        CURRENT_SCENE.lock().unwrap(),
+        scene_system::CURRENT_SCENE.lock().unwrap(),
         ENTITY_SUBPATH
     )
 }

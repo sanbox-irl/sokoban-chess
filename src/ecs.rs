@@ -8,13 +8,6 @@ use super::{
     ActionMap, GameWorldDrawCommands,
 };
 use failure::Error;
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-
-const INITIAL_SCENE: SceneName = SceneName::Main;
-lazy_static! {
-    pub static ref CURRENT_SCENE: Mutex<SceneName> = Mutex::new(INITIAL_SCENE);
-}
 
 pub struct Ecs {
     pub component_database: ComponentDatabase,

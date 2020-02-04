@@ -3,7 +3,7 @@ use super::*;
 use failure::Error;
 use std::fs;
 
-const SCENE_DIRECTORY: &str = "assets/serialized_data/scenes";
+pub const SCENE_DIRECTORY: &str = "assets/serialized_data/scenes";
 
 mod serialize_entities;
 pub mod entities {

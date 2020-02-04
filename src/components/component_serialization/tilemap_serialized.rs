@@ -16,7 +16,8 @@ pub struct TilemapSerialized {
 
 impl TilemapSerialized {
     pub fn from_tilemap(tilemap: Tilemap, id: &uuid::Uuid) -> Result<TilemapSerialized, Error> {
-        let fragmented_data = serialization_util::tilemaps::serialize_tiles(&tilemap, &id.to_string())?;
+        let fragmented_data =
+            serialization_util::tilemaps::serialize_tiles(&tilemap, &id.to_string())?;
 
         Ok(TilemapSerialized {
             tiles: fragmented_data,

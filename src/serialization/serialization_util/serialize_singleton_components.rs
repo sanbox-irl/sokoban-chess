@@ -1,11 +1,11 @@
 use super::*;
-const SINGLETONS_SUBPATH: &str = "singleton_data.yaml";
+pub const SINGLETONS_SUBPATH: &str = "singleton_data.yaml";
 
 pub fn path() -> String {
     format!(
         "{}/{}/{}",
         SCENE_DIRECTORY,
-        CURRENT_SCENE.lock().unwrap(),
+        scene_system::CURRENT_SCENE.lock().unwrap(),
         SINGLETONS_SUBPATH
     )
 }
