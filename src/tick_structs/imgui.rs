@@ -104,9 +104,9 @@ impl ImGui {
             flags: &mut self.meta_data.flags,
             stored_ids: &mut self.meta_data.stored_ids,
             stored_prefabs: &mut self.meta_data.stored_prefabs,
-            popup_id: &mut self.meta_data.popup_id,
             scene_graph_entities: &mut self.meta_data.entity_vec,
             entity_list_information: &mut self.meta_data.entity_list_information,
+            scene_changing_info: &mut self.meta_data.scene_changing_info,
         })
     }
 
@@ -185,9 +185,9 @@ pub struct UiHandler<'a> {
     pub flags: &'a mut ImGuiFlags,
     pub stored_ids: &'a mut HashSet<Entity>,
     pub stored_prefabs: &'a mut Vec<Uuid>,
-    pub popup_id: &'a mut Option<Entity>,
     pub scene_graph_entities: &'a mut Vec<Entity>,
     pub entity_list_information: &'a mut HashMap<Entity, EntityListInformation>,
+    pub scene_changing_info: &'a mut SceneImGuiManager,
 }
 
 impl<'a> UiHandler<'a> {
@@ -201,14 +201,22 @@ pub struct ImGuiMetaData {
     pub flags: ImGuiFlags,
     pub stored_ids: HashSet<Entity>,
     pub stored_prefabs: Vec<Uuid>,
-    pub popup_id: Option<Entity>,
     #[serde(skip)]
     pub entity_vec: Vec<Entity>,
+    #[serde(skip)]
     pub entity_list_information: HashMap<Entity, EntityListInformation>,
+    #[serde(skip)]
+    pub scene_changing_info: SceneImGuiManager,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+pub struct SceneImGuiManager {
+    pub new_scene_name: String,
+    pub switch_scene_name: String,
+    pub delete_scene_name: String,
 }
 
 use bitflags::bitflags;
-
 bitflags! {
     #[derive(Default, Serialize, Deserialize)]
     pub struct ImGuiFlags: u32 {

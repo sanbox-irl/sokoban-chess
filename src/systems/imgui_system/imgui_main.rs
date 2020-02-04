@@ -71,8 +71,73 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
         // MENU
         let ui = &ui_handler.ui;
         if let Some(menu_bar) = ui.begin_main_menu_bar() {
-            if let Some(menu) = ui.begin_menu(im_str!("Scene"), true) {
-                // BLANK ENTITY
+            // SCENE
+            if let Some(menu) = ui.begin_menu(&im_str!("Scene: {}", "Main"), true) {
+                if let Some(switch_scene_submenu) = ui.begin_menu(im_str!("Switch Scene"), true) {
+                    let mut switch_scene_name =
+                        imgui::im_str!("{}", ui_handler.scene_changing_info.switch_scene_name);
+                    if ui
+                        .input_text(im_str!("##NoLabelAddScene"), &mut switch_scene_name)
+                        .resize_buffer(true)
+                        .build()
+                    {
+                        ui_handler.scene_changing_info.switch_scene_name =
+                            switch_scene_name.to_string();
+                    }
+
+                    // @JACK YOU'RE RIGHT HERE. YOU NEED TO IMPLEMENT SCENE CHANGING NOW!
+
+                    ui.same_line(0.0);
+                    if ui.button(im_str!("Switch"), [0.0, 0.0]) {
+                        unimplemented!()
+                    }
+
+                    switch_scene_submenu.end(ui);
+                }
+
+                if let Some(add_scene_submenu) = ui.begin_menu(im_str!("Add Scene"), true) {
+                    let mut new_scene_name =
+                        imgui::im_str!("{}", ui_handler.scene_changing_info.new_scene_name);
+                    if ui
+                        .input_text(im_str!("##NoLabelAddScene"), &mut new_scene_name)
+                        .resize_buffer(true)
+                        .build()
+                    {
+                        ui_handler.scene_changing_info.new_scene_name = new_scene_name.to_string();
+                    }
+
+                    ui.same_line(0.0);
+                    if ui.button(im_str!("Create Scene"), [0.0, 0.0]) {
+                        unimplemented!()
+                    }
+                    add_scene_submenu.end(ui);
+                }
+
+                if let Some(delete_scene_submenu) = ui.begin_menu(im_str!("Delete Scene"), true) {
+                    let mut delete_scene_name =
+                        imgui::im_str!("{}", ui_handler.scene_changing_info.delete_scene_name);
+                    if ui
+                        .input_text(im_str!("##NoLabelAddScene"), &mut delete_scene_name)
+                        .resize_buffer(true)
+                        .build()
+                    {
+                        ui_handler.scene_changing_info.delete_scene_name =
+                            delete_scene_name.to_string();
+                    }
+
+                    ui.same_line(0.0);
+                    if ui.button(im_str!("Delete Scene"), [0.0, 0.0]) {
+                        unimplemented!()
+                    }
+
+                    delete_scene_submenu.end(ui);
+                }
+
+                menu.end(ui);
+            }
+
+            // INSPECTORS
+            if let Some(menu) = ui.begin_menu(im_str!("Inspectors"), true) {
                 menu_option(
                     im_str!("Component Inspector"),
                     ImGuiFlags::ENTITY_VIEWER,
@@ -88,24 +153,6 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                 );
 
                 menu.end(ui);
-            }
-
-            // UTILITIES
-            if let Some(utility_bar) = ui.begin_menu(im_str!("Utilities"), true) {
-                menu_option(
-                    im_str!("Time Keeper"),
-                    ImGuiFlags::TIME_KEEPER,
-                    ui,
-                    &mut ui_handler.flags,
-                );
-
-                menu_option(
-                    im_str!("Game Config Inspector"),
-                    ImGuiFlags::GAME_CONFIG,
-                    ui,
-                    &mut ui_handler.flags,
-                );
-                utility_bar.end(ui);
             }
 
             // PANELS
@@ -132,6 +179,24 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                 );
 
                 other_windows.end(ui);
+            }
+
+            // UTILITIES
+            if let Some(utility_bar) = ui.begin_menu(im_str!("Utilities"), true) {
+                menu_option(
+                    im_str!("Time Keeper"),
+                    ImGuiFlags::TIME_KEEPER,
+                    ui,
+                    &mut ui_handler.flags,
+                );
+
+                menu_option(
+                    im_str!("Game Config Inspector"),
+                    ImGuiFlags::GAME_CONFIG,
+                    ui,
+                    &mut ui_handler.flags,
+                );
+                utility_bar.end(ui);
             }
 
             menu_bar.end(ui);
