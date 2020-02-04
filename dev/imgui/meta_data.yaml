@@ -1,13 +1,11 @@
 ---
 flags:
   bits: 136
-stored_ids:
-  - index: 4
-    generation: 0
+stored_ids: []
 stored_prefabs: []
 popup_id: ~
 entity_list_information:
-  ? index: 5
+  ? index: 4
     generation: 0
   : open: false
     color:
@@ -16,17 +14,6 @@ entity_list_information:
       b: 0.6523700952529907
       a: 1.0
     edit_name: NoEdit
-    new_name: ~
-  ? index: 1
-    generation: 0
-  : open: false
-    color:
-      r: 0.5989418029785156
-      g: 0.6186857223510742
-      b: 0.6523700952529907
-      a: 1.0
-    edit_name: NoEdit
-    new_name: ~
   ? index: 3
     generation: 0
   : open: false
@@ -36,17 +23,6 @@ entity_list_information:
       b: 0.6523700952529907
       a: 1.0
     edit_name: NoEdit
-    new_name: ~
-  ? index: 2
-    generation: 0
-  : open: false
-    color:
-      r: 0.5989418029785156
-      g: 0.6186857223510742
-      b: 0.6523700952529907
-      a: 1.0
-    edit_name: NoEdit
-    new_name: ~
   ? index: 0
     generation: 0
   : open: false
@@ -56,14 +32,30 @@ entity_list_information:
       b: 0.6523700952529907
       a: 1.0
     edit_name: NoEdit
-    new_name: ~
-  ? index: 4
+  ? index: 5
     generation: 0
   : open: false
     color:
-      r: 0.97430020570755
-      g: 0.5542271137237549
-      b: 0.15105804800987245
+      r: 0.5989418029785156
+      g: 0.6186857223510742
+      b: 0.6523700952529907
       a: 1.0
     edit_name: NoEdit
-    new_name: ~
+  ? index: 1
+    generation: 0
+  : open: false
+    color:
+      r: 0.5989418029785156
+      g: 0.6186857223510742
+      b: 0.6523700952529907
+      a: 1.0
+    edit_name: NoEdit
+  ? index: 2
+    generation: 0
+  : open: false
+    color:
+      r: 0.5989418029785156
+      g: 0.6186857223510742
+      b: 0.6523700952529907
+      a: 1.0
+    edit_name: NoEdit

@@ -91,12 +91,12 @@ impl Name {
                 .input_text(&imgui::im_str!("##New Name{}", uid), &mut current_name)
                 .build()
             {
-                eli.new_name = Some(current_name.to_string());
+                res.serialize_name = Some(current_name.to_string());
             }
 
             if ui.is_item_deactivated_after_edit() {
                 eli.edit_name = NameEdit::NoEdit;
-                eli.new_name = Some(current_name.to_string());
+                res.serialize_name = Some(current_name.to_string());
             }
         } else {
             ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
@@ -119,7 +119,7 @@ impl Name {
         // Rename on Double Click
         if ui.is_item_hovered() && ui.is_mouse_double_clicked(imgui::MouseButton::Left) {
             eli.edit_name = NameEdit::First;
-            eli.new_name = Some(name.to_string());
+            res.serialize_name = Some(name.to_string());
         }
 
         // Clone and Delete will be here!

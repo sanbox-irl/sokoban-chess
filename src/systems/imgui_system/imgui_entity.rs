@@ -132,7 +132,7 @@ fn display_entity_id(
     };
 
     // Get that fucker
-    let mut entry = match ui_handler.entity_list_information.get_mut(entity) {
+    let entry = match ui_handler.entity_list_information.get_mut(entity) {
         Some(stuff) => stuff,
         None => {
             // for none stuff
@@ -142,7 +142,6 @@ fn display_entity_id(
             ui_handler.entity_list_information.get_mut(entity).unwrap()
         }
     };
-    entry.new_name = None;
 
     let result = Name::inspect(
         &name,
@@ -182,7 +181,6 @@ fn display_entity_id(
 
     // Should we change the name?
     if let Some(new_name) = result.serialize_name {
-        info!("Guah!");
         let name_component = names.get_mut_or_default(entity);
         name_component.inner_mut().name = new_name;
     }

@@ -35,7 +35,6 @@ pub struct EntityListInformation {
     pub open: bool,
     pub color: Color,
     pub edit_name: NameEdit,
-    pub new_name: Option<String>,
 }
 
 impl Default for EntityListInformation {
@@ -44,7 +43,6 @@ impl Default for EntityListInformation {
             open: false,
             color: Color::WHITE,
             edit_name: NameEdit::NoEdit,
-            new_name: None,
         }
     }
 }
