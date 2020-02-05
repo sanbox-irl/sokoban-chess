@@ -16,6 +16,7 @@
         target_serialized_id: ~
     - true
   grid_object: ~
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite: ~
@@ -44,6 +45,7 @@
         target_serialized_id: ~
     - true
   grid_object: ~
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite: ~
@@ -99,16 +101,17 @@
   transform:
     - local_position:
         x: 24.0
-        y: 24.0
+        y: 16.0
       world_position:
         x: 24.0
-        y: 24.0
+        y: 16.0
       parent:
         target_serialized_id: ~
     - true
   grid_object:
     - grid_type: Player
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity:
     - intended_direction: ~
@@ -129,8 +132,8 @@
           g: 1.0
           b: 1.0
           a: 1.0
-        current_frame: 0
-        frame_time: 0.027252724394202234
+        current_frame: 1
+        frame_time: 0.26361382007598879
         is_animating: true
     - true
   sound_source: ~
@@ -160,6 +163,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -209,6 +213,7 @@
   grid_object:
     - grid_type: Pushable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -257,6 +262,9 @@
     - true
   grid_object:
     - grid_type: Flag
+    - true
+  scene_switcher:
+    - target_scene: Second
     - true
   graph_node: ~
   velocity: ~
@@ -307,6 +315,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -356,6 +365,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -405,6 +415,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -454,6 +465,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -503,6 +515,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -552,6 +565,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -601,6 +615,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -650,6 +665,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -699,6 +715,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -748,6 +765,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -797,6 +815,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -846,6 +865,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -895,6 +915,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -944,6 +965,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -993,6 +1015,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1042,6 +1065,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1091,6 +1115,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1140,6 +1165,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1189,6 +1215,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1238,6 +1265,7 @@
   grid_object:
     - grid_type: Blockable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1287,6 +1315,7 @@
   grid_object:
     - grid_type: Pushable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1336,6 +1365,7 @@
   grid_object:
     - grid_type: Pushable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1385,6 +1415,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1434,6 +1465,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1483,6 +1515,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1532,6 +1565,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1581,6 +1615,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1630,6 +1665,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1679,6 +1715,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:
@@ -1728,6 +1765,7 @@
   grid_object:
     - grid_type: NonInteractable
     - true
+  scene_switcher: ~
   graph_node: ~
   velocity: ~
   sprite:

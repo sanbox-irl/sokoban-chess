@@ -57,6 +57,7 @@ pub fn entity_inspector(
                 transforms,
                 velocities,
                 grid_objects,
+                scene_switchers,
                 sprites,
                 sound_sources,
                 bounding_boxes,
@@ -156,6 +157,7 @@ pub fn entity_inspector(
                     add_component_quick!(
                         velocities,
                         grid_objects,
+                        scene_switchers,
                         graph_nodes,
                         sprites,
                         sound_sources,

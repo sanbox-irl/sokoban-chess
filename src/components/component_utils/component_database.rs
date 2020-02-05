@@ -19,6 +19,7 @@ pub struct ComponentDatabase {
     pub text_sources: ComponentList<TextSource>,
     pub follows: ComponentList<Follow>,
     pub conversant_npcs: ComponentList<ConversantNPC>,
+    pub scene_switchers: ComponentList<SceneSwitcher>,
     pub serialization_data: ComponentList<SerializationData>,
     size: usize,
 }
@@ -48,7 +49,6 @@ impl ComponentDatabase {
         // Post-Deserialization Work...
         // @update_components
         // @techdebt This probably can turn into a trait on a ComponentBound
-
         for af in component_database.follows.iter_mut() {
             af.inner_mut()
                 .target
@@ -162,6 +162,7 @@ impl ComponentDatabase {
         clone_list_entry(&mut self.sound_sources, original, new_entity);
         clone_list_entry(&mut self.bounding_boxes, original, new_entity);
         clone_list_entry(&mut self.draw_rectangles, original, new_entity);
+        clone_list_entry(&mut self.scene_switchers, original, new_entity);
         clone_list_entry(&mut self.tilemaps, original, new_entity);
         clone_list_entry(&mut self.text_sources, original, new_entity);
         clone_list_entry(&mut self.transforms, original, new_entity);
@@ -195,6 +196,7 @@ impl ComponentDatabase {
         f(&mut self.bounding_boxes);
         f(&mut self.draw_rectangles);
         f(&mut self.tilemaps);
+        f(&mut self.scene_switchers);
         f(&mut self.text_sources);
         f(&mut self.follows);
         f(&mut self.conversant_npcs);
@@ -269,6 +271,7 @@ impl ComponentDatabase {
             id: _id,
             marker: _marker, // we handle this in `load_serialized_entity`
             name,
+            scene_switcher,
             prefab_marker,
             sound_source,
             sprite,
@@ -298,6 +301,7 @@ impl ComponentDatabase {
         transfer_serialized_components!(name, names);
         transfer_serialized_components!(transform, transforms);
         transfer_serialized_components!(grid_object, grid_objects);
+        transfer_serialized_components!(scene_switcher, scene_switchers);
         transfer_serialized_components!(player, players);
         transfer_serialized_components!(graph_node, graph_nodes);
         transfer_serialized_components!(sound_source, sound_sources);

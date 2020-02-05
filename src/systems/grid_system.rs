@@ -1,6 +1,6 @@
 use super::{
-    cardinals::CardinalPrime, Component, ComponentList, Entity, GridObject, GridType, Marker, Name,
-    Player, Transform, Vec2, Velocity,
+    cardinals::CardinalPrime, scene_system, Component, ComponentList, Entity, GridObject, GridType,
+    Marker, Name, Player, SceneSwitcher, Transform, Vec2, Velocity,
 };
 use array2d::Array2D;
 
@@ -17,6 +17,7 @@ pub fn update_grid_positions(
     transforms: &mut ComponentList<Transform>,
     velocities: &mut ComponentList<Velocity>,
     grid_objects: &mut ComponentList<GridObject>,
+    scene_switchers: &ComponentList<SceneSwitcher>,
     grid: &mut Grid,
 ) {
     // ImGui Movement
@@ -81,6 +82,7 @@ pub fn update_grid_positions(
                         movement,
                         grid_objects,
                         transforms,
+                        scene_switchers,
                         grid,
                     );
                 }
@@ -119,6 +121,7 @@ fn attempt_to_move(
     movement: CardinalPrime,
     grid_objects: &ComponentList<GridObject>,
     transforms: &mut ComponentList<Transform>,
+    scene_switchers: &ComponentList<SceneSwitcher>,
     grid: &mut Grid,
 ) -> bool {
     let mut move_to_spot = true;
@@ -134,7 +137,15 @@ fn attempt_to_move(
         match grid_type {
             GridType::Flag => {
                 if my_object_type == GridType::Player {
-                    // switch scene!
+                    if let Some(scene_switcher) = scene_switchers.get(&entity_in_grid) {
+                        if scene_system::set_next_scene(&scene_switcher.inner().target_scene)
+                            == false
+                        {
+                            error!("Couldn't switch scenes! Does it exist?");
+                        };
+                    } else {
+                        error!("Flag wasn't a scene switcher? This is chaos!");
+                    }
                 }
             }
             GridType::Pushable => {
@@ -147,6 +158,7 @@ fn attempt_to_move(
                         movement,
                         grid_objects,
                         transforms,
+                        scene_switchers,
                         grid,
                     );
                 }

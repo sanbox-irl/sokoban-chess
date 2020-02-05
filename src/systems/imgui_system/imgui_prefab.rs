@@ -85,6 +85,7 @@ pub fn prefab_editor(
                 [transform, transforms],
                 [velocity, velocities],
                 [grid_object, grid_objects],
+                [scene_switcher, scene_switchers],
                 [sprite, sprites],
                 [sound_source, sound_sources],
                 [draw_rectangle, draw_rectangles],

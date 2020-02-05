@@ -90,6 +90,7 @@ impl Ecs {
             &mut self.component_database.transforms,
             &mut self.component_database.velocities,
             &mut self.component_database.grid_objects,
+            &mut self.component_database.scene_switchers,
             grid,
         );
 

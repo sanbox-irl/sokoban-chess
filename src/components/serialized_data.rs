@@ -54,7 +54,8 @@ impl SerializationData {
             [names, name],
             [players, player],
             [transforms, transform],
-            [grid_objects, grid_object]
+            [grid_objects, grid_object],
+            [scene_switchers, scene_switcher]
         );
 
         self.serialization_option(
