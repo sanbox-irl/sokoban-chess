@@ -66,3 +66,19 @@
   facing_vertical: Up
   frame_durations:
     - 0.10000000149011612
+- sprite_name: Button
+  origin:
+    horizontal: Left
+    vertical: Top
+  facing_horizontal: Right
+  facing_vertical: Up
+  frame_durations:
+    - 0.10000000149011612
+- sprite_name: Target
+  origin:
+    horizontal: Left
+    vertical: Top
+  facing_horizontal: Right
+  facing_vertical: Up
+  frame_durations:
+    - 0.10000000149011612

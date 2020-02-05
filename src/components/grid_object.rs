@@ -32,9 +32,7 @@ impl ComponentBounds for GridObject {
                 ip.ui,
                 &imgui::im_str!("Block Drop Location Offset##{}", ip.uid),
             ) {
-                if pos_v2.x.is_positive() && pos_v2.y.is_positive() {
-                    *pos = (pos_v2.x as isize, pos_v2.y as isize);
-                }
+                *pos = (pos_v2.x as isize, pos_v2.y as isize);
             }
         }
 

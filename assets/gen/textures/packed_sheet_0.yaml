@@ -1,27 +1,23 @@
 ---
-texture_width: 129
+texture_width: 145
 texture_height: 8
 sprites:
   - name: Background
     x: 0
     y: 0
-    width: 40
+    width: 48
     height: 8
     frames:
       - x: 0
         y: 0
-        width: 40
+        width: 48
         height: 8
   - name: Fire
-    x: 40
+    x: 48
     y: 0
     width: 24
     height: 8
     frames:
-      - x: 40
-        y: 0
-        width: 8
-        height: 8
       - x: 48
         y: 0
         width: 8
@@ -30,31 +26,25 @@ sprites:
         y: 0
         width: 8
         height: 8
-  - name: PixelMainCharacterStanding
-    x: 64
-    y: 0
-    width: 16
-    height: 8
-    frames:
       - x: 64
         y: 0
         width: 8
         height: 8
+  - name: PixelMainCharacterStanding
+    x: 72
+    y: 0
+    width: 16
+    height: 8
+    frames:
       - x: 72
         y: 0
         width: 8
         height: 8
-  - name: Grass
-    x: 80
-    y: 0
-    width: 8
-    height: 8
-    frames:
       - x: 80
         y: 0
         width: 8
         height: 8
-  - name: Block
+  - name: Grass
     x: 88
     y: 0
     width: 8
@@ -64,7 +54,7 @@ sprites:
         y: 0
         width: 8
         height: 8
-  - name: Button
+  - name: Block
     x: 96
     y: 0
     width: 8
@@ -74,7 +64,7 @@ sprites:
         y: 0
         width: 8
         height: 8
-  - name: Flag
+  - name: Button
     x: 104
     y: 0
     width: 8
@@ -84,7 +74,7 @@ sprites:
         y: 0
         width: 8
         height: 8
-  - name: PlayerDead
+  - name: Flag
     x: 112
     y: 0
     width: 8
@@ -94,7 +84,7 @@ sprites:
         y: 0
         width: 8
         height: 8
-  - name: Wall
+  - name: PlayerDead
     x: 120
     y: 0
     width: 8
@@ -104,23 +94,43 @@ sprites:
         y: 0
         width: 8
         height: 8
-  - name: WhitePixel
+  - name: Target
     x: 128
-    y: 0
-    width: 1
-    height: 1
-    frames:
-      - x: 128
-        y: 0
-        width: 1
-        height: 1
-  - name: PushableBlock
-    x: 96
     y: 0
     width: 8
     height: 8
     frames:
-      - x: 96
+      - x: 128
+        y: 0
+        width: 8
+        height: 8
+  - name: Wall
+    x: 136
+    y: 0
+    width: 8
+    height: 8
+    frames:
+      - x: 136
+        y: 0
+        width: 8
+        height: 8
+  - name: WhitePixel
+    x: 144
+    y: 0
+    width: 1
+    height: 1
+    frames:
+      - x: 144
+        y: 0
+        width: 1
+        height: 1
+  - name: PushableBlock
+    x: 104
+    y: 0
+    width: 8
+    height: 8
+    frames:
+      - x: 104
         y: 0
         width: 8
         height: 8

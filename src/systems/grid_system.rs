@@ -152,7 +152,7 @@ fn attempt_to_move(
             GridType::Button(offset) => {
                 if my_object_type == GridType::Pushable {
                     let drop_position: Vec2Int = Vec2Int::from(new_position)
-                        - Vec2Int::new(offset.0 as i32, offset.1 as i32);
+                        + Vec2Int::new(offset.0 as i32, offset.1 as i32);
                     if drop_position.is_positive() && drop_position.x < 5 && drop_position.y < 10 {
                         let grid_position = (drop_position.x as usize, drop_position.y as usize);
 
@@ -211,7 +211,12 @@ fn attempt_to_move(
                         ecs.component_database
                             .grid_objects
                             .set(&new_entity, Component::new(&new_entity, grid_object));
+
+                        // Kill me!
+                        ecs.remove_entity(&entity_in_grid);
                     }
+                } else {
+                    move_to_spot = false;
                 }
             }
             GridType::Pushable => {

@@ -14,13 +14,11 @@ mod sprite_packer;
 fn main() -> Result<(), Error> {
     println!("cargo:rerun-if-env-changed=BUILD_ENABLED");
 
-
-    
     initiate_logging()?;
     imgui_initialization::initialize_imgui()?;
     shader_builder::build()?;
     sprite_packer::pack_sprites()?;
-    
+
     Ok(())
 }
 
@@ -34,9 +32,10 @@ fn initiate_logging() -> Result<(), Error> {
     // Clear the log
     fs::write(LOG_LOCATION, "")?;
 
+
+    
+
     log4rs::init_config(config)?;
 
     Ok(())
 }
-
-

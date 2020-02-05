@@ -24,7 +24,7 @@
   visual_data_serialized:
     sprite_name: Background
     rows_and_columns:
-      x: 5
+      x: 6
       y: 1
   physics_data:
     bounding_boxes: ~

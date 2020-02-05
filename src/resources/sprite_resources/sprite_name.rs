@@ -28,6 +28,8 @@ pub enum SpriteName {
     Flag,
     PushableBlock,
     Wall,
+    Button,
+    Target,
 }
 
 impl SpriteName {
