@@ -1,5 +1,5 @@
 use super::{
-    cardinals::CardinalPrime, Component, ComponentList, Entity, GridObject, GridType, Marker,
+    cardinals::CardinalPrime, Component, ComponentList, Entity, GridObject, GridType, Marker, Name,
     Player, Transform, Vec2, Velocity,
 };
 use array2d::Array2D;
@@ -48,7 +48,7 @@ pub fn update_grid_positions(
 
         if grid_object.register {
             if let Some(transform) = transforms.get(&id) {
-                register_entity(grid, id, transform.inner().world_position());
+                register_entity(grid, id, transform.inner().world_position(), None);
             }
 
             grid_object.register = false;
@@ -75,6 +75,7 @@ pub fn update_grid_positions(
                 if let Some(valid_next_position) = move_position(current_position, movement) {
                     attempt_to_move(
                         &entity_id,
+                        GridType::Player,
                         current_position,
                         valid_next_position,
                         movement,
@@ -90,6 +91,7 @@ pub fn update_grid_positions(
 
 pub fn initialize_transforms(
     transforms: &mut ComponentList<Transform>,
+    names: &ComponentList<Name>,
     grid: &mut Grid,
     markers: &std::collections::HashMap<Marker, Entity>,
 ) {
@@ -103,6 +105,7 @@ pub fn initialize_transforms(
                 grid,
                 transform_c.entity_id(),
                 transform_c.inner().world_position(),
+                Some(names),
             );
         }
     }
@@ -110,6 +113,7 @@ pub fn initialize_transforms(
 
 fn attempt_to_move(
     entity_id: &Entity,
+    my_object_type: GridType,
     current_position: (usize, usize),
     next_position: (usize, usize),
     movement: CardinalPrime,
@@ -121,17 +125,23 @@ fn attempt_to_move(
 
     // Check the Entity
     if let Some(entity_in_grid) = grid[next_position] {
-        let grid_object_type = grid_objects
+        let grid_type = grid_objects
             .get(&entity_in_grid)
             .unwrap()
             .inner()
             .grid_type();
 
-        match grid_object_type {
+        match grid_type {
+            GridType::Flag => {
+                if my_object_type == GridType::Player {
+                    // switch scene!
+                }
+            }
             GridType::Pushable => {
                 if let Some(next_next_position) = move_position(next_position, movement) {
                     move_to_spot = attempt_to_move(
                         &entity_in_grid,
+                        grid_type,
                         next_position,
                         next_next_position,
                         movement,
@@ -141,7 +151,7 @@ fn attempt_to_move(
                     );
                 }
             }
-            GridType::Blockable => {
+            GridType::Blockable | GridType::Player => {
                 move_to_spot = false;
             }
             GridType::NonInteractable => {
@@ -162,15 +172,23 @@ fn attempt_to_move(
     move_to_spot
 }
 
-fn register_entity(grid: &mut Grid, entity: Entity, position: Vec2) {
+fn register_entity(
+    grid: &mut Grid,
+    entity: Entity,
+    position: Vec2,
+    names: Option<&ComponentList<Name>>,
+) {
     if position.x >= GRID_DIMENSIONS_MIN_F32.0
-        && position.x < GRID_DIMENSIONS_MAX_F32.0
+        && position.x <= GRID_DIMENSIONS_MAX_F32.0
         && position.y >= GRID_DIMENSIONS_MIN_F32.0
-        && position.y < GRID_DIMENSIONS_MAX_F32.1
+        && position.y <= GRID_DIMENSIONS_MAX_F32.1
     {
         grid[world_to_grid_position(position)] = Some(entity);
     } else {
-        error!("Couldn't register entity: {} to grid!", entity);
+        error!(
+            "Couldn't register {} to grid!",
+            Name::get_name(names, &entity)
+        );
     }
 }
 

@@ -45,6 +45,19 @@ pub fn entity_list(
                 prefab_submenu.end(ui);
             }
 
+            if imgui::MenuItem::new(im_str!("Serialize Scene")).build(ui) {
+                match serialization_util::entities::serialize_all_entities(
+                    &ecs.entities,
+                    &ecs.component_database,
+                    &ecs.singleton_database,
+                ) {
+                    Ok(()) => info!("Serialized Scene"),
+                    Err(e) => {
+                        error!("Error on Serialization: {}", e);
+                    }
+                }
+            }
+
             menu_bar.end(ui);
         }
 

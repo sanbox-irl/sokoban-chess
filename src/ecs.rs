@@ -63,6 +63,7 @@ impl Ecs {
 
         grid_system::initialize_transforms(
             &mut self.component_database.transforms,
+            &self.component_database.names,
             grid,
             &self.singleton_database.associated_entities,
         );

@@ -69,9 +69,11 @@ impl ComponentBounds for GridObject {
     typename::TypeName,
 )]
 pub enum GridType {
+    Player,
     Pushable,
     Blockable,
     NonInteractable,
+    Flag,
 }
 
 impl Default for GridType {

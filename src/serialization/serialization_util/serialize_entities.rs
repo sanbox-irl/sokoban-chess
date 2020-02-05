@@ -42,6 +42,32 @@ pub fn process_serialized_command(
     }
 }
 
+pub fn serialize_all_entities(
+    entities: &[Entity],
+    component_database: &ComponentDatabase,
+    singleton_database: &SingletonDatabase,
+) -> Result<(), Error> {
+    let path = path();
+
+    let mut serialized_entities: Vec<SerializedEntity> = load_serialized_file(&path)?;
+
+    // FIND THE OLD SERIALIZED ENTITY
+    for entity in entities {
+        if component_database.serialization_data.get(entity).is_some() {
+            let se = SerializedEntity::new(entity, component_database, singleton_database);
+
+            let old_pos = serialized_entities.iter().position(|x| x.id == se.id);
+            if let Some(old_pos) = old_pos {
+                serialized_entities[old_pos] = se;
+            } else {
+                serialized_entities.push(se);
+            }
+        }
+    }
+
+    save_serialized_file(&serialized_entities, &path)
+}
+
 pub fn serialize_entity_full(
     entity_id: &Entity,
     component_database: &ComponentDatabase,

@@ -144,6 +144,18 @@ impl Name {
             format!("Entity ID {}", id.index())
         }
     }
+
+    pub fn get_name(names: Option<&ComponentList<Name>>, id: &Entity) -> String {
+        if let Some(names) = names {
+            if let Some(name) = names.get(id) {
+                name.inner().name.clone()
+            } else {
+                format!("Entity ID {}", id.index())
+            }
+        } else {
+            format!("Entity ID {}", id.index())
+        }
+    }
 }
 
 impl ComponentBounds for Name {
