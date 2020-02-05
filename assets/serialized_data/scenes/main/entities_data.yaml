@@ -91,71 +91,18 @@
 - id: 905c4f1f-da04-462c-ae09-e420abe4c296
   marker: ~
   name:
-    - name: Player (0)
+    - name: Player
     - true
   player:
     - standing_sprite: ~
     - true
   transform:
     - local_position:
-        x: 16.0
-        y: 32.0
+        x: 24.0
+        y: 16.0
       world_position:
-        x: 16.0
-        y: 32.0
-      parent:
-        target_serialized_id: ~
-    - true
-  grid_object:
-    - grid_type: Blockable
-    - true
-  graph_node: ~
-  velocity:
-    - intended_direction: ~
-    - true
-  sprite:
-    - sprite_name: PixelMainCharacterStanding
-      running_data:
-        draw_order:
-          draw_layer: Instance
-          order: 0
-        facing_horizontal: Right
-        facing_vertical: Up
-        scale:
-          x: 1.0
-          y: 1.0
-        tint:
-          r: 1.0
-          g: 1.0
-          b: 1.0
-          a: 1.0
-        current_frame: 1
-        frame_time: 0.1457386016845703
-        is_animating: true
-    - true
-  sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker: ~
-- id: a7aa1c6e-49e6-415c-9b49-f1daafeb9008
-  marker: ~
-  name:
-    - name: Player (2)
-    - true
-  player:
-    - standing_sprite: ~
-    - true
-  transform:
-    - local_position:
-        x: 8.0
-        y: 8.0
-      world_position:
-        x: 8.0
-        y: 8.0
+        x: 24.0
+        y: 16.0
       parent:
         target_serialized_id: ~
     - true
@@ -183,8 +130,8 @@
           b: 1.0
           a: 1.0
         current_frame: 0
-        frame_time: 0.10925561934709549
-        is_animating: false
+        frame_time: 0.4046224057674408
+        is_animating: true
     - true
   sound_source: ~
   draw_rectangle: ~
@@ -210,7 +157,9 @@
       parent:
         target_serialized_id: ~
     - true
-  grid_object: ~
+  grid_object:
+    - grid_type: NonInteractable
+    - true
   graph_node: ~
   velocity: ~
   sprite:
@@ -241,31 +190,29 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
-- id: 10cc1e45-e75d-4d9c-91d6-5f15c96f7322
+- id: c72ca3f0-a8c8-4184-a261-127af88af70b
   marker: ~
   name:
-    - name: Player (1)
-    - true
-  player:
-    - standing_sprite: ~
-    - true
+    - name: Pushable Block
+    - false
+  player: ~
   transform:
     - local_position:
-        x: 16.0
-        y: 16.0
+        x: 24.0
+        y: 40.0
       world_position:
-        x: 16.0
-        y: 16.0
+        x: 24.0
+        y: 40.0
       parent:
         target_serialized_id: ~
     - true
   grid_object:
-    - grid_type: Blockable
+    - grid_type: Pushable
     - true
   graph_node: ~
   velocity: ~
   sprite:
-    - sprite_name: PixelMainCharacterStanding
+    - sprite_name: Block
       running_data:
         draw_order:
           draw_layer: Instance
@@ -281,7 +228,1036 @@
           b: 1.0
           a: 1.0
         current_frame: 0
-        frame_time: 0.10925561934709549
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: b34e71cb-9889-45a1-ad81-8d17fd672c8d
+  marker: ~
+  name:
+    - name: Flag
+    - false
+  player: ~
+  transform:
+    - local_position:
+        x: 24.0
+        y: 80.0
+      world_position:
+        x: 24.0
+        y: 80.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: NonInteractable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Flag
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 2a454f1c-88ae-4031-81c6-ddbff8ae627c
+  marker: ~
+  name:
+    - name: Wall
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 8.0
+      world_position:
+        x: 8.0
+        y: 8.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: e627505e-a96f-400c-b8ce-c268d278ba3d
+  marker: ~
+  name:
+    - name: Wall 1
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 16.0
+      world_position:
+        x: 8.0
+        y: 16.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 0c186858-1abf-483a-921a-d5addfb77239
+  marker: ~
+  name:
+    - name: Wall 2
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 24.0
+      world_position:
+        x: 8.0
+        y: 24.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: b11a107e-b3dd-4fdc-8687-e6e27b80cb00
+  marker: ~
+  name:
+    - name: Wall 3
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 32.0
+      world_position:
+        x: 8.0
+        y: 32.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 517723af-ba4d-4f70-bbc4-b06335302f80
+  marker: ~
+  name:
+    - name: Wall 4
+    - false
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 48.0
+      world_position:
+        x: 8.0
+        y: 48.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: e4c86b22-db7b-4aae-9789-6b8bd647fa9e
+  marker: ~
+  name:
+    - name: Wall 5
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 40.0
+      world_position:
+        x: 8.0
+        y: 40.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 4a3ce28e-de80-444a-bac3-622e4f2053b7
+  marker: ~
+  name:
+    - name: Wall 6
+    - false
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 72.0
+      world_position:
+        x: 8.0
+        y: 72.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: b0fef3b0-f61e-4ed4-b5f8-3a693fd5f8ef
+  marker: ~
+  name:
+    - name: Wall 7
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 64.0
+      world_position:
+        x: 8.0
+        y: 64.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: b297d29a-006d-4c4d-8e27-aa769b3fb6db
+  marker: ~
+  name:
+    - name: Wall 8
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 56.0
+      world_position:
+        x: 8.0
+        y: 56.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 8d9e194c-3956-4e2b-ba11-ecee466ef342
+  marker: ~
+  name:
+    - name: Wall 9
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 8.0
+        y: 80.0
+      world_position:
+        x: 8.0
+        y: 80.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 0.9999899864196777
+          b: 0.9999899864196777
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: b93b43c4-4d63-47a9-97b1-287dba7889c7
+  marker: ~
+  name:
+    - name: Wall 10
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 8.0
+      world_position:
+        x: 40.0
+        y: 8.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 55bacc67-07db-4b7c-a48c-8de1b9a6d924
+  marker: ~
+  name:
+    - name: Wall 11
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 16.0
+      world_position:
+        x: 40.0
+        y: 16.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: e865a4f9-cb65-491b-a3cf-3a7f9b77f39d
+  marker: ~
+  name:
+    - name: Wall 12
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 24.0
+      world_position:
+        x: 40.0
+        y: 24.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 98755c7a-cf1d-4b19-8979-6c4f4f042acc
+  marker: ~
+  name:
+    - name: Wall 13
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 32.0
+      world_position:
+        x: 40.0
+        y: 32.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 23c8cafb-9b04-4dc8-a50d-d3a636abdfbd
+  marker: ~
+  name:
+    - name: Wall 14
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 40.0
+      world_position:
+        x: 40.0
+        y: 40.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 0a81bf0d-887d-4cda-9c49-10f1511175a0
+  marker: ~
+  name:
+    - name: Wall 15
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 48.0
+      world_position:
+        x: 40.0
+        y: 48.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: cc80b77c-43c3-4fe7-ace7-26c005fff890
+  marker: ~
+  name:
+    - name: Wall 16
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 56.0
+      world_position:
+        x: 40.0
+        y: 56.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 72c74072-a79c-448e-9f76-62a14d8e9c86
+  marker: ~
+  name:
+    - name: Wall 17
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 64.0
+      world_position:
+        x: 40.0
+        y: 64.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: 14105f31-3ee9-4ce4-9801-db567d02c635
+  marker: ~
+  name:
+    - name: Wall 18
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 72.0
+      world_position:
+        x: 40.0
+        y: 72.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: ae0fd958-8e66-4f46-991e-3e6fdda73298
+  marker: ~
+  name:
+    - name: Wall 19
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 40.0
+        y: 80.0
+      world_position:
+        x: 40.0
+        y: 80.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
         is_animating: false
     - true
   sound_source: ~

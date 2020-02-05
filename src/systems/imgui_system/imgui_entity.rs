@@ -96,12 +96,10 @@ pub fn entity_list(
         }
 
         if let Some(original) = entity_to_clone {
-            info!("Attempting to clone...");
             ecs.clone_entity(&original);
         }
 
         if let Some(entity_to_delete) = entity_to_delete {
-            info!("Attempting to delete...");
             ecs.remove_entity(&entity_to_delete);
         }
 

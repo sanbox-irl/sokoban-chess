@@ -37,13 +37,13 @@ pub fn update_tilemaps_and_tilesets(
         if this_tilemap_comp.inner().rebuild_collision_boxes {
             let root_position = {
                 // @techdebt -- is there a better way to abstract over this?
-                match transforms.get(&this_tilemap_comp.entity_id) {
+                match transforms.get(&this_tilemap_comp.entity_id()) {
                     Some(comp) => comp.inner().world_position(),
                     None => {
                         transforms.set(
-                            &this_tilemap_comp.entity_id,
+                            &this_tilemap_comp.entity_id(),
                             super::Component::new(
-                                &this_tilemap_comp.entity_id,
+                                &this_tilemap_comp.entity_id(),
                                 Transform::default(),
                             ),
                         );
@@ -152,7 +152,7 @@ fn tilemap_editing(
 
             // Final iteration and check if we're editing, and if so, let us select a new tile!
             for this_tilemap_comp in tilemaps.iter_mut() {
-                let entity_id = this_tilemap_comp.entity_id;
+                let entity_id = this_tilemap_comp.entity_id();
                 let this_tilemap: &mut Tilemap = this_tilemap_comp.inner_mut();
 
                 let tile_size = (this_tilemap.size.x * this_tilemap.size.y) as usize;

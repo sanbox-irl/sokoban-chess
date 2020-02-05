@@ -50,7 +50,7 @@ impl SerializableEntityReference {
             self.target = serialized_data
                 .iter()
                 .find(|sd| &sd.inner().id == tsi)
-                .map(|i| i.entity_id);
+                .map(|i| i.entity_id());
 
             if self.target.is_none() {
                 error!(

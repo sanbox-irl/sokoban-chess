@@ -67,13 +67,13 @@ impl TransformParent {
         serialized_data: &ComponentList<SerializationData>,
     ) {
         if let Some(tsi) = &self.target_serialized_id {
-            let entity_id: Option<&Entity> = serialized_data
+            let entity_id: Option<Entity> = serialized_data
                 .iter()
                 .find(|sd| &sd.inner().id == tsi)
-                .map(|i| &i.entity_id);
+                .map(|i| i.entity_id());
 
             if let Some(entity_id) = entity_id {
-                if let Some(target_transform_component) = graph_nodes.get_mut(entity_id) {
+                if let Some(target_transform_component) = graph_nodes.get_mut(&entity_id) {
                     self.target.graph_node = &mut *target_transform_component.inner_mut();
                 } else {
                     error!("We didn't find a target Transform Parent on a serialized transform parent.");

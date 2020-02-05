@@ -124,7 +124,30 @@ impl ComponentDatabase {
         }
 
         // @update_components
-        clone_list_entry(&mut self.names, original, new_entity);
+        if clone_list_entry(&mut self.names, original, new_entity) {
+            // This all should use Regex
+            let name = self.names.get_mut(new_entity).unwrap();
+            let mut last_char_to_keep = name.inner_mut().name.len();
+
+            let new_digit: u32 = if let Some((i, last_character)) =
+                name.inner_mut().name.chars().enumerate().last()
+            {
+                if let Some(digit) = last_character.to_digit(10) {
+                    last_char_to_keep = i;
+                    digit + 1
+                } else {
+                    0
+                }
+            } else {
+                0
+            };
+
+            name.inner_mut().name = format!(
+                "{}{}",
+                &name.inner_mut().name[..last_char_to_keep],
+                new_digit
+            );
+        }
         clone_list_entry(&mut self.grid_objects, original, new_entity);
         clone_list_entry(&mut self.prefab_markers, original, new_entity);
         if clone_list_entry(&mut self.transforms, original, new_entity) {

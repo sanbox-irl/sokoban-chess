@@ -21,7 +21,8 @@ pub fn entity_inspector(
         };
 
         let entity_window = imgui::Window::new(&name)
-            .size([200.0, 400.0], imgui::Condition::FirstUseEver)
+            .size([600.0, 800.0], imgui::Condition::FirstUseEver)
+            .position([1200.0, 100.0], imgui::Condition::FirstUseEver)
             .menu_bar(true)
             .opened(&mut is_open);
 
@@ -336,7 +337,7 @@ fn component_inspector_internal<T: ComponentBounds + typename::TypeName>(
             } else {
                 let inspector_parameters = InspectorParameters {
                     is_open,
-                    uid: &format!("{}{}", comp.entity_id.to_string(), &T::type_name()),
+                    uid: &format!("{}{}", comp.entity_id(), &T::type_name()),
                     ui,
                     entities,
                     entity_names,

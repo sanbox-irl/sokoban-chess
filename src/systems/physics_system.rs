@@ -15,7 +15,7 @@ pub fn create_positional_rect_lists(
 
     for this_comp in object_bbs.iter() {
         let pos = transforms
-            .get(&this_comp.entity_id)
+            .get(&this_comp.entity_id())
             .unwrap()
             .inner()
             .world_position();
@@ -23,7 +23,7 @@ pub fn create_positional_rect_lists(
 
         let this_positional_rec = PositionalRect::new(pos, rect);
 
-        if this_comp.entity_id == entity_id {
+        if this_comp.entity_id() == entity_id {
             our_bb = Some(this_positional_rec);
         } else {
             out_list.push(this_positional_rec);

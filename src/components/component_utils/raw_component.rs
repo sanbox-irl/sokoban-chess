@@ -10,7 +10,7 @@ impl RawComponent {
     pub fn new(graph_node: &mut Component<GraphNode>) -> Self {
         Self {
             graph_node: graph_node.inner_mut(),
-            entity: Some(graph_node.entity_id),
+            entity: Some(graph_node.entity_id()),
         }
     }
 

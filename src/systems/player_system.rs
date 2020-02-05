@@ -1,5 +1,6 @@
 use super::{
-    cardinals::FacingHorizontal, ActionMap, Component, ComponentList, Player, Sprite, Velocity,
+    cardinals::FacingHorizontal, ActionMap, Component, ComponentList, Player, Sprite,
+    Velocity,
 };
 
 pub fn player_update(
@@ -11,18 +12,18 @@ pub fn player_update(
     let mut active_player: Option<isize> = None;
 
     for (i, player) in players.iter_mut().enumerate() {
-        let id = player.entity_id;
+        let id = player.entity_id();
         let player: &mut Player = player.inner_mut();
-        if let Some(velocity) = velocities.get_mut(&id) {
-            let player_veloc: &mut Velocity = velocity.inner_mut();
 
-            if player.active {
-                if active_player.is_none() {
-                    active_player = Some(i as isize);
-                    player_veloc.intended_direction = action_map.move_direction().take();
-                } else {
-                    error!("Two players are active! Something has gone wrong!");
-                }
+        let velocity = velocities.get_mut_or_default(&id);
+        let player_veloc: &mut Velocity = velocity.inner_mut();
+
+        if player.active {
+            if active_player.is_none() {
+                active_player = Some(i as isize);
+                player_veloc.intended_direction = action_map.move_direction().take();
+            } else {
+                error!("Two players are active! Something has gone wrong!");
             }
         }
     }
@@ -58,7 +59,9 @@ pub fn player_update(
             );
         }
     } else if let Some(zeroeth) = players.iter_mut().nth(0) {
-        zeroeth.inner_mut().active = true;
+        info!("No players are active!");
+        info!("Setting player zero to active!");
+        set_player_active(true, zeroeth, sprites);
     } else {
         log_once::error_once!("We have no active players. That seems bad.");
     }
@@ -84,12 +87,13 @@ fn set_player_active(
 ) {
     player.inner_mut().active = active_status;
 
-    if let Some(player_sprite) = sprites.get_mut(&player.entity_id) {
+    if let Some(player_sprite) = sprites.get_mut(&player.entity_id()) {
         player_sprite.inner_mut().running_data.is_animating = active_status;
+
         if active_status == false {
             player_sprite.inner_mut().running_data.current_frame = 0;
         }
     } else {
-        error!("Player {} has no sprite!", player.entity_id);
+        error!("Player {} has no sprite!", player.entity_id());
     }
 }

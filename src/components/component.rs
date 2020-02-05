@@ -2,8 +2,8 @@ use super::{ComponentBounds, ComponentInfo, Entity, GenerationalIndexValue};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, typename::TypeName)]
 pub struct Component<T: ComponentBounds> {
-    pub entity_id: Entity,
     pub is_active: bool,
+    entity_id: Entity,
     inner: T,
 }
 
@@ -22,6 +22,10 @@ impl<T: ComponentBounds> Component<T> {
             inner,
             is_active,
         }
+    }
+
+    pub fn entity_id(&self) -> Entity {
+        self.entity_id
     }
 
     pub fn inner(&self) -> &T {

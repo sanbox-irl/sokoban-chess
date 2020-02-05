@@ -55,7 +55,7 @@ pub fn prefab_editor(
 
                                 for prefab_marker in component_database.prefab_markers.iter() {
                                     if prefab_marker.inner().id == prefab.id {
-                                        component_database.$y.unset(&prefab_marker.entity_id);
+                                        component_database.$y.unset(&prefab_marker.entity_id());
                                     }
                                 }
 
@@ -65,7 +65,7 @@ pub fn prefab_editor(
                             PrefabComponentInspectorResult::Update => {
                                 for prefab_marker in component_database.prefab_markers.iter() {
                                     if prefab_marker.inner().id == prefab.id {
-                                        if let Some(comp) = component_database.$y.get_mut(&prefab_marker.entity_id) {
+                                        if let Some(comp) = component_database.$y.get_mut(&prefab_marker.entity_id()) {
                                             *comp.inner_mut() = prefab.$x.clone().unwrap().0;
                                         };
                                     }

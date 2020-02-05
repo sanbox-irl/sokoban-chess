@@ -57,7 +57,7 @@ impl GraphNode {
         // It is possible to have a child without a transform, if that child is
         // essentially just a folder.
         if let Some(trans) = transforms.get_mut(&new_child) {
-            let id = trans.entity_id;
+            let id = trans.entity_id();
             trans.inner_mut().set_new_parent(
                 id,
                 RawComponent {
@@ -86,7 +86,7 @@ impl GraphNode {
         transform: &mut Component<Transform>,
         serializations: &ComponentList<SerializationData>,
     ) {
-        let id = transform.entity_id;
+        let id = transform.entity_id();
         transform.inner_mut().set_new_parent(
             id,
             RawComponent {

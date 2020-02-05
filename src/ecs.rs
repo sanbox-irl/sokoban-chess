@@ -85,25 +85,12 @@ impl Ecs {
 
         // Movement Stuff
         grid_system::update_grid_positions(
+            &mut self.component_database.players,
             &mut self.component_database.transforms,
             &mut self.component_database.velocities,
-            &self.component_database.grid_objects,
+            &mut self.component_database.grid_objects,
             grid,
         );
-
-        // let camera_associated_entity = self
-        //     .singleton_database
-        //     .associated_entities
-        //     .get(&self.singleton_database.camera.marker())
-        //     .unwrap();
-
-        // singleton_systems::update_camera(
-        //     self.singleton_database.camera.inner_mut(),
-        //     camera_associated_entity,
-        //     &mut self.component_database.transforms,
-        //     &mut self.component_database.follows,
-        //     &hardware_interfaces.input,
-        // );
 
         Ok(())
     }

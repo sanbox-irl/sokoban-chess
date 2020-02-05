@@ -71,7 +71,7 @@ pub(super) unsafe fn draw_game_world<'a>(
 
     quad_buffer.clear();
     for this_sprite in sprites.iter() {
-        if let Some(transform) = transforms.get(&this_sprite.entity_id) {
+        if let Some(transform) = transforms.get(&this_sprite.entity_id()) {
             quad_buffer.push(sprite_system::to_standard_quad(
                 this_sprite.inner(),
                 transform.inner().world_position(),
@@ -81,7 +81,7 @@ pub(super) unsafe fn draw_game_world<'a>(
     }
 
     for text_source in text_sources.iter() {
-        if let Some(transform) = transforms.get(&text_source.entity_id) {
+        if let Some(transform) = transforms.get(&text_source.entity_id()) {
             for quad in &text_source.inner().cached_quads {
                 quad_buffer.push(
                     text_source
@@ -93,7 +93,7 @@ pub(super) unsafe fn draw_game_world<'a>(
     }
 
     for this_draw_rect in rects.iter() {
-        if let Some(transform) = transforms.get(&this_draw_rect.entity_id) {
+        if let Some(transform) = transforms.get(&this_draw_rect.entity_id()) {
             quad_buffer.push(
                 this_draw_rect
                     .inner()
@@ -102,7 +102,7 @@ pub(super) unsafe fn draw_game_world<'a>(
         }
     }
     for this_tilemap in tilemaps.iter() {
-        if let Some(transform) = transforms.get(&this_tilemap.entity_id) {
+        if let Some(transform) = transforms.get(&this_tilemap.entity_id()) {
             this_tilemap
                 .inner()
                 .create_tile_quads(transform.inner().world_position(), quad_buffer);

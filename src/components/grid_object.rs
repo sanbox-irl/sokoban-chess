@@ -1,9 +1,15 @@
-use super::{ComponentBounds, InspectorParameters};
+use super::{ComponentBounds, InspectorParameters, Vec2Int};
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct GridObject {
     grid_type: GridType,
+    #[serde(skip)]
+    pub move_to_point_pos: Vec2Int,
+    #[serde(skip)]
+    pub move_to_point: bool,
+    #[serde(skip)]
+    pub register: bool,
 }
 
 impl GridObject {
@@ -18,6 +24,34 @@ impl ComponentBounds for GridObject {
             super::imgui_system::typed_enum_selection(ip.ui, &self.grid_type, ip.uid)
         {
             self.grid_type = new_grid_type;
+        }
+
+        if self
+            .move_to_point_pos
+            .vec2int_inspector(ip.ui, &imgui::im_str!("##Move to Point{}", ip.uid))
+        {
+            if self.move_to_point_pos.x < 0 {
+                self.move_to_point_pos.x = 0;
+            }
+
+            if self.move_to_point_pos.y < 0 {
+                self.move_to_point_pos.y = 0;
+            }
+        }
+
+        ip.ui.same_line(0.0);
+        if ip
+            .ui
+            .button(&imgui::im_str!("Move to Point##{}", ip.uid), [0.0, 0.0])
+        {
+            self.move_to_point = true;
+        }
+
+        if ip
+            .ui
+            .button(&imgui::im_str!("Register Position##{}", ip.uid), [0.0, 0.0])
+        {
+            self.register = true;
         }
     }
 }

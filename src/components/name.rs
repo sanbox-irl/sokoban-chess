@@ -89,6 +89,7 @@ impl Name {
 
             if ui
                 .input_text(&imgui::im_str!("##New Name{}", uid), &mut current_name)
+                .resize_buffer(true)
                 .build()
             {
                 res.serialize_name = Some(current_name.to_string());
