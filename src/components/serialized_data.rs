@@ -76,16 +76,9 @@ impl SerializationData {
             |se| se.follow = None,
         )?;
 
-        serialization_option_quick!([velocities, velocity]);
-
-        self.serialization_option(
-            ui,
-            entity_id,
-            &component_database.sprites,
-            |se, c| se.sprite = Some((c.inner().clone().into(), c.is_active)),
-            |se| se.sprite = None,
-        )?;
         serialization_option_quick!(
+            [velocities, velocity],
+            [sprites, sprite],
             [sound_sources, sound_source],
             [bounding_boxes, bounding_box],
             [draw_rectangles, draw_rectangle]

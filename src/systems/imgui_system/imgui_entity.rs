@@ -69,7 +69,7 @@ pub fn entity_list(
             &ecs.component_database.graph_nodes,
             &mut ecs.component_database.names,
             &ecs.component_database.prefab_markers,
-            &ecs.component_database.serialization_data,
+            &mut ecs.component_database.serialization_data,
             &mut |entity, names, serialization_data, name_inspector_params| {
                 ui_handler.scene_graph_entities.push(*entity);
 
@@ -100,7 +100,7 @@ pub fn entity_list(
                     entity,
                     nip,
                     &mut ecs.component_database.names,
-                    &ecs.component_database.serialization_data,
+                    &mut ecs.component_database.serialization_data,
                     ui_handler,
                     &mut entity_to_clone,
                     &mut entity_to_delete,
@@ -128,7 +128,7 @@ fn display_entity_id(
     entity: &Entity,
     mut name_inspector_params: NameInspectorParameters,
     names: &mut ComponentList<Name>,
-    serialization_data: &ComponentList<SerializationData>,
+    serialization_data: &mut ComponentList<SerializationData>,
     ui_handler: &mut UiHandler<'_>,
     clone_me: &mut Option<Entity>,
     delete_me: &mut Option<Entity>,
@@ -142,8 +142,8 @@ fn display_entity_id(
         format!("ID {}", entity)
     };
 
-    // Get that fucker
-    let entry = match ui_handler.entity_list_information.get_mut(entity) {
+    // Find our ImGui entry list info
+    let entity_list_info = match ui_handler.entity_list_information.get_mut(entity) {
         Some(stuff) => stuff,
         None => {
             // for none stuff
@@ -156,20 +156,27 @@ fn display_entity_id(
 
     let result = Name::inspect(
         &name,
-        entry,
+        entity_list_info,
         name_inspector_params,
         &ui_handler.ui,
         &entity.index().to_string(),
     );
 
-    if result.reserialize {
-        // Serialize this Entity and add the name to it...
-        if let Err(e) =
-            SerializationData::edit_serialized_entity(&serialization_data, entity, |se| {
-                se.name = names.get(entity).unwrap().fast_serialize()
-            })
-        {
-            error!("COULDN'T SERIALIZE NAME: {}", e);
+    if result.unserialize {
+        let can_unserialize = if let Some(serialization_data) = serialization_data.get(entity) {
+            match serialization_util::entities::unserialize_entity(&serialization_data.inner().id) {
+                Ok(success) => success,
+                Err(e) => {
+                    error!("Couldn't unserialize! {}", e);
+                    false
+                }
+            }
+        } else {
+            false
+        };
+
+        if can_unserialize {
+            serialization_data.unset(entity);
         }
     }
 
@@ -179,6 +186,9 @@ fn display_entity_id(
 
     if result.delete {
         *delete_me = Some(*entity);
+        if ui_handler.stored_ids.contains(entity) {
+            ui_handler.stored_ids.remove(entity);
+        }
     }
 
     // Store or Remove it...

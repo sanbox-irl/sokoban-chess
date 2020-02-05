@@ -98,7 +98,8 @@ impl GraphNode {
         assert_ne!(my_entity_id, Some(id));
 
         // Make the reference to the new_child...
-        let new_child_reference = SerializableEntityReference::into_reference(Some(id), serializations);
+        let new_child_reference =
+            SerializableEntityReference::into_reference(Some(id), serializations);
 
         match &mut self.children {
             Some(children) => children.push(new_child_reference),

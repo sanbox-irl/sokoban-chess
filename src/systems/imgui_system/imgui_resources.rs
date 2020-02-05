@@ -392,6 +392,7 @@ fn display_prefab_id(prefab: &mut SerializedEntity, ui: &Ui<'_>) {
             &mut EntityListInformation::default(),
             NameInspectorParameters {
                 depth: 0,
+                is_serialized: true,
                 has_children: false,
                 is_prefab: true,
                 being_inspected: false,

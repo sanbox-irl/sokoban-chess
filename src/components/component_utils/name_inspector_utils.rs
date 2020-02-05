@@ -2,7 +2,7 @@ use super::Color;
 
 pub struct NameInspectorResult {
     pub serialize_name: Option<String>,
-    pub reserialize: bool,
+    pub unserialize: bool,
     pub inspect: bool,
     pub show_children: bool,
     pub clone: bool,
@@ -14,7 +14,7 @@ impl Default for NameInspectorResult {
         Self {
             show_children: true,
             serialize_name: None,
-            reserialize: false,
+            unserialize: false,
             inspect: false,
             clone: false,
             delete: false,
@@ -28,6 +28,7 @@ pub struct NameInspectorParameters {
     pub is_prefab: bool,
     pub depth: usize,
     pub being_inspected: bool,
+    pub is_serialized: bool,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

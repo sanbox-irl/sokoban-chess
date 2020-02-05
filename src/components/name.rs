@@ -127,10 +127,21 @@ impl Name {
         imgui_system::right_click_popup(ui, uid, || {
             if ui.button(&im_str!("Clone##{}", uid), [0.0, 0.0]) {
                 res.clone = true;
+                ui.close_current_popup();
             }
+
+            ui.same_line(0.0);
 
             if ui.button(&im_str!("Delete##{}", uid), [0.0, 0.0]) {
                 res.delete = true;
+            }
+
+            ui.same_line(0.0);
+
+            if nip.is_serialized {
+                if ui.button(&im_str!("Unserialize##{}", uid), [0.0, 0.0]) {
+                    res.unserialize = true;
+                }
             }
         });
 

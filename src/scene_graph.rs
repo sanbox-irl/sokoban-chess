@@ -76,7 +76,7 @@ fn walk_node(
 type GraphInspectorLambda<'a> = &'a mut dyn FnMut(
     &Entity,
     &mut ComponentList<Name>,
-    &ComponentList<SerializationData>,
+    &mut ComponentList<SerializationData>,
     NameInspectorParameters,
 ) -> bool;
 
@@ -85,7 +85,7 @@ pub fn walk_graph_inspect(
     nodes: &ComponentList<GraphNode>,
     names: &mut ComponentList<Name>,
     prefabs: &ComponentList<PrefabMarker>,
-    serialization_data: &ComponentList<SerializationData>,
+    serialization_data: &mut ComponentList<SerializationData>,
     f: GraphInspectorLambda<'_>,
 ) {
     let root_nodes = ROOT_NODES.lock().unwrap();
@@ -114,7 +114,7 @@ fn walk_node_inspect(
     nodes: &ComponentList<GraphNode>,
     names: &mut ComponentList<Name>,
     prefabs: &ComponentList<PrefabMarker>,
-    serialization_data: &ComponentList<SerializationData>,
+    serialization_data: &mut ComponentList<SerializationData>,
     depth: usize,
     f: GraphInspectorLambda<'_>,
 ) {
@@ -137,6 +137,7 @@ fn walk_node_inspect(
             serialization_data,
             NameInspectorParameters {
                 depth,
+                is_serialized: serialization_data.get(entity).is_some(),
                 has_children,
                 is_prefab: prefabs.get(entity).is_some(),
                 being_inspected: false,
