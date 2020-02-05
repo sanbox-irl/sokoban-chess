@@ -1,4 +1,25 @@
 ---
+pixel_main_character_walking:
+  created:
+    secs_since_epoch: 1580533280
+    nanos_since_epoch: 286231494
+  modified:
+    secs_since_epoch: 1580533280
+    nanos_since_epoch: 286934491
+Button:
+  created:
+    secs_since_epoch: 1580884157
+    nanos_since_epoch: 238749565
+  modified:
+    secs_since_epoch: 1580884157
+    nanos_since_epoch: 238950194
+Flag:
+  created:
+    secs_since_epoch: 1580678101
+    nanos_since_epoch: 144588113
+  modified:
+    secs_since_epoch: 1580678101
+    nanos_since_epoch: 144731950
 PushableBlock:
   created:
     secs_since_epoch: 1580677870
@@ -6,13 +27,13 @@ PushableBlock:
   modified:
     secs_since_epoch: 1580677870
     nanos_since_epoch: 799355860
-PlayerDead:
+background:
   created:
-    secs_since_epoch: 1580676708
-    nanos_since_epoch: 814187527
+    secs_since_epoch: 1580532941
+    nanos_since_epoch: 144317389
   modified:
-    secs_since_epoch: 1580676708
-    nanos_since_epoch: 814854511
+    secs_since_epoch: 1580539735
+    nanos_since_epoch: 756596338
 PixelMainCharacterStanding:
   created:
     secs_since_epoch: 1580533274
@@ -20,13 +41,20 @@ PixelMainCharacterStanding:
   modified:
     secs_since_epoch: 1580585199
     nanos_since_epoch: 169000000
-Wall:
+WhitePixel:
   created:
-    secs_since_epoch: 1580677993
-    nanos_since_epoch: 681739688
+    secs_since_epoch: 1574358069
+    nanos_since_epoch: 189385891
   modified:
-    secs_since_epoch: 1580677993
-    nanos_since_epoch: 681864967
+    secs_since_epoch: 1580585183
+    nanos_since_epoch: 422000000
+PlayerDead:
+  created:
+    secs_since_epoch: 1580676708
+    nanos_since_epoch: 814187527
+  modified:
+    secs_since_epoch: 1580676708
+    nanos_since_epoch: 814854511
 Fire:
   created:
     secs_since_epoch: 1580678670
@@ -41,13 +69,34 @@ Background:
   modified:
     secs_since_epoch: 1580585175
     nanos_since_epoch: 622000000
-pixel_main_character_walking:
+Block:
+  created:
+    secs_since_epoch: 1580677803
+    nanos_since_epoch: 525192142
+  modified:
+    secs_since_epoch: 1580880820
+    nanos_since_epoch: 69511549
+PixelMainCharacterWalking:
   created:
     secs_since_epoch: 1580533280
     nanos_since_epoch: 286231494
   modified:
-    secs_since_epoch: 1580533280
-    nanos_since_epoch: 286934491
+    secs_since_epoch: 1580585210
+    nanos_since_epoch: 381000000
+Wall:
+  created:
+    secs_since_epoch: 1580677993
+    nanos_since_epoch: 681739688
+  modified:
+    secs_since_epoch: 1580677993
+    nanos_since_epoch: 681864967
+pixel_main_character_standing:
+  created:
+    secs_since_epoch: 1580533274
+    nanos_since_epoch: 99589121
+  modified:
+    secs_since_epoch: 1580540580
+    nanos_since_epoch: 435360874
 Grass:
   created:
     secs_since_epoch: 1580678036
@@ -62,45 +111,3 @@ white_pixel:
   modified:
     secs_since_epoch: 1574358069
     nanos_since_epoch: 189485908
-PixelMainCharacterWalking:
-  created:
-    secs_since_epoch: 1580533280
-    nanos_since_epoch: 286231494
-  modified:
-    secs_since_epoch: 1580585210
-    nanos_since_epoch: 381000000
-Block:
-  created:
-    secs_since_epoch: 1580677803
-    nanos_since_epoch: 525192142
-  modified:
-    secs_since_epoch: 1580677803
-    nanos_since_epoch: 525374399
-WhitePixel:
-  created:
-    secs_since_epoch: 1574358069
-    nanos_since_epoch: 189385891
-  modified:
-    secs_since_epoch: 1580585183
-    nanos_since_epoch: 422000000
-Flag:
-  created:
-    secs_since_epoch: 1580678101
-    nanos_since_epoch: 144588113
-  modified:
-    secs_since_epoch: 1580678101
-    nanos_since_epoch: 144731950
-pixel_main_character_standing:
-  created:
-    secs_since_epoch: 1580533274
-    nanos_since_epoch: 99589121
-  modified:
-    secs_since_epoch: 1580540580
-    nanos_since_epoch: 435360874
-background:
-  created:
-    secs_since_epoch: 1580532941
-    nanos_since_epoch: 144317389
-  modified:
-    secs_since_epoch: 1580539735
-    nanos_since_epoch: 756596338

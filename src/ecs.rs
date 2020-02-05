@@ -85,14 +85,7 @@ impl Ecs {
         );
 
         // Movement Stuff
-        grid_system::update_grid_positions(
-            &mut self.component_database.players,
-            &mut self.component_database.transforms,
-            &mut self.component_database.velocities,
-            &mut self.component_database.grid_objects,
-            &mut self.component_database.scene_switchers,
-            grid,
-        );
+        grid_system::update_grid_positions(self, grid);
 
         Ok(())
     }

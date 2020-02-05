@@ -1,2 +1,3 @@
-2020-02-04T15:51:04.243506-08:00 INFO build_script_build_main::shader_builder - No shaders were recompiled.
-2020-02-04T15:51:04.247741-08:00 INFO build_script_build_main::sprite_packer - Sprites were not repacked.
+2020-02-04T22:29:49.141941-08:00 INFO build_script_build_main::shader_builder - No shaders were recompiled.
+2020-02-04T22:29:49.145636-08:00 INFO build_script_build_main::sprite_packer - Button was not present in manifest.
+2020-02-04T22:29:49.147512-08:00 INFO build_script_build_main::sprite_packer - Repacking sprites...

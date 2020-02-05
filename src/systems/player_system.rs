@@ -1,6 +1,5 @@
 use super::{
-    cardinals::FacingHorizontal, ActionMap, Component, ComponentList, Player, Sprite,
-    Velocity,
+    cardinals::FacingHorizontal, ActionMap, Component, ComponentList, Player, Sprite, Velocity,
 };
 
 pub fn player_update(
@@ -21,7 +20,7 @@ pub fn player_update(
         if player.active {
             if active_player.is_none() {
                 active_player = Some(i as isize);
-                player_veloc.intended_direction = action_map.move_direction().take();
+                player_veloc.intended_direction = action_map.move_direction;
             } else {
                 error!("Two players are active! Something has gone wrong!");
             }
@@ -30,7 +29,7 @@ pub fn player_update(
 
     // Check for Active Player
     if let Some(old_active_player) = active_player {
-        if let Some(increment_active_player) = action_map.switch_active_player() {
+        if let Some(increment_active_player) = action_map.switch_active_player {
             let mut active_player = old_active_player;
 
             active_player += match increment_active_player {

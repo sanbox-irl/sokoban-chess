@@ -6,8 +6,9 @@ use winit::event::VirtualKeyCode as VK;
 
 #[derive(Debug, Default)]
 pub struct ActionMap {
-    move_direction: Option<CardinalPrime>,
-    switch_active_player: Option<FacingHorizontal>,
+    pub redo: bool,
+    pub move_direction: Option<CardinalPrime>,
+    pub switch_active_player: Option<FacingHorizontal>,
 }
 
 impl ActionMap {
@@ -31,13 +32,7 @@ impl ActionMap {
         if kb.is_pressed(VK::E) {
             self.switch_active_player = Some(FacingHorizontal::Right);
         }
-    }
 
-    pub fn move_direction(&self) -> Option<CardinalPrime> {
-        self.move_direction
-    }
-
-    pub fn switch_active_player(&self) -> Option<FacingHorizontal> {
-        self.switch_active_player
+        self.redo = kb.is_pressed(VK::Z);
     }
 }

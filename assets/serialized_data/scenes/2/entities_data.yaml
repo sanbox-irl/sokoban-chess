@@ -132,8 +132,8 @@
           g: 1.0
           b: 1.0
           a: 1.0
-        current_frame: 1
-        frame_time: 0.26361382007598879
+        current_frame: 0
+        frame_time: 0.09462906420230866
         is_animating: true
     - true
   sound_source: ~
@@ -202,10 +202,10 @@
   player: ~
   transform:
     - local_position:
-        x: 24.0
+        x: 32.0
         y: 40.0
       world_position:
-        x: 24.0
+        x: 32.0
         y: 40.0
       parent:
         target_serialized_id: ~
@@ -264,7 +264,7 @@
     - grid_type: Flag
     - true
   scene_switcher:
-    - target_scene: Second
+    - target_scene: 3
     - true
   graph_node: ~
   velocity: ~
@@ -554,11 +554,11 @@
   player: ~
   transform:
     - local_position:
-        x: 8.0
-        y: 40.0
+        x: 24.0
+        y: 56.0
       world_position:
-        x: 8.0
-        y: 40.0
+        x: 24.0
+        y: 56.0
       parent:
         target_serialized_id: ~
     - true
@@ -1004,11 +1004,11 @@
   player: ~
   transform:
     - local_position:
-        x: 40.0
-        y: 40.0
+        x: 32.0
+        y: 48.0
       world_position:
-        x: 40.0
-        y: 40.0
+        x: 32.0
+        y: 48.0
       parent:
         target_serialized_id: ~
     - true
@@ -1354,10 +1354,10 @@
   player: ~
   transform:
     - local_position:
-        x: 32.0
+        x: 24.0
         y: 40.0
       world_position:
-        x: 32.0
+        x: 24.0
         y: 40.0
       parent:
         target_serialized_id: ~
@@ -1770,6 +1770,56 @@
   velocity: ~
   sprite:
     - sprite_name: Grass
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    - true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+- id: debc1a2b-3ea7-498c-aed6-afb0655b767f
+  marker: ~
+  name:
+    - name: Wall 110
+    - true
+  player: ~
+  transform:
+    - local_position:
+        x: 16.0
+        y: 72.0
+      world_position:
+        x: 16.0
+        y: 72.0
+      parent:
+        target_serialized_id: ~
+    - true
+  grid_object:
+    - grid_type: Blockable
+    - true
+  scene_switcher: ~
+  graph_node: ~
+  velocity: ~
+  sprite:
+    - sprite_name: Wall
       running_data:
         draw_order:
           draw_layer: Instance

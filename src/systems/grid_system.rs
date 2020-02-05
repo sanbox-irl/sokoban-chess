@@ -1,6 +1,6 @@
 use super::{
-    cardinals::CardinalPrime, scene_system, Component, ComponentList, Entity, GridObject, GridType,
-    Marker, Name, Player, SceneSwitcher, Transform, Vec2, Velocity,
+    cardinals::CardinalPrime, scene_system, Component, ComponentList, Ecs, Entity, GridObject,
+    GridType, Marker, Name, Player, SceneSwitcher, Transform, Vec2, Vec2Int, Velocity,
 };
 use array2d::Array2D;
 
@@ -12,21 +12,14 @@ pub const GRID_DIMENSIONS_MAX_F32: (f32, f32) = (
 );
 pub type Grid = Array2D<Option<Entity>>;
 
-pub fn update_grid_positions(
-    players: &mut ComponentList<Player>,
-    transforms: &mut ComponentList<Transform>,
-    velocities: &mut ComponentList<Velocity>,
-    grid_objects: &mut ComponentList<GridObject>,
-    scene_switchers: &ComponentList<SceneSwitcher>,
-    grid: &mut Grid,
-) {
+pub fn update_grid_positions(ecs: &mut Ecs, grid: &mut Grid) {
     // ImGui Movement
-    for grid_object_c in grid_objects.iter_mut() {
+    for grid_object_c in ecs.component_database.grid_objects.iter_mut() {
         let id = grid_object_c.entity_id();
         let grid_object: &mut GridObject = grid_object_c.inner_mut();
 
         if grid_object.move_to_point {
-            if let Some(transform) = transforms.get_mut(&id) {
+            if let Some(transform) = ecs.component_database.transforms.get_mut(&id) {
                 let current_position = world_to_grid_position(transform.inner().world_position());
                 let desired_position: (usize, usize) = (
                     grid_object.move_to_point_pos.x as usize,
@@ -48,7 +41,7 @@ pub fn update_grid_positions(
         }
 
         if grid_object.register {
-            if let Some(transform) = transforms.get(&id) {
+            if let Some(transform) = ecs.component_database.transforms.get(&id) {
                 register_entity(grid, id, transform.inner().world_position(), None);
             }
 
@@ -57,36 +50,42 @@ pub fn update_grid_positions(
     }
 
     // Player Movement
-    for player in players.iter_mut() {
+    let mut attempted_moves = vec![];
+    for player in ecs.component_database.players.iter_mut() {
         let entity_id = player.entity_id();
 
         let movement: Option<CardinalPrime> = {
-            if let Some(vc) = velocities.get_mut(&entity_id) {
+            if let Some(vc) = ecs.component_database.velocities.get_mut(&entity_id) {
                 vc.inner_mut().intended_direction.take()
             } else {
                 None
             }
         };
-        let current_position = transforms
+        let current_position = ecs
+            .component_database
+            .transforms
             .get_mut(&entity_id)
             .map(|tc| world_to_grid_position(tc.inner_mut().world_position()));
 
         if let Some(movement) = movement {
             if let Some(current_position) = current_position {
-                if let Some(valid_next_position) = move_position(current_position, movement) {
-                    attempt_to_move(
-                        &entity_id,
-                        GridType::Player,
-                        current_position,
-                        valid_next_position,
-                        movement,
-                        grid_objects,
-                        transforms,
-                        scene_switchers,
-                        grid,
-                    );
-                }
+                attempted_moves.push((entity_id, movement, current_position));
             }
+        }
+    }
+
+    // We do this so we don't reallocate under ourselves!
+    for (entity_id, movement, current_position) in attempted_moves {
+        if let Some(valid_next_position) = move_position(current_position, movement) {
+            attempt_to_move(
+                &entity_id,
+                GridType::Player,
+                current_position,
+                valid_next_position,
+                movement,
+                ecs,
+                grid,
+            );
         }
     }
 }
@@ -117,18 +116,18 @@ fn attempt_to_move(
     entity_id: &Entity,
     my_object_type: GridType,
     current_position: (usize, usize),
-    next_position: (usize, usize),
+    new_position: (usize, usize),
     movement: CardinalPrime,
-    grid_objects: &ComponentList<GridObject>,
-    transforms: &mut ComponentList<Transform>,
-    scene_switchers: &ComponentList<SceneSwitcher>,
+    ecs: &mut Ecs,
     grid: &mut Grid,
 ) -> bool {
     let mut move_to_spot = true;
 
     // Check the Entity
-    if let Some(entity_in_grid) = grid[next_position] {
-        let grid_type = grid_objects
+    if let Some(entity_in_grid) = grid[new_position] {
+        let grid_type = ecs
+            .component_database
+            .grid_objects
             .get(&entity_in_grid)
             .unwrap()
             .inner()
@@ -137,7 +136,9 @@ fn attempt_to_move(
         match grid_type {
             GridType::Flag => {
                 if my_object_type == GridType::Player {
-                    if let Some(scene_switcher) = scene_switchers.get(&entity_in_grid) {
+                    if let Some(scene_switcher) =
+                        ecs.component_database.scene_switchers.get(&entity_in_grid)
+                    {
                         if scene_system::set_next_scene(&scene_switcher.inner().target_scene)
                             == false
                         {
@@ -148,17 +149,80 @@ fn attempt_to_move(
                     }
                 }
             }
+            GridType::Button(offset) => {
+                if my_object_type == GridType::Pushable {
+                    let drop_position: Vec2Int = Vec2Int::from(new_position)
+                        - Vec2Int::new(offset.0 as i32, offset.1 as i32);
+                    if drop_position.is_positive() && drop_position.x < 5 && drop_position.y < 10 {
+                        let grid_position = (drop_position.x as usize, drop_position.y as usize);
+
+                        // is a player in the grid?
+                        let killing_player = if let Some(previous_inhabitant) = grid[grid_position]
+                        {
+                            let previous_inhabitant: Entity = previous_inhabitant;
+
+                            ecs.component_database
+                                .players
+                                .get(&previous_inhabitant)
+                                .is_some()
+                        } else {
+                            false
+                        };
+
+                        // ARDUIOUS PROCESS OF MAKING A BLOCK GUUUH PREFABS WHEN
+                        let new_entity = ecs.create_entity();
+
+                        ecs.component_database.transforms.set(
+                            &new_entity,
+                            Component::new(
+                                &new_entity,
+                                Transform::new(grid_to_world_position(grid_position)),
+                            ),
+                        );
+                        if let Some(transform) =
+                            ecs.component_database.transforms.get_mut(&new_entity)
+                        {
+                            super::scene_graph::add_to_scene_graph(
+                                transform,
+                                &ecs.component_database.serialization_data,
+                            );
+                        }
+
+                        let sprite = super::Sprite {
+                            sprite_name: Some(if killing_player {
+                                super::sprite_resources::SpriteName::PlayerDead
+                            } else {
+                                super::sprite_resources::SpriteName::Wall
+                            }),
+                            ..Default::default()
+                        };
+                        ecs.component_database
+                            .sprites
+                            .set(&new_entity, Component::new(&new_entity, sprite));
+
+                        let grid_object = GridObject {
+                            grid_type: if killing_player {
+                                GridType::Pushable
+                            } else {
+                                GridType::Blockable
+                            },
+                            ..Default::default()
+                        };
+                        ecs.component_database
+                            .grid_objects
+                            .set(&new_entity, Component::new(&new_entity, grid_object));
+                    }
+                }
+            }
             GridType::Pushable => {
-                if let Some(next_next_position) = move_position(next_position, movement) {
+                if let Some(next_next_position) = move_position(new_position, movement) {
                     move_to_spot = attempt_to_move(
                         &entity_in_grid,
                         grid_type,
-                        next_position,
+                        new_position,
                         next_next_position,
                         movement,
-                        grid_objects,
-                        transforms,
-                        scene_switchers,
+                        ecs,
                         grid,
                     );
                 }
@@ -174,9 +238,12 @@ fn attempt_to_move(
 
     if move_to_spot {
         move_entity(
-            transforms.get_mut(entity_id).unwrap(),
+            ecs.component_database
+                .transforms
+                .get_mut(entity_id)
+                .unwrap(),
             grid,
-            next_position,
+            new_position,
             current_position,
         );
     }
@@ -212,6 +279,7 @@ fn move_entity(
 ) {
     grid[valid_next_position] = Some(transform.entity_id());
     grid[current_position] = None;
+
     transform
         .inner_mut()
         .set_local_position(grid_to_world_position(valid_next_position));

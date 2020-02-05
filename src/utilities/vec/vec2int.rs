@@ -35,6 +35,14 @@ impl Vec2Int {
         self.x == 0 || self.y == 0
     }
 
+    /// 0 counts as being positive. The purpose of this
+    /// function is normally to check if the components can be
+    /// cast into unsigned ints safely. A true means they can,
+    /// assuming precision allows for it.
+    pub fn is_positive(&self) -> bool {
+        self.x >= 0 && self.y >= 0
+    }
+
     pub fn get_axis(&self, axis: Axis) -> i32 {
         match axis {
             Axis::X => self.x,
@@ -138,6 +146,15 @@ impl std::ops::MulAssign<i32> for Vec2Int {
 impl From<[i32; 2]> for Vec2Int {
     fn from(w: [i32; 2]) -> Vec2Int {
         Vec2Int { x: w[0], y: w[1] }
+    }
+}
+
+impl From<(usize, usize)> for Vec2Int {
+    fn from(w: (usize, usize)) -> Vec2Int {
+        Vec2Int {
+            x: w.0 as i32,
+            y: w.1 as i32,
+        }
     }
 }
 

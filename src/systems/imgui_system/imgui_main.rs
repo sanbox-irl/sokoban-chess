@@ -92,7 +92,7 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                 scene_change(
                     "Create Scene",
                     ui,
-                    &mut ui_handler.scene_changing_info.switch_scene_name,
+                    &mut ui_handler.scene_changing_info.create_scene,
                     |new_name| match scene_system::create_scene(new_name) {
                         Ok(made_scene) => {
                             if made_scene == false {
@@ -110,7 +110,7 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                 scene_change(
                     "Delete Scene",
                     ui,
-                    &mut ui_handler.scene_changing_info.switch_scene_name,
+                    &mut ui_handler.scene_changing_info.delete_scene_name,
                     |new_name| match scene_system::delete_scene(&new_name) {
                         Ok(deleted_scene) => {
                             if deleted_scene == false {

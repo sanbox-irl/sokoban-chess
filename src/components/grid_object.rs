@@ -3,7 +3,7 @@ use super::{ComponentBounds, InspectorParameters, Vec2Int};
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct GridObject {
-    grid_type: GridType,
+    pub grid_type: GridType,
     #[serde(skip)]
     pub move_to_point_pos: Vec2Int,
     #[serde(skip)]
@@ -24,6 +24,18 @@ impl ComponentBounds for GridObject {
             super::imgui_system::typed_enum_selection(ip.ui, &self.grid_type, ip.uid)
         {
             self.grid_type = new_grid_type;
+        }
+
+        if let GridType::Button(pos) = &mut self.grid_type {
+            let mut pos_v2: Vec2Int = Vec2Int::new(pos.0 as i32, pos.1 as i32);
+            if pos_v2.vec2int_inspector(
+                ip.ui,
+                &imgui::im_str!("Block Drop Location Offset##{}", ip.uid),
+            ) {
+                if pos_v2.x.is_positive() && pos_v2.y.is_positive() {
+                    *pos = (pos_v2.x as isize, pos_v2.y as isize);
+                }
+            }
         }
 
         if self
@@ -74,6 +86,7 @@ pub enum GridType {
     Blockable,
     NonInteractable,
     Flag,
+    Button((isize, isize)),
 }
 
 impl Default for GridType {

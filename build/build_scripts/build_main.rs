@@ -14,11 +14,13 @@ mod sprite_packer;
 fn main() -> Result<(), Error> {
     println!("cargo:rerun-if-env-changed=BUILD_ENABLED");
 
+
+    
     initiate_logging()?;
     imgui_initialization::initialize_imgui()?;
     shader_builder::build()?;
     sprite_packer::pack_sprites()?;
-
+    
     Ok(())
 }
 
