@@ -20,15 +20,27 @@ pub struct InspectorParameters<'a, 'b> {
 pub trait ComponentListBounds {
     fn expand_list(&mut self);
     fn unset(&mut self, index: &Entity) -> bool;
+    fn dump_to_log(&self, index: &Entity);
 }
 
-impl<T: ComponentBounds + 'static> ComponentListBounds for ComponentList<T> {
+impl<T: ComponentBounds + std::fmt::Debug + typename::TypeName + 'static> ComponentListBounds
+    for ComponentList<T>
+{
     fn expand_list(&mut self) {
         self.expand_list();
     }
 
     fn unset(&mut self, index: &Entity) -> bool {
         self.unset(index)
+    }
+
+    fn dump_to_log(&self, index: &Entity) {
+        let comp_name = super::imgui_system::typed_text_ui::<T>();
+        if let Some(comp) = self.get(index) {
+            println!("{}: {:#?}", comp_name, comp);
+        } else {
+            println!("{}: None", comp_name);
+        }
     }
 }
 

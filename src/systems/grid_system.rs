@@ -1,6 +1,6 @@
 use super::{
     cardinals::CardinalPrime, scene_system, Component, ComponentList, Ecs, Entity, GridObject,
-    GridType, Marker, Name, Player, SceneSwitcher, Transform, Vec2, Vec2Int, Velocity,
+    GridType, Marker, Name, Transform, Vec2,
 };
 use array2d::Array2D;
 

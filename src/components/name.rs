@@ -143,6 +143,12 @@ impl Name {
                     res.unserialize = true;
                 }
             }
+
+            ui.same_line(0.0);
+            if ui.button(&im_str!("Console Dump##{}", uid), [0.0, 0.0]) {
+                res.dump_into_console_log = true;
+                ui.close_current_popup();
+            }
         });
 
         res

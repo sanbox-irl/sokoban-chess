@@ -132,8 +132,8 @@
           g: 1.0
           b: 1.0
           a: 1.0
-        current_frame: 1
-        frame_time: 0.22392718493938447
+        current_frame: 0
+        frame_time: 0.014452733099460602
         is_animating: true
     - true
   sound_source: ~
@@ -146,46 +146,14 @@
   prefab_marker: ~
 - id: a5475c41-6106-4e55-a828-2f45bab6d1ae
   marker: ~
-  name:
-    - name: Grass
-    - false
+  name: ~
   player: ~
-  transform:
-    - local_position:
-        x: 24.0
-        y: 24.0
-      world_position:
-        x: 24.0
-        y: 24.0
-      parent:
-        target_serialized_id: ~
-    - true
-  grid_object:
-    - grid_type: NonInteractable
-    - true
+  transform: ~
+  grid_object: ~
   scene_switcher: ~
   graph_node: ~
   velocity: ~
-  sprite:
-    - sprite_name: Grass
-      running_data:
-        draw_order:
-          draw_layer: Instance
-          order: 0
-        facing_horizontal: Right
-        facing_vertical: Up
-        scale:
-          x: 1.0
-          y: 1.0
-        tint:
-          r: 1.0
-          g: 1.0
-          b: 1.0
-          a: 1.0
-        current_frame: 0
-        frame_time: 0.0
-        is_animating: false
-    - true
+  sprite: ~
   sound_source: ~
   draw_rectangle: ~
   bounding_box: ~
@@ -193,7 +161,9 @@
   tilemap: ~
   follow: ~
   conversant_npc: ~
-  prefab_marker: ~
+  prefab_marker:
+    - id: 81216d25-6021-463c-98fc-abc70612ae57
+    - true
 - id: c72ca3f0-a8c8-4184-a261-127af88af70b
   marker: ~
   name:
@@ -446,3 +416,23 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
+- id: dc715ec7-4ce0-4378-9bbd-593cadaa3dfc
+  marker: ~
+  name: ~
+  player: ~
+  transform: ~
+  grid_object: ~
+  scene_switcher: ~
+  graph_node: ~
+  velocity: ~
+  sprite: ~
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker:
+    - id: 81216d25-6021-463c-98fc-abc70612ae57
+    - true

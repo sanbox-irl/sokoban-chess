@@ -15,6 +15,7 @@ pub fn entity_list(
 
     let mut entity_to_clone = None;
     let mut entity_to_delete = None;
+    let mut entity_to_console_dump = None;
 
     if let Some(entity_inspector_window) = entity_window.begin(&ui_handler.ui) {
         // Top menu bar!
@@ -81,6 +82,7 @@ pub fn entity_list(
                     ui_handler,
                     &mut entity_to_clone,
                     &mut entity_to_delete,
+                    &mut entity_to_console_dump,
                 )
             },
         );
@@ -104,6 +106,7 @@ pub fn entity_list(
                     ui_handler,
                     &mut entity_to_clone,
                     &mut entity_to_delete,
+                    &mut entity_to_console_dump,
                 );
             }
         }
@@ -114,6 +117,14 @@ pub fn entity_list(
 
         if let Some(entity_to_delete) = entity_to_delete {
             ecs.remove_entity(&entity_to_delete);
+        }
+
+        if let Some(console_dump_me) = entity_to_console_dump {
+            println!("---Console Dump for {}---", console_dump_me);
+            ecs.component_database.foreach_component_list(|comp_list| {
+                comp_list.dump_to_log(&console_dump_me);
+            });
+            println!("-------------------------");
         }
 
         entity_inspector_window.end(&ui_handler.ui);
@@ -132,6 +143,7 @@ fn display_entity_id(
     ui_handler: &mut UiHandler<'_>,
     clone_me: &mut Option<Entity>,
     delete_me: &mut Option<Entity>,
+    console_dump_me: &mut Option<Entity>,
 ) -> bool {
     // Name Inspector Params
     name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
@@ -154,7 +166,15 @@ fn display_entity_id(
         }
     };
 
-    let result = Name::inspect(
+    let NameInspectorResult {
+        clone,
+        delete,
+        dump_into_console_log,
+        inspect,
+        serialize_name,
+        show_children,
+        unserialize,
+    } = Name::inspect(
         &name,
         entity_list_info,
         name_inspector_params,
@@ -162,7 +182,7 @@ fn display_entity_id(
         &entity.index().to_string(),
     );
 
-    if result.unserialize {
+    if unserialize {
         let can_unserialize = if let Some(serialization_data) = serialization_data.get(entity) {
             match serialization_util::entities::unserialize_entity(&serialization_data.inner().id) {
                 Ok(success) => success,
@@ -180,19 +200,23 @@ fn display_entity_id(
         }
     }
 
-    if result.clone {
+    if clone {
         *clone_me = Some(*entity);
     }
 
-    if result.delete {
+    if delete {
         *delete_me = Some(*entity);
         if ui_handler.stored_ids.contains(entity) {
             ui_handler.stored_ids.remove(entity);
         }
     }
 
+    if dump_into_console_log {
+        *console_dump_me = Some(*entity);
+    }
+
     // Store or Remove it...
-    if result.inspect {
+    if inspect {
         if ui_handler.stored_ids.contains(entity) {
             ui_handler.stored_ids.remove(entity);
         } else {
@@ -201,10 +225,10 @@ fn display_entity_id(
     }
 
     // Should we change the name?
-    if let Some(new_name) = result.serialize_name {
+    if let Some(new_name) = serialize_name {
         let name_component = names.get_mut_or_default(entity);
         name_component.inner_mut().name = new_name;
     }
 
-    result.show_children
+    show_children
 }

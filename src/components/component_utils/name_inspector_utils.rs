@@ -7,6 +7,7 @@ pub struct NameInspectorResult {
     pub show_children: bool,
     pub clone: bool,
     pub delete: bool,
+    pub dump_into_console_log: bool,
 }
 
 impl Default for NameInspectorResult {
@@ -18,6 +19,7 @@ impl Default for NameInspectorResult {
             inspect: false,
             clone: false,
             delete: false,
+            dump_into_console_log: false,
         }
     }
 }
