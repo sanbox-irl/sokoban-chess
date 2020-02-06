@@ -13,7 +13,7 @@ pub mod physics_components;
 mod player;
 mod prefab_marker;
 mod scene_switcher;
-mod serialized_data;
+mod serialization_data;
 mod sound_source;
 mod sprite;
 mod text_source;
@@ -40,7 +40,7 @@ pub use {
     player::Player,
     prefab_marker::PrefabMarker,
     scene_switcher::SceneSwitcher,
-    serialized_data::{ImGuiSerializationDataCommand, SerializationData},
+    serialization_data::{ImGuiSerializationDataCommand, SerializationData},
     sound_source::SoundSource,
     sprite::Sprite,
     text_source::TextSource,

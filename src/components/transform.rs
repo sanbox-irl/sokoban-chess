@@ -3,7 +3,7 @@ use super::{
     InspectorParameters, TransformParent, Vec2,
 };
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Transform {
     local_position: Vec2,

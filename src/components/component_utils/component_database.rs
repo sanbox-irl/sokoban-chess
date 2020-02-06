@@ -47,7 +47,7 @@ impl ComponentDatabase {
         }
 
         // Post-Deserialization Work...
-        // @update_components
+        // @update_components exceptions
         // @techdebt This probably can turn into a trait on a ComponentBound
         for af in component_database.follows.iter_mut() {
             af.inner_mut()
@@ -84,108 +84,35 @@ impl ComponentDatabase {
         }
     }
 
-    pub fn deregister_entity(&mut self, entity: &Entity, maintain_serialization: bool) {
-        // Save the Serialization Component Here
-        let serialized_data = if maintain_serialization {
-            self.serialization_data.get(entity).cloned()
-        } else {
-            None
-        };
-
+    pub fn deregister_entity(&mut self, entity: &Entity) {
         self.foreach_component_list(|list| {
             list.unset(entity);
         });
+    }
 
-        // If we've got, resave
-        // @techdebt
-        if let Some(sd) = serialized_data {
-            self.serialization_data.set(entity, sd);
+    pub fn clone_components(&mut self, original: &Entity, new_entity: &Entity) {
+        self.foreach_component_list(|component_list| {
+            component_list.clone_entity(original, new_entity);
+        });
+
+        // @update_components exceptions
+        if let Some(transformc_c) = self.transforms.get_mut(new_entity) {
+            scene_graph::add_to_scene_graph(transformc_c, &self.serialization_data)
         }
     }
 
-    pub fn clone_components(
-        &mut self,
-        original: &Entity,
-        new_entity: &Entity,
-        singleton_database: &SingletonDatabase,
-    ) {
-        fn clone_list_entry<T: ComponentBounds + Clone>(
-            component_list: &mut ComponentList<T>,
-            original: &Entity,
-            new_entity: &Entity,
-        ) -> bool {
-            if component_list.get(original).is_some() {
-                let new_component = component_list.get(original).unwrap().inner().clone();
-                component_list.set(new_entity, Component::new(new_entity, new_component));
-                true
-            } else {
-                false
-            }
-        }
-
-        // @update_components
-        if clone_list_entry(&mut self.names, original, new_entity) {
-            // This all should use Regex
-            let name = self.names.get_mut(new_entity).unwrap();
-            let mut last_char_to_keep = name.inner_mut().name.len();
-
-            let new_digit: u32 = if let Some((i, last_character)) =
-                name.inner_mut().name.chars().enumerate().last()
-            {
-                if let Some(digit) = last_character.to_digit(10) {
-                    last_char_to_keep = i;
-                    digit + 1
-                } else {
-                    0
-                }
-            } else {
-                0
-            };
-
-            name.inner_mut().name = format!(
-                "{}{}",
-                &name.inner_mut().name[..last_char_to_keep],
-                new_digit
-            );
-        }
-        clone_list_entry(&mut self.grid_objects, original, new_entity);
-        clone_list_entry(&mut self.prefab_markers, original, new_entity);
-        if clone_list_entry(&mut self.transforms, original, new_entity) {
-            scene_graph::add_to_scene_graph(
-                self.transforms.get_mut(new_entity).unwrap(),
-                &self.serialization_data,
-            )
-        }
-        clone_list_entry(&mut self.players, original, new_entity);
-        clone_list_entry(&mut self.graph_nodes, original, new_entity);
-        clone_list_entry(&mut self.sprites, original, new_entity);
-        clone_list_entry(&mut self.sound_sources, original, new_entity);
-        clone_list_entry(&mut self.bounding_boxes, original, new_entity);
-        clone_list_entry(&mut self.draw_rectangles, original, new_entity);
-        clone_list_entry(&mut self.scene_switchers, original, new_entity);
-        clone_list_entry(&mut self.tilemaps, original, new_entity);
-        clone_list_entry(&mut self.text_sources, original, new_entity);
-        clone_list_entry(&mut self.transforms, original, new_entity);
-        clone_list_entry(&mut self.follows, original, new_entity);
-        clone_list_entry(&mut self.conversant_npcs, original, new_entity);
-
-        // Special handling for the SerializedData...
-        if self.serialization_data.get(original).is_some() {
-            let new_component = SerializationData::new();
-            self.serialization_data
-                .set(new_entity, Component::new(new_entity, new_component));
-            super::serialization_util::entities::serialize_entity_full(
-                new_entity,
-                self,
-                singleton_database,
-            );
-        }
-    }
-
+    // @update_components
     pub fn foreach_component_list(&mut self, mut f: impl FnMut(&mut dyn ComponentListBounds)) {
-        // @update_components
         f(&mut self.prefab_markers);
         f(&mut self.names);
+
+        self.foreach_component_list_no_name_or_prefab(f);
+    }
+
+    pub fn foreach_component_list_no_name_or_prefab(
+        &mut self,
+        mut f: impl FnMut(&mut dyn ComponentListBounds),
+    ) {
         f(&mut self.transforms);
         f(&mut self.grid_objects);
         f(&mut self.players);

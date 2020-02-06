@@ -27,159 +27,60 @@ pub fn entity_inspector(
             .opened(&mut is_open);
 
         if let Some(entity_inspector_window) = entity_window.begin(ui) {
-            // @update_components:
-            let is_prefab = component_database.prefab_markers.get(entity).is_some();
+            let serialization_id = component_database
+                .serialization_data
+                .get(entity)
+                .map(|sd| sd.inner().id);
 
-            macro_rules! component_inspector_quick {
-                ( $( $x:ident ),* ) => {
-                    $(
-                        component_inspector(
-                            &mut component_database.$x,
-                            entities,
-                            &component_database.names,
-                            entity,
-                            &resources.prefabs,
-                            ui,
-                            is_open,
-                        );
-                    )*
-                };
-            }
+            let names_raw_pointer: *const ComponentList<Name> = &component_database.names;
+            component_database.foreach_component_list_no_name_or_prefab(|component_list| {
+                component_list.component_inspector(
+                    entities,
+                    unsafe { &*names_raw_pointer },
+                    entity,
+                    &resources.prefabs,
+                    ui,
+                    is_open,
+                );
+            });
 
-            let disabled_token = if is_prefab {
-                Some(ui.push_style_var(imgui::StyleVar::Alpha(0.2)))
-            } else {
-                None
-            };
-
-            component_inspector_quick!(
-                players,
-                transforms,
-                velocities,
-                grid_objects,
-                scene_switchers,
-                sprites,
-                sound_sources,
-                bounding_boxes,
-                draw_rectangles,
-                tilemaps,
-                text_sources,
-                follows,
-                conversant_npcs,
-                prefab_markers
+            // Prefab
+            component_database.prefab_markers.component_inspector(
+                entities,
+                &component_database.names,
+                entity,
+                &resources.prefabs,
+                ui,
+                is_open,
             );
 
-            if let Some(disabled_token) = disabled_token {
-                disabled_token.pop(ui);
-            }
-
-            // graph nodes
-            // if let Some(graph_node) = component_database.graph_nodes.get_mut(entity) {
-            //     ui.separator();
-
-            //     let mut comp_info = graph_node.construct_component_info();
-            //     let name = imgui_utility::typed_text_ui::<GraphNode>();
-            //     component_name_and_status(&name, ui, &mut comp_info);
-            //     graph_node.take_component_info(&comp_info);
-
-            //     use typename::TypeName;
-            //     // DELETE OR INSPECT
-            //     ui.tree_node(&imgui::ImString::new(name))
-            //         .default_open(true)
-            //         .build(|| {
-            //             let inspector_parameters = InspectorParameters {
-            //                 is_open,
-            //                 uid: &format!("{}{}", graph_node.entity_id.to_string(), &GraphNode::type_name()),
-            //                 ui,
-            //                 entities,
-            //                 entity_names: &component_database.names,
-            //                 prefabs: &resources.prefabs,
-            //             };
-            //             let id = graph_node.entity_id;
-            //             graph_node.inner_mut().specific_entity_inspector(
-            //                 id,
-            //                 inspector_parameters,
-            //                 &component_database.serialization_data,
-            //                 &mut component_database.transforms,
-            //             );
-            //         });
-            // }
-
-            // serialization
-            if let Some(comp) = component_database.serialization_data.get_mut(entity) {
-                ui.separator();
-                let name = imgui_utility::typed_text_ui::<SerializationData>();
-                let mut comp_info = comp.construct_component_info();
-
-                ui.tree_node(&imgui::ImString::new(&name))
-                    .default_open(true)
-                    .frame_padding(false)
-                    .build(|| {
-                        if ui.button(im_str!("Stop Serialization"), [-1.0, 0.0]) {
-                            comp_info.is_deleted = true;
-                        }
-                    });
-
-                if comp_info.is_deleted {
-                    if let Err(e) =
-                        serialization_util::entities::unserialize_entity(&comp.inner().id)
-                    {
+            // Serialization
+            if component_database.serialization_data.get(entity).is_none() {
+                if let Some(id) = serialization_id {
+                    if let Err(e) = serialization_util::entities::unserialize_entity(&id) {
                         error!("Couldn't unserialize! {}", e);
                     }
-                    component_database.serialization_data.unset(entity);
                 }
             }
 
             // Menu bar funtimes!
             if let Some(menu_bar) = ui.begin_menu_bar() {
                 if let Some(add_component_submenu) = ui.begin_menu(im_str!("Add Component"), true) {
-                    macro_rules! add_component_quick {
-                        ( $( $x:ident ),* ) => {
-                            $(
-                                component_add_button(ui, &mut component_database.$x, entity);
-                            )*
-                        };
-                    }
-
-                    // ADD COMPONENT?
-                    // @update_components
-                    add_component_quick!(players);
-
-                    if let Some(new_transform) =
-                        component_add_button(ui, &mut component_database.transforms, entity)
-                    {
-                        scene_graph::add_to_scene_graph(
-                            new_transform,
-                            &component_database.serialization_data,
-                        );
-                    }
-
-                    add_component_quick!(
-                        velocities,
-                        grid_objects,
-                        scene_switchers,
-                        graph_nodes,
-                        sprites,
-                        sound_sources,
-                        bounding_boxes,
-                        draw_rectangles,
-                        tilemaps,
-                        text_sources,
-                        follows,
-                        conversant_npcs
-                    );
+                    // @update_components exception
+                    let had_transform = component_database.transforms.get(entity).is_some();
 
                     // Prefab Marker, Name is omitted
+                    component_database.foreach_component_list_no_name_or_prefab(|component_list| {
+                        component_list.component_add_button(entity, ui)
+                    });
 
-                    // When we add a serialize button, we serialize the whole entity.
-                    if component_add_button(ui, &mut component_database.serialization_data, entity)
-                        .is_some()
-                    {
-                        serialization_util::entities::serialize_entity_full(
-                            entity,
-                            component_database,
-                            singleton_database,
-                        );
+                    if had_transform == false {
+                        if let Some(new_transform) = component_database.transforms.get_mut(entity) {
+                            scene_graph::add_to_scene_graph(
+                                new_transform,
+                                &component_database.serialization_data,
+                            );
+                        }
                     }
 
                     add_component_submenu.end(ui);
@@ -295,63 +196,6 @@ pub fn entity_inspector(
     }
 }
 
-fn component_inspector<T: ComponentBounds + typename::TypeName>(
-    component_list: &mut ComponentList<T>,
-    entities: &[Entity],
-    entity_names: &ComponentList<Name>,
-    entity: &Entity,
-    prefab_hashmap: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
-    ui: &mut Ui<'_>,
-    is_open: bool,
-) {
-    if let Some(comp) = component_list.get_mut(entity) {
-        let delete_component =
-            component_inspector_internal(comp, entities, entity_names, prefab_hashmap, ui, is_open);
-        if delete_component {
-            component_list.unset(entity);
-        }
-    }
-}
-
-fn component_inspector_internal<T: ComponentBounds + typename::TypeName>(
-    comp: &mut Component<T>,
-    entities: &[Entity],
-    entity_names: &ComponentList<Name>,
-    prefabs: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
-    ui: &mut Ui<'_>,
-    is_open: bool,
-) -> bool {
-    let mut delete = false;
-    let name = imgui_utility::typed_text_ui::<T>();
-
-    ui.tree_node(&imgui::ImString::new(&name))
-        .default_open(true)
-        .frame_padding(false)
-        .build(|| {
-            // COMPONENT INFO
-            let mut comp_info = comp.construct_component_info();
-            component_name_and_status(&name, ui, &mut comp_info);
-            comp.take_component_info(&comp_info);
-
-            // DELETE ENTITY
-            if comp_info.is_deleted {
-                delete = true;
-            } else {
-                let inspector_parameters = InspectorParameters {
-                    is_open,
-                    uid: &format!("{}{}", comp.entity_id(), &T::type_name()),
-                    ui,
-                    entities,
-                    entity_names,
-                    prefabs,
-                };
-                comp.inner_mut().entity_inspector(inspector_parameters);
-            }
-        });
-
-    delete
-}
-
 // @techdebt this is weirdly public, maybe we put it in the
 // utilities. It's shared between Components and Prefabs!
 pub fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &mut ComponentInfo) {
@@ -369,20 +213,4 @@ pub fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &m
     }
 
     ui.spacing();
-}
-
-fn component_add_button<'a, T: ComponentBounds + typename::TypeName + Default>(
-    ui: &mut Ui<'_>,
-    component_list: &'a mut ComponentList<T>,
-    entity: &Entity,
-) -> Option<&'a mut Component<T>> {
-    if imgui::MenuItem::new(&imgui::ImString::new(imgui_utility::typed_text_ui::<T>()))
-        .enabled(component_list.get(entity).is_none())
-        .build(ui)
-    {
-        component_list.set(entity, Component::new(entity, T::default()));
-        Some(component_list.get_mut(entity).unwrap())
-    } else {
-        None
-    }
 }

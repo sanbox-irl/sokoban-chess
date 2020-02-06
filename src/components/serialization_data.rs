@@ -2,9 +2,15 @@ use super::{component_serialization::TilemapSerialized, *};
 use imgui::*;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, typename::TypeName)]
 pub struct SerializationData {
     pub id: Uuid,
+}
+
+impl Clone for SerializationData {
+    fn clone(&self) -> Self {
+        SerializationData::default()
+    }
 }
 
 impl SerializationData {
@@ -256,10 +262,7 @@ impl Default for SerializationData {
 }
 
 impl ComponentBounds for SerializationData {
-    // Don't use this -- use the imgui function in the above impl
-    fn entity_inspector(&mut self, _inspector_parameters: InspectorParameters<'_, '_>) {
-        unimplemented!()
-    }
+    fn entity_inspector(&mut self, _ip: InspectorParameters<'_, '_>) {}
 }
 
 pub enum ImGuiSerializationDataCommand {

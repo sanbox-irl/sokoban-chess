@@ -152,8 +152,7 @@ impl Ecs {
     pub fn remove_entity(&mut self, entity_to_delete: &Entity) -> bool {
         let is_dealloc = self.entity_allocator.deallocate(entity_to_delete);
         if is_dealloc {
-            self.component_database
-                .deregister_entity(&entity_to_delete, false);
+            self.component_database.deregister_entity(&entity_to_delete);
             self.entities
                 .iter()
                 .position(|i| i == entity_to_delete)
@@ -164,11 +163,8 @@ impl Ecs {
 
     pub fn clone_entity(&mut self, original: &Entity) -> Entity {
         let new_entity = self.create_entity();
-        self.component_database.clone_components(
-            original,
-            &new_entity,
-            &mut self.singleton_database,
-        );
+        self.component_database
+            .clone_components(original, &new_entity);
 
         new_entity
     }

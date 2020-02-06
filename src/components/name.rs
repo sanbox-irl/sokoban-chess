@@ -6,10 +6,36 @@ use super::{
 };
 use imgui::im_str;
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Name {
     pub name: String,
+}
+
+impl Clone for Name {
+    fn clone(&self) -> Self {
+        let mut last_char_to_keep = self.name.len();
+
+        let new_digit: u32 =
+            if let Some((i, last_character)) = self.name.chars().enumerate().last() {
+                if let Some(digit) = last_character.to_digit(10) {
+                    last_char_to_keep = i;
+                    digit + 1
+                } else {
+                    0
+                }
+            } else {
+                0
+            };
+
+        Name {
+            name: format!(
+                "{}{}",
+                &self.name[..last_char_to_keep],
+                new_digit
+            ),
+        }
+    }
 }
 
 impl Name {

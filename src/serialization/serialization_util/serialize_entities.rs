@@ -24,10 +24,10 @@ pub fn process_serialized_command(
 ) {
     match command {
         ImGuiSerializationDataCommand::Revert(serialized_entity) => {
-            // REMOVE FROM GAME
-            component_database.deregister_entity(entity, true);
+            // Remove the Entity
+            component_database.deregister_entity(entity);
 
-            // RELOAD
+            // Reload the Entity
             component_database.load_serialized_entity(
                 entity,
                 serialized_entity,

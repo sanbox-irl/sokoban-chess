@@ -9,5 +9,6 @@ mod imgui_resources;
 mod imgui_singleton;
 mod imgui_utility;
 
+pub use imgui_component::component_name_and_status;
 pub use imgui_main::imgui_main;
 pub use imgui_utility::*;
