@@ -51,10 +51,11 @@ pub(super) unsafe fn draw_game_world<'a>(
         index_type: IndexType::U16,
     });
 
+    let display_size = camera.display_size();
     let viewport = Viewport {
         rect: Rect {
-            x: (1920 - 480) / 2,
-            y: (1080 - 840) / 2,
+            x: (display_size.x - 480.0) as i16 / 2,
+            y: (display_size.y - 840.0) as i16 / 2,
             w: 480,
             h: 840,
         },

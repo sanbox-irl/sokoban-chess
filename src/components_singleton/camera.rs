@@ -18,6 +18,10 @@ impl Camera {
         self.native_resolution / self.zoom_level
     }
 
+    pub fn display_size(&self) -> Vec2 {
+        self.display_size.unwrap()
+    }
+
     pub fn display_to_world_position(&self, display_pos: Vec2, camera_position: Vec2) -> Vec2 {
         // This is all kinda @Hacky but it works!
         let transformed_to_world = {
