@@ -275,6 +275,12 @@ pub fn game_config_editor(
             .window_size
             .inspector(ui, &im_str!("Window Size##{}", uid));
 
+        ui.input_float(
+            &im_str!("ImGui Font Size##{}", uid),
+            &mut config.imgui_pixel_size,
+        )
+        .build();
+
         // Serialize
         if imgui_utility::sized_button(ui, &im_str!("Serialize##{}", uid)) {
             if let Err(e) = serialization_util::game_config::serialize_config(config) {

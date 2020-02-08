@@ -35,7 +35,11 @@ impl Clockwork {
 
     pub fn main_loop(&mut self) -> Result<(), Error> {
         // TICK STRUCTS
-        let mut imgui = ImGui::new(&self.ecs.entity_allocator, &self.hardware_interfaces.window);
+        let mut imgui = ImGui::new(
+            &self.ecs.entity_allocator,
+            &self.hardware_interfaces.window,
+            &self.resources.config,
+        );
         renderer_system::initialize_imgui(&mut self.hardware_interfaces.renderer, &mut imgui)?;
 
         info!(

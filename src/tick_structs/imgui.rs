@@ -1,4 +1,4 @@
-use super::{Entity, EntityAllocator, EntityListInformation, Window};
+use super::{Entity, EntityAllocator, EntityListInformation, Window, game_config::Config};
 use failure::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
@@ -15,7 +15,7 @@ pub struct ImGui {
 
 #[allow(dead_code)]
 impl ImGui {
-    pub fn new(entity_allocator: &EntityAllocator, window: &Window) -> Self {
+    pub fn new(entity_allocator: &EntityAllocator, window: &Window, config: &Config) -> Self {
         let mut imgui = Context::create();
 
         // Ini Save Location:
@@ -44,7 +44,7 @@ impl ImGui {
                     ..FontConfig::default()
                 }),
                 data: roboto_font_data,
-                size_pixels: 20.0,
+                size_pixels: config.imgui_pixel_size,
             },
             FontSource::TtfData {
                 config: Some(FontConfig {
@@ -54,7 +54,7 @@ impl ImGui {
                     ..FontConfig::default()
                 }),
                 data: icon_font,
-                size_pixels: 20.0,
+                size_pixels: config.imgui_pixel_size,
             },
         ]);
 
