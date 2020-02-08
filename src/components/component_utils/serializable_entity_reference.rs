@@ -1,4 +1,4 @@
-use super::{imgui_system, ComponentList, Entity, InspectorParameters, SerializationData};
+use super::{imgui_system, ComponentList, Entity, InspectorParameters, SerializationMarker};
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Hash)]
 pub struct SerializableEntityReference {
@@ -37,7 +37,7 @@ impl SerializableEntityReference {
 
     pub fn entity_id_to_serialized_refs(
         &mut self,
-        serialized_list: &ComponentList<SerializationData>,
+        serialized_list: &ComponentList<SerializationMarker>,
     ) {
         if let Some(target) = &self.target {
             if let Some(sd) = serialized_list.get(target) {
@@ -50,7 +50,7 @@ impl SerializableEntityReference {
 
     pub fn serialized_refs_to_entity_id(
         &mut self,
-        serialized_data: &ComponentList<SerializationData>,
+        serialized_data: &ComponentList<SerializationMarker>,
     ) {
         if let Some(tsi) = &self.target_serialized_id {
             self.target = serialized_data
@@ -69,7 +69,7 @@ impl SerializableEntityReference {
 
     pub fn into_reference(
         maybe_entity: Option<Entity>,
-        serialized_data: &ComponentList<SerializationData>,
+        serialized_data: &ComponentList<SerializationMarker>,
     ) -> Self {
         if let Some(entity) = maybe_entity {
             SerializableEntityReference {

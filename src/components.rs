@@ -42,7 +42,7 @@ pub use {
     player::Player,
     prefab_marker::PrefabMarker,
     scene_switcher::SceneSwitcher,
-    serialization_data::{ImGuiSerializationDataCommand, SerializationData},
+    serialization_data::{ImGuiSerializationDataCommand, SerializationMarker},
     sound_source::SoundSource,
     sprite::Sprite,
     text_source::TextSource,

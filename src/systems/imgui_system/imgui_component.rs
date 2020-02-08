@@ -233,7 +233,7 @@ pub fn entity_inspector(
 }
 
 pub fn entity_serialization_options(
-    serialized_marker: &SerializationData,
+    serialized_marker: &SerializationMarker,
     ui: &mut Ui<'_>,
     entity_id: &Entity,
     is_prefab: bool,
@@ -385,7 +385,7 @@ pub fn entity_serialization_options(
 }
 
 fn serialization_option<T: ComponentBounds + typename::TypeName + Clone, F1, F2>(
-    serialized_marker: &SerializationData,
+    serialized_marker: &SerializationMarker,
     ui: &mut Ui<'_>,
     entity_id: &Entity,
     component_list: &ComponentList<T>,

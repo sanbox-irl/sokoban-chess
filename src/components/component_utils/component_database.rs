@@ -20,7 +20,7 @@ pub struct ComponentDatabase {
     pub follows: ComponentList<Follow>,
     pub conversant_npcs: ComponentList<ConversantNPC>,
     pub scene_switchers: ComponentList<SceneSwitcher>,
-    pub serialization_data: ComponentList<SerializationData>,
+    pub serialization_data: ComponentList<SerializationMarker>,
     size: usize,
 }
 
@@ -164,7 +164,7 @@ impl ComponentDatabase {
             &entity,
             Component::new(
                 &entity,
-                SerializationData::new(serialized_entity.id.clone()),
+                SerializationMarker::new(serialized_entity.id.clone()),
             ),
         );
 

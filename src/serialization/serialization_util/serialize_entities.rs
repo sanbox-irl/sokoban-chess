@@ -120,7 +120,7 @@ pub fn serialize_entity(serialized_entity: SerializedEntity) -> Result<(), Error
     save_serialized_file(&entities, &path)
 }
 
-pub fn load_entity(serialized_data: &SerializationData) -> Result<Option<SerializedEntity>, Error> {
+pub fn load_entity(serialized_data: &SerializationMarker) -> Result<Option<SerializedEntity>, Error> {
     // ENTITIES
     let entities: Vec<SerializedEntity> = load_serialized_file(&path())?;
 

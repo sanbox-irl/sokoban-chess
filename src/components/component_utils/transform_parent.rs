@@ -1,4 +1,4 @@
-use super::{Component, ComponentList, Entity, GraphNode, RawComponent, SerializationData};
+use super::{Component, ComponentList, Entity, GraphNode, RawComponent, SerializationMarker};
 use std::ptr;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Hash)]
@@ -22,7 +22,7 @@ impl Default for TransformParent {
 }
 
 impl TransformParent {
-    pub fn new(graph_node: &mut Component<GraphNode>, serialized_data: &Option<&SerializationData>) -> Self {
+    pub fn new(graph_node: &mut Component<GraphNode>, serialized_data: &Option<&SerializationMarker>) -> Self {
         Self {
             target: RawComponent::new(graph_node),
             target_serialized_id: serialized_data.map(|sd| sd.id.clone()),
@@ -51,7 +51,7 @@ impl TransformParent {
         self.target.entity
     }
 
-    pub fn serialize(&mut self, serialized_list: &ComponentList<SerializationData>) {
+    pub fn serialize(&mut self, serialized_list: &ComponentList<SerializationMarker>) {
         if let Some(target_entity_id) = &self.target.entity {
             if let Some(sd) = serialized_list.get(target_entity_id) {
                 self.target_serialized_id = Some(sd.inner().id.clone());
@@ -64,7 +64,7 @@ impl TransformParent {
     pub fn deserialize(
         &mut self,
         graph_nodes: &mut ComponentList<GraphNode>,
-        serialized_data: &ComponentList<SerializationData>,
+        serialized_data: &ComponentList<SerializationMarker>,
     ) {
         if let Some(tsi) = &self.target_serialized_id {
             let entity_id: Option<Entity> = serialized_data

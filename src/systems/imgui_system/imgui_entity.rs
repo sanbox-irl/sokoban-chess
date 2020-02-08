@@ -150,7 +150,7 @@ fn display_entity_id(
     entity: &Entity,
     mut name_inspector_params: NameInspectorParameters,
     names: &mut ComponentList<Name>,
-    serialization_data: &mut ComponentList<SerializationData>,
+    serialization_data: &mut ComponentList<SerializationMarker>,
     ui_handler: &mut UiHandler<'_>,
     clone_me: &mut Option<Entity>,
     delete_me: &mut Option<Entity>,
