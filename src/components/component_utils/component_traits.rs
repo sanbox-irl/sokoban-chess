@@ -1,8 +1,10 @@
-use super::{Component, ComponentList, Entity, Name, SerializedEntity};
+use super::{Component, ComponentList, Entity, Name, PrefabMap, SerializedEntity};
 use imgui::Ui;
 
 pub trait ComponentBounds {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
+    // fn serialized_mirror(&self, serialized_entity: &SerializedEntity) -> &T;
+    // fn serialized_mirror_mut(&self, serialized_entity: &mut SerializedEntity) -> &mut T;
 }
 
 pub trait ComponentSerializedBounds {
@@ -16,6 +18,12 @@ pub struct InspectorParameters<'a, 'b> {
     pub prefabs: &'b std::collections::HashMap<uuid::Uuid, SerializedEntity>,
     pub uid: &'b str,
     pub is_open: bool,
+}
+
+pub enum SyncStatus {
+    Synced,
+    OutOfSync,
+    NA,
 }
 
 pub trait ComponentListBounds {
@@ -34,6 +42,8 @@ pub trait ComponentListBounds {
         prefab_hashmap: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
         ui: &mut imgui::Ui<'_>,
         is_open: bool,
+        prefab_sync: SyncStatus,
+        serialization_sync: SyncStatus,
     );
 }
 
@@ -81,10 +91,45 @@ where
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         entity: &Entity,
-        prefab_hashmap: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+        prefab_hashmap: &PrefabMap,
         ui: &mut Ui<'_>,
         is_open: bool,
+        prefab_sync: SyncStatus,
+        serialization_sync: SyncStatus,
     ) {
+        self.component_inspector_raw(
+            entities,
+            entity_names,
+            entity,
+            prefab_hashmap,
+            ui,
+            is_open,
+            |inner, ip| inner.entity_inspector(ip),
+        );
+    }
+}
+
+impl<T> ComponentList<T>
+where
+    T: ComponentBounds + typename::TypeName + 'static,
+{
+    /// Simply a wrapper around creating a new component
+    pub fn set_component(&mut self, entity_id: &Entity, new_component: T) {
+        self.set(&entity_id, Component::new(&entity_id, new_component));
+    }
+
+    pub fn component_inspector_raw<F>(
+        &mut self,
+        entities: &[Entity],
+        entity_names: &ComponentList<Name>,
+        entity: &Entity,
+        prefab_hashmap: &PrefabMap,
+        ui: &mut Ui<'_>,
+        is_open: bool,
+        mut f: F,
+    ) where
+        F: FnMut(&mut T, InspectorParameters<'_, '_>),
+    {
         if let Some(comp) = self.get_mut(entity) {
             let delete_component = {
                 let mut delete = false;
@@ -111,7 +156,7 @@ where
                                 entity_names,
                                 prefabs: prefab_hashmap,
                             };
-                            comp.inner_mut().entity_inspector(inspector_parameters);
+                            f(comp.inner_mut(), inspector_parameters);
                         }
                     });
 
@@ -121,22 +166,6 @@ where
                 self.unset(entity);
             }
         }
-    }
-}
-
-pub trait ComponentListExtensions<T>
-where
-    T: ComponentBounds + 'static,
-{
-    fn set_component(&mut self, entity_id: &Entity, new_component: T);
-}
-
-impl<T> ComponentListExtensions<T> for ComponentList<T>
-where
-    T: ComponentBounds + 'static,
-{
-    fn set_component(&mut self, entity_id: &Entity, new_component: T) {
-        self.set(&entity_id, Component::new(&entity_id, new_component));
     }
 }
 

@@ -25,11 +25,13 @@ mod velocity;
 pub use {
     component::Component,
     component_utils::{
-        bounding_circle::BoundingCircle, component_database::ComponentDatabase,
-        component_traits::*, draw_layer::*, Approach, DrawCommand, EditingMode,
-        EntityListInformation, GameWorldDrawCommands, ImGuiDrawCommands, NameInspectorParameters,
-        NameInspectorResult, PositionalRect, SerializableEntityReference,
-        SerializablePrefabReference, Tile, TransformParent,
+        bounding_circle::BoundingCircle,
+        component_database::{ComponentDatabase, NonInspectableEntities},
+        component_traits::*,
+        draw_layer::*,
+        Approach, DrawCommand, EditingMode, EntityListInformation, GameWorldDrawCommands,
+        ImGuiDrawCommands, NameInspectorParameters, NameInspectorResult, PositionalRect,
+        SerializableEntityReference, SerializablePrefabReference, Tile, TransformParent,
     },
     conversant_npc::ConversantNPC,
     draw_rectangle::DrawRectangle,

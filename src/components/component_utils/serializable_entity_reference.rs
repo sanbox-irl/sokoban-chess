@@ -35,17 +35,23 @@ impl SerializableEntityReference {
         }
     }
 
-    pub fn serialize(&mut self, serialized_list: &ComponentList<SerializationData>) {
+    pub fn entity_id_to_serialized_refs(
+        &mut self,
+        serialized_list: &ComponentList<SerializationData>,
+    ) {
         if let Some(target) = &self.target {
             if let Some(sd) = serialized_list.get(target) {
                 self.target_serialized_id = Some(sd.inner().id.clone());
             } else {
-                error!("Reference to {:?} is being serialized, but it is not serialized. We will outlive it and follow nothing on deserialization!", target);
+                error!("Reference to {:?} is being serialized, but it itself is not serialized. We will outlive it and follow nothing on deserialization!", target);
             }
         }
     }
 
-    pub fn deserialize(&mut self, serialized_data: &ComponentList<SerializationData>) {
+    pub fn serialized_refs_to_entity_id(
+        &mut self,
+        serialized_data: &ComponentList<SerializationData>,
+    ) {
         if let Some(tsi) = &self.target_serialized_id {
             self.target = serialized_data
                 .iter()

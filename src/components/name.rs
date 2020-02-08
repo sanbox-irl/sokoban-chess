@@ -96,7 +96,18 @@ impl Name {
                 res.serialize_name = Some(current_name.to_string());
             }
 
+            let mut end_rename = false;
+
             if ui.is_item_deactivated_after_edit() {
+                end_rename = true;
+            }
+
+            ui.same_line(0.0);
+            if ui.button(&im_str!("Rename##{}", uid), [0.0, 0.0]) {
+                end_rename = true;
+            }
+
+            if end_rename {
                 eli.edit_name = NameEdit::NoEdit;
                 res.serialize_name = Some(current_name.to_string());
             }
@@ -114,18 +125,25 @@ impl Name {
         }
 
         // Inspect on Single Click
-        if imgui_system::left_clicked_item(ui) {
+        if imgui_system::left_clicked_item(ui) && eli.edit_name == NameEdit::NoEdit {
             res.inspect = true;
         }
 
         // Rename on Double Click
+        let mut rename = false;
         if ui.is_item_hovered() && ui.is_mouse_double_clicked(imgui::MouseButton::Left) {
-            eli.edit_name = NameEdit::First;
-            res.serialize_name = Some(name.to_string());
+            rename = true;
         }
 
         // Clone and Delete will be here!
         imgui_system::right_click_popup(ui, uid, || {
+            if ui.button(&im_str!("Rename##{}", uid), [0.0, 0.0]) {
+                rename = true;
+                ui.close_current_popup();
+            }
+
+            ui.same_line(0.0);
+
             if ui.button(&im_str!("Clone##{}", uid), [0.0, 0.0]) {
                 res.clone = true;
                 ui.close_current_popup();
@@ -151,6 +169,11 @@ impl Name {
                 ui.close_current_popup();
             }
         });
+
+        if rename {
+            eli.edit_name = NameEdit::First;
+            res.serialize_name = Some(name.to_string());
+        }
 
         res
     }

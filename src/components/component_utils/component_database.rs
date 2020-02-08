@@ -53,7 +53,7 @@ impl ComponentDatabase {
         for af in component_database.follows.iter_mut() {
             af.inner_mut()
                 .target
-                .deserialize(&component_database.serialization_data);
+                .serialized_refs_to_entity_id(&component_database.serialization_data);
         }
 
         for conversant_npc in component_database.conversant_npcs.iter_mut() {
@@ -61,7 +61,7 @@ impl ComponentDatabase {
 
             conversant
                 .conversation_partner
-                .deserialize(&component_database.serialization_data);
+                .serialized_refs_to_entity_id(&component_database.serialization_data);
         }
 
         for graph_node_c in component_database.graph_nodes.iter_mut() {
@@ -69,7 +69,7 @@ impl ComponentDatabase {
 
             if let Some(children) = &mut graph_node.children {
                 for child in children.iter_mut() {
-                    child.deserialize(&component_database.serialization_data);
+                    child.serialized_refs_to_entity_id(&component_database.serialization_data);
                 }
             }
         }
@@ -80,19 +80,19 @@ impl ComponentDatabase {
     pub fn register_entity(&mut self, entity: Entity) {
         let index = entity.index();
         if index == self.size {
-            self.foreach_component_list(|list| list.expand_list());
+            self.foreach_component_list(NonInspectableEntities::all(), |list| list.expand_list());
             self.size = index + 1;
         }
     }
 
     pub fn deregister_entity(&mut self, entity: &Entity) {
-        self.foreach_component_list(|list| {
+        self.foreach_component_list(NonInspectableEntities::all(), |list| {
             list.unset(entity);
         });
     }
 
     pub fn clone_components(&mut self, original: &Entity, new_entity: &Entity) {
-        self.foreach_component_list(|component_list| {
+        self.foreach_component_list(NonInspectableEntities::all(), |component_list| {
             component_list.clone_entity(original, new_entity);
         });
 
@@ -103,16 +103,35 @@ impl ComponentDatabase {
     }
 
     // @update_components
-    pub fn foreach_component_list(&mut self, mut f: impl FnMut(&mut dyn ComponentListBounds)) {
-        f(&mut self.prefab_markers);
-        f(&mut self.names);
 
-        self.foreach_component_list_no_name_or_prefab(f);
+    /// This loops over every component, including the non-inspectable ones.
+    pub fn foreach_component_list(
+        &mut self,
+        non_inspectable_entities: NonInspectableEntities,
+        mut f: impl FnMut(&mut dyn ComponentListBounds),
+    ) {
+        if non_inspectable_entities.contains(NonInspectableEntities::NAME) {
+            f(&mut self.names);
+        }
+
+        self.foreach_component_list_inspectable(&mut f);
+        if non_inspectable_entities.contains(NonInspectableEntities::PREFAB) {
+            f(&mut self.prefab_markers);
+        }
+
+        if non_inspectable_entities.contains(NonInspectableEntities::SERIALIZATION) {
+            f(&mut self.serialization_data);
+        }
     }
 
-    pub fn foreach_component_list_no_name_or_prefab(
+    /// This loops over every component except for the following:
+    /// - Name
+    /// - PrefabMarker
+    /// - SerializationMarker
+    /// Use `foreach_component_list` to iterate over all.
+    pub fn foreach_component_list_inspectable(
         &mut self,
-        mut f: impl FnMut(&mut dyn ComponentListBounds),
+        f: &mut impl FnMut(&mut dyn ComponentListBounds),
     ) {
         f(&mut self.transforms);
         f(&mut self.grid_objects);
@@ -128,7 +147,6 @@ impl ComponentDatabase {
         f(&mut self.text_sources);
         f(&mut self.follows);
         f(&mut self.conversant_npcs);
-        f(&mut self.serialization_data);
     }
 
     /// We can load anything using this function. The key thing to note here,
@@ -146,7 +164,7 @@ impl ComponentDatabase {
             &entity,
             Component::new(
                 &entity,
-                SerializationData::with_id(serialized_entity.id.clone()),
+                SerializationData::new(serialized_entity.id.clone()),
             ),
         );
 
@@ -271,5 +289,14 @@ impl ComponentDatabase {
             self.tilemaps
                 .set(entity, Component::with_active(entity, tilemap, is_active));
         }
+    }
+}
+
+use bitflags::bitflags;
+bitflags! {
+    pub struct NonInspectableEntities: u32 {
+        const NAME                  =   0b0000_0001;
+        const PREFAB                =   0b0000_0010;
+        const SERIALIZATION         =   0b0000_0100;
     }
 }

@@ -63,7 +63,7 @@ impl SerializedEntity {
                 graph_node: Self::clone_component(component_database.graph_nodes.get(entity_id)).map(|(mut gn, is_active)| {
                     if let Some(children) = &mut gn.children {
                         for child in children {
-                            child.serialize(&component_database.serialization_data);
+                            child.entity_id_to_serialized_refs(&component_database.serialization_data);
                         }
                     }
                     (gn, is_active)
@@ -92,14 +92,14 @@ impl SerializedEntity {
                 marker: singleton_database.save_singleton_markers(entity_id),
                 follow: Self::clone_component(component_database.follows.get(entity_id)).map(
                     |(mut af, is_active)| {
-                        af.target.serialize(&component_database.serialization_data);
+                        af.target.entity_id_to_serialized_refs(&component_database.serialization_data);
                         (af, is_active)
                     },
                 ),
                 conversant_npc: Self::clone_component(component_database.conversant_npcs.get(entity_id)).map(
                     |(mut cn, is_active)| {
                         cn.conversation_partner
-                            .serialize(&component_database.serialization_data);
+                            .entity_id_to_serialized_refs(&component_database.serialization_data);
                         (cn, is_active)
                     },
                 ),

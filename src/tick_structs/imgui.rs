@@ -1,4 +1,6 @@
-use super::{Entity, EntityAllocator, EntityListInformation, Window, game_config::Config};
+use super::{
+    game_config::Config, ClipboardSupport, Entity, EntityAllocator, EntityListInformation, Window,
+};
 use failure::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
@@ -17,6 +19,9 @@ pub struct ImGui {
 impl ImGui {
     pub fn new(entity_allocator: &EntityAllocator, window: &Window, config: &Config) -> Self {
         let mut imgui = Context::create();
+        if let Some(clipboard_context) = ClipboardSupport::new() {
+            imgui.set_clipboard_backend(Box::new(clipboard_context));
+        }
 
         // Ini Save Location:
         use std::path::Path;
