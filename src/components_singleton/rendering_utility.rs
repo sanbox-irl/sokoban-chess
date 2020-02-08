@@ -1,4 +1,4 @@
-use super::{ResourcesDatabase, SpriteName, StandardQuad, StandardTexture};
+use super::{sprite_resources::SpriteName, ResourcesDatabase, StandardQuad, StandardTexture};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumCount, EnumIter};
 
