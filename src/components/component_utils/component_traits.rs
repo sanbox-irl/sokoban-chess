@@ -23,6 +23,8 @@ pub trait ComponentListBounds {
     fn unset(&mut self, index: &Entity) -> bool;
     fn dump_to_log(&self, index: &Entity);
     fn clone_entity(&mut self, index: &Entity, new_entity: &Entity);
+
+    // IMGUI
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>);
     fn component_inspector(
         &mut self,
@@ -63,7 +65,6 @@ where
             self.set(new_entity, Component::new(new_entity, new_component));
         }
     }
-
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>) {
         if imgui::MenuItem::new(&imgui::ImString::new(
             super::imgui_system::typed_text_ui::<T>(),
@@ -120,6 +121,22 @@ where
                 self.unset(entity);
             }
         }
+    }
+}
+
+pub trait ComponentListExtensions<T>
+where
+    T: ComponentBounds + 'static,
+{
+    fn set_component(&mut self, entity_id: &Entity, new_component: T);
+}
+
+impl<T> ComponentListExtensions<T> for ComponentList<T>
+where
+    T: ComponentBounds + 'static,
+{
+    fn set_component(&mut self, entity_id: &Entity, new_component: T) {
+        self.set(&entity_id, Component::new(&entity_id, new_component));
     }
 }
 

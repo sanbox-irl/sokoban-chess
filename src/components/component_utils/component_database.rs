@@ -49,6 +49,7 @@ impl ComponentDatabase {
         // Post-Deserialization Work...
         // @update_components exceptions
         // @techdebt This probably can turn into a trait on a ComponentBound
+        // and probably some unsafe to pass borrow checkrs on serialization_data.
         for af in component_database.follows.iter_mut() {
             af.inner_mut()
                 .target
@@ -152,7 +153,11 @@ impl ComponentDatabase {
         // If it's got a prefab, load the prefab. Otherwise,
         // load it like a normal serialized entity:
         if let Some((prefab_marker, _)) = &serialized_entity.prefab_marker {
+            // Base Prefab
             self.load_serialized_prefab(entity, &prefab_marker.id, prefabs);
+
+            // Overrides
+            self.load_serialized_entity_into_database(entity, serialized_entity);
         } else {
             // Singleton Components
             if let Some(singleton_marker) = serialized_entity.marker {
@@ -176,6 +181,14 @@ impl ComponentDatabase {
     ) {
         if let Some(serialized_data) = prefabs.get(&prefab_id) {
             self.load_serialized_entity_into_database(entity_to_load_into, serialized_data.clone());
+            self.prefab_markers
+                .set_component(entity_to_load_into, PrefabMarker { id: *prefab_id });
+        } else {
+            error!(
+                "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",
+                prefab_id,
+                Name::get_name_quick(&self.names, entity_to_load_into)
+            );
         }
     }
 

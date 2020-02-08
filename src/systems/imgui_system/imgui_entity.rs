@@ -112,7 +112,12 @@ pub fn entity_list(
         }
 
         if let Some(original) = entity_to_clone {
-            ecs.clone_entity(&original);
+            let new_entity = ecs.clone_entity(&original);
+
+            let names: *const ComponentList<Name> = &mut ecs.component_database.names;
+            if let Some(name) = ecs.component_database.names.get_mut(&new_entity) {
+                name.inner_mut().update_name(new_entity, unsafe { &*names });
+            }
         }
 
         if let Some(entity_to_delete) = entity_to_delete {
@@ -148,12 +153,6 @@ fn display_entity_id(
     // Name Inspector Params
     name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
 
-    let name = if let Some(name) = names.get_mut(entity) {
-        name.inner_mut().name.clone()
-    } else {
-        format!("ID {}", entity)
-    };
-
     // Find our ImGui entry list info
     let entity_list_info = match ui_handler.entity_list_information.get_mut(entity) {
         Some(stuff) => stuff,
@@ -175,7 +174,9 @@ fn display_entity_id(
         show_children,
         unserialize,
     } = Name::inspect(
-        &name,
+        names
+            .get_mut(entity)
+            .map_or(&format!("ID {}", entity), |name| &name.inner_mut().name),
         entity_list_info,
         name_inspector_params,
         &ui_handler.ui,

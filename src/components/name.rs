@@ -5,37 +5,12 @@ use super::{
     imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
 };
 use imgui::im_str;
+use regex::Regex;
 
-#[derive(Debug, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Name {
     pub name: String,
-}
-
-impl Clone for Name {
-    fn clone(&self) -> Self {
-        let mut last_char_to_keep = self.name.len();
-
-        let new_digit: u32 =
-            if let Some((i, last_character)) = self.name.chars().enumerate().last() {
-                if let Some(digit) = last_character.to_digit(10) {
-                    last_char_to_keep = i;
-                    digit + 1
-                } else {
-                    0
-                }
-            } else {
-                0
-            };
-
-        Name {
-            name: format!(
-                "{}{}",
-                &self.name[..last_char_to_keep],
-                new_digit
-            ),
-        }
-    }
 }
 
 impl Name {
@@ -178,6 +153,35 @@ impl Name {
         });
 
         res
+    }
+
+    pub fn update_name(&mut self, our_id: Entity, all_names: &ComponentList<Name>) {
+        lazy_static::lazy_static! {
+            static ref REGEX_PATTERN: Regex = Regex::new(r"\(\d*\d\)$").unwrap();
+        }
+
+        loop {
+            if let Some(mat) = REGEX_PATTERN.find(&self.name) {
+                // Add one to go over the "("...
+                let byte_offset = mat.start() + 1;
+
+                // add one!
+                let integer = self.name.as_bytes()[byte_offset] + 1;
+                unsafe {
+                    self.name.as_mut_vec()[byte_offset] = integer;
+                }
+            } else {
+                self.name += " (0)";
+            }
+
+            if all_names
+                .iter()
+                .any(|name| name.inner().name == self.name && name.entity_id() != our_id)
+                == false
+            {
+                break;
+            }
+        }
     }
 
     pub fn get_name_quick(names: &ComponentList<Name>, id: &Entity) -> String {

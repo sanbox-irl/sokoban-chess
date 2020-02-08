@@ -1926,6 +1926,7 @@ dependencies = [
  "num-derive 0.3.0",
  "num-traits",
  "pretty_env_logger",
+ "regex",
  "rodio",
  "serde",
  "serde_json",

@@ -32,6 +32,10 @@ pub fn entity_inspector(
                 .get(entity)
                 .map(|sd| sd.inner().id);
 
+            // This unsafety is not actually unsafe at all -- Rust doesn't yet realize
+            // that this method, though it takes `component_database`, doesn't involve
+            // the field .names within component_database. If we use names, then this would
+            // become a lot trickier.
             let names_raw_pointer: *const ComponentList<Name> = &component_database.names;
             component_database.foreach_component_list_no_name_or_prefab(|component_list| {
                 component_list.component_inspector(
