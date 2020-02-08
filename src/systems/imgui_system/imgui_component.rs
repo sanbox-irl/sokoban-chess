@@ -27,7 +27,9 @@ pub fn entity_inspector(
             .opened(&mut is_open);
 
         if let Some(entity_inspector_window) = entity_window.begin(ui) {
-            let serialization_id = component_database
+            // This is saved here because we might delete our serialization ID
+            // in the below foreach statement.
+            let old_serialization_id = component_database
                 .serialization_data
                 .get(entity)
                 .map(|sd| sd.inner().id);
@@ -60,16 +62,28 @@ pub fn entity_inspector(
 
             // Serialization
             if component_database.serialization_data.get(entity).is_none() {
-                if let Some(id) = serialization_id {
+                // If we have a stored old serialization ID, then we just deleted our
+                // serialization_data component. We must unserialize!
+                if let Some(id) = old_serialization_id {
                     if let Err(e) = serialization_util::entities::unserialize_entity(&id) {
                         error!("Couldn't unserialize! {}", e);
                     }
                 }
             }
 
+            let is_prefab = component_database.prefab_markers.get(entity).is_some();
+
             // Menu bar funtimes!
             if let Some(menu_bar) = ui.begin_menu_bar() {
-                if let Some(add_component_submenu) = ui.begin_menu(im_str!("Add Component"), true) {
+                let component_add_button_text = if is_prefab {
+                    "Add Override"
+                } else {
+                    "Add Component"
+                };
+
+                if let Some(add_component_submenu) =
+                    ui.begin_menu(&imgui::ImString::new(component_add_button_text), true)
+                {
                     // @update_components exception
                     let had_transform = component_database.transforms.get(entity).is_some();
 
@@ -90,8 +104,14 @@ pub fn entity_inspector(
                     add_component_submenu.end(ui);
                 }
 
+                let serialization_menu_text = if is_prefab {
+                    "Serialize Overrides"
+                } else {
+                    "Serialization"
+                };
+
                 if let Some(serialization_submenu) = ui.begin_menu(
-                    im_str!("Serialization"),
+                    &imgui::ImString::new(serialization_menu_text),
                     component_database.serialization_data.get(entity).is_some(),
                 ) {
                     if let Some(comp) = component_database.serialization_data.get(entity) {
@@ -118,10 +138,7 @@ pub fn entity_inspector(
                     serialization_submenu.end(ui);
                 }
 
-                if let Some(prefab_submenu) = ui.begin_menu(
-                    im_str!("Create Prefab"),
-                    component_database.prefab_markers.get(entity).is_none(),
-                ) {
+                if let Some(prefab_submenu) = ui.begin_menu(im_str!("Create Prefab"), !is_prefab) {
                     let mut prefab_to_instantiate: Option<uuid::Uuid> = None;
 
                     if imgui::MenuItem::new(im_str!("New Prefab")).build(ui) {
