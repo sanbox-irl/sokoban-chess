@@ -1,6 +1,6 @@
 use super::{
     Component, ComponentList, Entity, GraphNode, Name, NameInspectorParameters, PrefabMarker,
-    SerializationData, Transform, Vec2,
+    SerializationMarker, Transform, Vec2,
 };
 use lazy_static::lazy_static;
 use std::sync::Mutex;
@@ -13,7 +13,7 @@ lazy_static! {
 
 pub fn add_to_scene_graph(
     transform_c: &mut Component<Transform>,
-    serializations: &ComponentList<SerializationData>,
+    serializations: &ComponentList<SerializationMarker>,
 ) {
     ROOT_NODES
         .lock()
@@ -23,7 +23,7 @@ pub fn add_to_scene_graph(
 
 pub fn build_flat(
     transforms: &mut ComponentList<Transform>,
-    serializations: &ComponentList<SerializationData>,
+    serializations: &ComponentList<SerializationMarker>,
 ) {
     let mut root_nodes = ROOT_NODES.lock().unwrap();
     root_nodes.children.as_mut().unwrap().clear();
@@ -76,7 +76,7 @@ fn walk_node(
 type GraphInspectorLambda<'a> = &'a mut dyn FnMut(
     &Entity,
     &mut ComponentList<Name>,
-    &mut ComponentList<SerializationData>,
+    &mut ComponentList<SerializationMarker>,
     NameInspectorParameters,
 ) -> bool;
 
@@ -85,7 +85,7 @@ pub fn walk_graph_inspect(
     nodes: &ComponentList<GraphNode>,
     names: &mut ComponentList<Name>,
     prefabs: &ComponentList<PrefabMarker>,
-    serialization_data: &mut ComponentList<SerializationData>,
+    serialization_data: &mut ComponentList<SerializationMarker>,
     f: GraphInspectorLambda<'_>,
 ) {
     let root_nodes = ROOT_NODES.lock().unwrap();
@@ -114,7 +114,7 @@ fn walk_node_inspect(
     nodes: &ComponentList<GraphNode>,
     names: &mut ComponentList<Name>,
     prefabs: &ComponentList<PrefabMarker>,
-    serialization_data: &mut ComponentList<SerializationData>,
+    serialization_data: &mut ComponentList<SerializationMarker>,
     depth: usize,
     f: GraphInspectorLambda<'_>,
 ) {

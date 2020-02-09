@@ -1,4 +1,4 @@
-use super::{imgui_system, ComponentBounds, HardwareInterface, InspectorParameters, Vec2};
+use super::{imgui_system, HardwareInterface, InspectorParameters, SingletonBounds, Vec2};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Camera {
@@ -65,7 +65,7 @@ impl Default for Camera {
     }
 }
 
-impl ComponentBounds for Camera {
+impl SingletonBounds for Camera {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>) {
         let InspectorParameters { uid, ui, .. } = inspector_parameters;
 

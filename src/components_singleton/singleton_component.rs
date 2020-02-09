@@ -1,12 +1,12 @@
-use super::{Component, ComponentBounds, ComponentList, Marker, SingletonDatabase};
+use super::{InspectorParameters, Marker};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SingletonComponent<T: ComponentBounds> {
+pub struct SingletonComponent<T: SingletonBounds> {
     marker: Marker,
     inner: T,
 }
 
-impl<T: ComponentBounds> SingletonComponent<T> {
+impl<T: SingletonBounds> SingletonComponent<T> {
     pub fn new(marker: Marker, inner: T) -> Self {
         Self { marker, inner }
     }
@@ -19,19 +19,11 @@ impl<T: ComponentBounds> SingletonComponent<T> {
         &mut self.inner
     }
 
-    pub fn find_component_on_list<'a, SC: ComponentBounds, C: ComponentBounds>(
-        singleton_component: &SingletonComponent<SC>,
-        singleton_database: &SingletonDatabase,
-        comp_list: &'a ComponentList<C>,
-    ) -> Option<&'a Component<C>> {
-        comp_list.get(
-            &singleton_database
-                .get_associated_entity(singleton_component)
-                .unwrap(),
-        )
-    }
-
     pub fn marker(&self) -> Marker {
         self.marker
     }
+}
+
+pub trait SingletonBounds {
+    fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
 }

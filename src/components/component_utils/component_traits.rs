@@ -3,8 +3,14 @@ use imgui::Ui;
 
 pub trait ComponentBounds {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
-    // fn serialized_mirror(&self, serialized_entity: &SerializedEntity) -> &T;
-    // fn serialized_mirror_mut(&self, serialized_entity: &mut SerializedEntity) -> &mut T;
+    fn is_serialized(&self, serialized_entity: &SerializedEntity, active: bool) -> bool;
+    fn commit_to_scene(
+        &self,
+        serialized_entity: &mut SerializedEntity,
+        active: bool,
+        serialization_marker: &super::ComponentList<super::SerializationMarker>,
+    );
+    fn uncommit_to_scene(&self, serialized_entity: &mut SerializedEntity);
 }
 
 pub trait ComponentSerializedBounds {
@@ -42,8 +48,8 @@ pub trait ComponentListBounds {
         prefab_hashmap: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
         ui: &mut imgui::Ui<'_>,
         is_open: bool,
-        prefab_sync: SyncStatus,
-        serialization_sync: SyncStatus,
+        // prefab_sync: SyncStatus,
+        // serialization_sync: SyncStatus,
     );
 }
 
@@ -94,8 +100,8 @@ where
         prefab_hashmap: &PrefabMap,
         ui: &mut Ui<'_>,
         is_open: bool,
-        prefab_sync: SyncStatus,
-        serialization_sync: SyncStatus,
+        // prefab_sync: SyncStatus,
+        // serialization_sync: SyncStatus,
     ) {
         self.component_inspector_raw(
             entities,

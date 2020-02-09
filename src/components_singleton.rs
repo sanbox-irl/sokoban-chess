@@ -9,5 +9,5 @@ mod singleton_database;
 pub use camera::{Camera, CameraMode};
 pub use markers::Marker;
 pub use rendering_utility::{BasicTextures, RenderingUtility};
-pub use singleton_component::SingletonComponent;
+pub use singleton_component::{SingletonComponent, SingletonBounds};
 pub use singleton_database::SingletonDatabase;

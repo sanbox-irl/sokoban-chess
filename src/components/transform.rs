@@ -111,4 +111,24 @@ impl ComponentBounds for Transform {
         self.world_position
             .no_interact_inspector(ip.ui, &im_str!("World Position##{}", ip.uid));
     }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .transform
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.transform = Some((self.clone(), active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.transform = None;
+    }
 }

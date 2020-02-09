@@ -62,4 +62,24 @@ impl ComponentBounds for Sprite {
             self.running_data.current_frame = frame as usize;
         }
     }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .sprite
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.sprite = Some((self.clone(), active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.sprite = None;
+    }
 }

@@ -14,4 +14,24 @@ impl ComponentBounds for PrefabMarker {
             ip.ui.text(imgui::im_str!("Original Prefab: {}", self.id));
         }
     }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .prefab_marker
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.prefab_marker = Some((self.clone(), active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.prefab_marker = None;
+    }
 }

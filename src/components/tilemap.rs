@@ -1,7 +1,7 @@
 use super::{
-    component_utils::EditingMode, imgui_system, tile_resources::*, Color, ComponentBounds,
-    DrawOrder, InspectorParameters, PositionalRect, StandardQuad, TextureDescription, Tile, Vec2,
-    Vec2Int,
+    component_serialization::TilemapSerialized, component_utils::EditingMode, imgui_system,
+    serialization_util, tile_resources::*, Color, ComponentBounds, DrawOrder, InspectorParameters,
+    PositionalRect, StandardQuad, TextureDescription, Tile, Vec2, Vec2Int,
 };
 
 // @techdebt This is pretty messy. Can we clean this up a bit?
@@ -181,5 +181,51 @@ impl ComponentBounds for Tilemap {
                 }
             };
         }
+    }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .tilemap
+            .as_ref()
+            .map_or(false, |(serialized_tilemap, is_active)| {
+                if *is_active == active {
+                    let tiles: Vec<Option<Tile>> =
+                        serialization_util::tilemaps::load_tiles(&serialized_tilemap.tiles)
+                            .map_err(|e| {
+                                error!(
+                                    "Couldn't retrieve tilemaps for {}. Error: {}",
+                                    &serialized_tilemap.tiles.relative_path, e
+                                )
+                            })
+                            .ok()
+                            .unwrap_or_default();
+
+                    let tilemap = serialized_tilemap.clone().to_tilemap(tiles);
+                    &tilemap == self
+                } else {
+                    false
+                }
+            })
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.tilemap = TilemapSerialized::from_tilemap(self.clone(), &se.id)
+            .map_err(|e| {
+                error!(
+                    "Error Serializing Tiles in Tilemap. Warning: our data might not be saved! {}",
+                    e
+                )
+            })
+            .ok()
+            .map(|tmap_s| (tmap_s, active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.tilemap = None;
     }
 }

@@ -233,4 +233,24 @@ impl ComponentBounds for Name {
     fn entity_inspector(&mut self, _inspector_parameters: InspectorParameters<'_, '_>) {
         unimplemented!();
     }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .name
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.name = Some((self.clone(), active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.name = None;
+    }
 }

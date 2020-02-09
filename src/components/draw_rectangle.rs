@@ -34,6 +34,26 @@ impl ComponentBounds for DrawRectangle {
             &mut self.bind_to_bounding_box,
         );
     }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .draw_rectangle
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.draw_rectangle = Some((self.clone(), active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.draw_rectangle = None;
+    }
 }
 
 impl StandardQuadFactory for DrawRectangle {

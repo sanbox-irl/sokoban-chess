@@ -18,7 +18,9 @@ impl ComponentBounds for Follow {
         self.target.inspect("Target", &ip);
 
         // Approach Type
-        if let Some(new_approach_type) = imgui_system::typed_enum_selection(ip.ui, &self.approach, ip.uid) {
+        if let Some(new_approach_type) =
+            imgui_system::typed_enum_selection(ip.ui, &self.approach, ip.uid)
+        {
             self.approach = new_approach_type;
         }
 
@@ -39,5 +41,31 @@ impl ComponentBounds for Follow {
         // Offset
         self.offset
             .inspector(ip.ui, &imgui::im_str!("Offset##{}", ip.uid));
+    }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .follow
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        serialization_markers: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.follow = Some({
+            let mut clone: Follow = self.clone();
+            clone
+                .target
+                .entity_id_to_serialized_refs(&serialization_markers);
+            ((clone, active))
+        });
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.follow = None;
     }
 }

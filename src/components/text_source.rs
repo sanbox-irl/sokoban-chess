@@ -37,7 +37,8 @@ impl ComponentBounds for TextSource {
         }
 
         //pub scale: Vec2
-        self.scale.inspector(&ip.ui, &imgui::im_str!("Scale##{}", ip.uid));
+        self.scale
+            .inspector(&ip.ui, &imgui::im_str!("Scale##{}", ip.uid));
 
         //  pub screen_mod: f32
         ip.ui
@@ -59,11 +60,33 @@ impl ComponentBounds for TextSource {
             self.horizontal_align = new_horizontal;
         }
 
-        if let Some(new_vertical) = imgui_system::typed_enum_selection(&ip.ui, &self.vertical_align, ip.uid) {
+        if let Some(new_vertical) =
+            imgui_system::typed_enum_selection(&ip.ui, &self.vertical_align, ip.uid)
+        {
             self.vertical_align = new_vertical;
         }
 
         self.draw_order.inspect(&ip.ui, ip.uid);
+    }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .text_source
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.text_source = Some((self.clone(), active));
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.text_source = None;
     }
 }
 

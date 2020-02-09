@@ -1,6 +1,6 @@
 use super::{
-    component_utils::SerializableEntityReference, Color, ComponentBounds, Entity, InspectorParameters,
-    SerializablePrefabReference,
+    component_utils::SerializableEntityReference, Color, ComponentBounds, Entity,
+    InspectorParameters, SerializablePrefabReference,
 };
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
@@ -22,7 +22,8 @@ pub struct ConversantNPC {
 impl ComponentBounds for ConversantNPC {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
         // pub ui_component_entity: SerializableEntityReference
-        self.conversation_partner.inspect("Conversation Partner", &ip);
+        self.conversation_partner
+            .inspect("Conversation Partner", &ip);
 
         // pub initial_ui_prefab: SerializablePrefabReference,
         self.initial_ui_prefab.inspect("Bang UI", &ip);
@@ -45,5 +46,32 @@ impl ComponentBounds for ConversantNPC {
             &imgui::im_str!("Converse With Input##{}", ip.uid),
             &mut self.converse_with_input,
         );
+    }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .conversant_npc
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        serialization_marker: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.conversant_npc = Some({
+            let mut clone: super::ConversantNPC = self.clone();
+            clone
+                .conversation_partner
+                .entity_id_to_serialized_refs(&serialization_marker);
+
+            ((clone, active))
+        });
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.conversant_npc = None;
     }
 }

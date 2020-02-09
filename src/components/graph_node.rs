@@ -1,6 +1,6 @@
 use super::{
     component_utils::RawComponent, imgui_system, Component, ComponentBounds, ComponentList, Entity,
-    InspectorParameters, SerializableEntityReference, SerializationData, Transform,
+    InspectorParameters, SerializableEntityReference, SerializationMarker, Transform,
 };
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
@@ -15,7 +15,7 @@ impl GraphNode {
         &mut self,
         entity_id: Entity,
         ip: InspectorParameters<'_, '_>,
-        serializations: &ComponentList<SerializationData>,
+        serializations: &ComponentList<SerializationMarker>,
         transforms: &mut ComponentList<Transform>,
     ) {
         if let Some(our_children) = &self.children {
@@ -51,7 +51,7 @@ impl GraphNode {
         my_entity_id: Option<Entity>,
         new_child: Entity,
         transforms: &mut ComponentList<Transform>,
-        serializations: &ComponentList<SerializationData>,
+        serializations: &ComponentList<SerializationMarker>,
     ) {
         // If they have a transform, work on it.
         // It is possible to have a child without a transform, if that child is
@@ -84,7 +84,7 @@ impl GraphNode {
         &mut self,
         my_entity_id: Option<Entity>,
         transform: &mut Component<Transform>,
-        serializations: &ComponentList<SerializationData>,
+        serializations: &ComponentList<SerializationMarker>,
     ) {
         let id = transform.entity_id();
         transform.inner_mut().set_new_parent(
@@ -111,5 +111,33 @@ impl GraphNode {
 impl ComponentBounds for GraphNode {
     fn entity_inspector(&mut self, _ip: InspectorParameters<'_, '_>) {
         unimplemented!();
+    }
+
+    fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
+        serialized_entity
+            .graph_node
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        se: &mut super::SerializedEntity,
+        active: bool,
+        serialization_markers: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        se.graph_node = Some({
+            let mut clone: super::GraphNode = self.clone();
+            if let Some(children) = clone.children.as_mut() {
+                for child in children.iter_mut() {
+                    child.entity_id_to_serialized_refs(&serialization_markers);
+                }
+            }
+            ((clone, active))
+        });
+    }
+
+    fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
+        se.graph_node = None;
     }
 }

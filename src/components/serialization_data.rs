@@ -4,19 +4,19 @@ use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, typename::TypeName)]
-pub struct SerializationData {
+pub struct SerializationMarker {
     pub id: Uuid,
     #[serde(skip)]
     last_save_data_read: Option<(Instant, SerializedEntity)>,
 }
 
-impl Clone for SerializationData {
+impl Clone for SerializationMarker {
     fn clone(&self) -> Self {
-        SerializationData::default()
+        SerializationMarker::default()
     }
 }
 
-impl SerializationData {
+impl SerializationMarker {
     pub fn new(id: Uuid) -> Self {
         Self {
             id,
@@ -79,7 +79,7 @@ impl SerializationData {
         serialize_entity
     }
 
-    pub fn imgui_serialization(&self) {
+    pub fn imgui_serialization(&mut self) {
         match serialization_util::entities::load_entity(self) {
             Ok(maybe_serialized_entity) => {
                 self.last_save_data_read = maybe_serialized_entity.map(|se| (Instant::now(), se))
@@ -91,7 +91,7 @@ impl SerializationData {
     }
 }
 
-impl Default for SerializationData {
+impl Default for SerializationMarker {
     fn default() -> Self {
         Self {
             id: Uuid::new_v4(),
@@ -100,9 +100,26 @@ impl Default for SerializationData {
     }
 }
 
-impl ComponentBounds for SerializationData {
+impl ComponentBounds for SerializationMarker {
     fn entity_inspector(&mut self, _: InspectorParameters<'_, '_>) {
+        unimplemented!();
+    }
+
+    fn is_serialized(&self, _: &SerializedEntity, _: bool) -> bool {
         unimplemented!()
+    }
+
+    fn commit_to_scene(
+        &self,
+        _: &mut super::SerializedEntity,
+        _: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        unimplemented!();
+    }
+
+    fn uncommit_to_scene(&self, _: &mut SerializedEntity) {
+        unimplemented!();
     }
 }
 

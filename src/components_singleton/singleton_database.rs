@@ -1,6 +1,6 @@
 use super::{
-    serialization_util, Camera, Component, ComponentBounds, ComponentList, Entity, Marker,
-    RenderingUtility, ResourcesDatabase, SingletonComponent,
+    serialization_util, Camera, Entity, Marker, RenderingUtility, ResourcesDatabase,
+    SingletonBounds, SingletonComponent,
 };
 use std::collections::HashMap;
 
@@ -32,28 +32,7 @@ impl SingletonDatabase {
         None
     }
 
-    pub fn get_associated_entity<T: ComponentBounds>(
-        &self,
-        sc: &SingletonComponent<T>,
-    ) -> Option<Entity> {
-        let marker = sc.marker();
-
-        if let Some(entity) = self.associated_entities.get(&marker) {
-            Some(entity.clone())
-        } else {
-            None
-        }
-    }
-
-    pub fn find_component_on_list<'a, C: ComponentBounds>(
-        &self,
-        marker: Marker,
-        comp_list: &'a ComponentList<C>,
-    ) -> Option<&'a Component<C>> {
-        comp_list.get(&self.associated_entities.get(&marker).unwrap())
-    }
-
-    pub fn edit_serialized_singleton_database<T: ComponentBounds, F>(
+    pub fn edit_serialized_singleton_database<T: SingletonBounds, F>(
         live_component: &mut SingletonComponent<T>,
         edit_function: F,
     ) -> Result<(), failure::Error>

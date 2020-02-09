@@ -47,7 +47,7 @@ pub fn singleton_inspector(
     is_open
 }
 
-fn inspect_this_singleton_component<T: ComponentBounds, F, F2>(
+fn inspect_this_singleton_component<T: SingletonBounds, F, F2>(
     singleton_component: &mut SingletonComponent<T>,
     associated_entities: &mut HashMap<Marker, Entity>,
     name_list: &ComponentList<Name>,
