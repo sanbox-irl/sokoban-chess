@@ -70,6 +70,12 @@ impl<T: GenerationalIndexValue> GenerationalIndexArray<T> {
         }
     }
 
+    // Checks if the desired index points to a valid location. Merely shorthand
+    // for doing a .is_some() after a get.
+    pub fn contains(&self, index: &GenerationalIndex) -> bool {
+        self.get(index).is_some()
+    }
+
     // Gets an immutable reference to the contained value, if it exists.
     pub fn get(&self, index: &GenerationalIndex) -> Option<&T> {
         let ret = &self.0[index.index];

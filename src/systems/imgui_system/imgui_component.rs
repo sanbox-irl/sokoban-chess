@@ -183,34 +183,41 @@ pub fn entity_inspector(
 
                     if let Some(prefab_to_instantiate) = prefab_to_instantiate {
                         // Create a serialized entity
-                        let mut serialized_entity =
-                            SerializedEntity::new(entity, component_database, singleton_database);
-                        serialized_entity.id = prefab_to_instantiate;
-
-                        // Add our Prefab Marker
-                        component_database.prefab_markers.set(
-                            entity,
-                            Component::new(
-                                entity,
-                                PrefabMarker {
-                                    id: prefab_to_instantiate,
-                                },
-                            ),
-                        );
-
-                        if let Err(e) =
-                            serialization_util::prefabs::serialize_prefab(&serialized_entity)
+                        if let Some(mut serialized_entity) =
+                            SerializedEntity::new(entity, component_database, singleton_database)
                         {
-                            error!("Error Creating Prefab: {}", e);
-                        }
+                            serialized_entity.id = prefab_to_instantiate;
 
-                        match serialization_util::prefabs::cycle_prefab(serialized_entity) {
-                            Ok(prefab) => {
-                                resources.prefabs.insert(prefab.id, prefab);
+                            // Add our Prefab Marker
+                            component_database.prefab_markers.set(
+                                entity,
+                                Component::new(
+                                    entity,
+                                    PrefabMarker {
+                                        id: prefab_to_instantiate,
+                                    },
+                                ),
+                            );
+
+                            if let Err(e) =
+                                serialization_util::prefabs::serialize_prefab(&serialized_entity)
+                            {
+                                error!("Error Creating Prefab: {}", e);
                             }
-                            Err(e) => {
-                                error!("We couldn't cycle the Prefab! It wasn't saved! {}", e)
+
+                            match serialization_util::prefabs::cycle_prefab(serialized_entity) {
+                                Ok(prefab) => {
+                                    resources.prefabs.insert(prefab.id, prefab);
+                                }
+                                Err(e) => {
+                                    error!("We couldn't cycle the Prefab! It wasn't saved! {}", e)
+                                }
                             }
+                        } else {
+                            error!(
+                                "We couldn't find a prefab with the ID {}",
+                                prefab_to_instantiate
+                            )
                         }
                     }
 

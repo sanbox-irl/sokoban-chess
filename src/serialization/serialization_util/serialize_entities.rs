@@ -71,13 +71,14 @@ pub fn serialize_all_entities(
     // FIND THE OLD SERIALIZED ENTITY
     for entity in entities {
         if component_database.serialization_data.get(entity).is_some() {
-            let se = SerializedEntity::new(entity, component_database, singleton_database);
-
-            let old_pos = serialized_entities.iter().position(|x| x.id == se.id);
-            if let Some(old_pos) = old_pos {
-                serialized_entities[old_pos] = se;
-            } else {
-                serialized_entities.push(se);
+            if let Some(se) = SerializedEntity::new(entity, component_database, singleton_database)
+            {
+                let old_pos = serialized_entities.iter().position(|x| x.id == se.id);
+                if let Some(old_pos) = old_pos {
+                    serialized_entities[old_pos] = se;
+                } else {
+                    serialized_entities.push(se);
+                }
             }
         }
     }
@@ -90,14 +91,16 @@ pub fn serialize_entity_full(
     component_database: &ComponentDatabase,
     singleton_database: &SingletonDatabase,
 ) -> bool {
-    let se = SerializedEntity::new(entity_id, component_database, singleton_database);
-
-    match serialize_entity(se) {
-        Ok(()) => true,
-        Err(e) => {
-            error!("COULDN'T SERIALIZE! {}", e);
-            false
+    if let Some(se) = SerializedEntity::new(entity_id, component_database, singleton_database) {
+        match serialize_entity(se) {
+            Ok(()) => true,
+            Err(e) => {
+                error!("COULDN'T SERIALIZE! {}", e);
+                false
+            }
         }
+    } else {
+        false
     }
 }
 

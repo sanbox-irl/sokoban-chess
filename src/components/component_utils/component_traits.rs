@@ -13,10 +13,6 @@ pub trait ComponentBounds {
     fn uncommit_to_scene(&self, serialized_entity: &mut SerializedEntity);
 }
 
-pub trait ComponentSerializedBounds {
-    fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
-}
-
 pub struct InspectorParameters<'a, 'b> {
     pub ui: &'b mut imgui::Ui<'a>,
     pub entities: &'b [Entity],
@@ -146,11 +142,17 @@ where
         serialization_markers: &ComponentList<super::SerializationMarker>,
     ) {
         if let Some(member_component) = self.get(entity) {
-            member_component.inner().commit_to_scene(
-                serialized_entity,
-                member_component.is_active,
-                serialization_markers,
-            );
+            if member_component
+                .inner()
+                .is_serialized(serialized_entity, member_component.is_active)
+                == false
+            {
+                member_component.inner().commit_to_scene(
+                    serialized_entity,
+                    member_component.is_active,
+                    serialization_markers,
+                );
+            }
         }
     }
 }

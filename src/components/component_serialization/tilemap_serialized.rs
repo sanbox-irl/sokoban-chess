@@ -1,5 +1,5 @@
 use super::{
-    serialization_util, tile_resources::*, tilemap::*, Color, ComponentSerializedBounds, DrawOrder,
+    serialization_util, tile_resources::*, tilemap::*, Color, ComponentBounds, DrawOrder,
     EditingMode, FragmentedData, InspectorParameters, Tile, Vec2Int,
 };
 use failure::Error;
@@ -43,9 +43,27 @@ impl TilemapSerialized {
     }
 }
 
-impl ComponentSerializedBounds for TilemapSerialized {
+impl ComponentBounds for TilemapSerialized {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
         ip.ui
             .text("Tilemaps cannot currently be added as a Prefab because I'm lazy as shit!");
+    }
+    fn is_serialized(&self, se: &super::SerializedEntity, active: bool) -> bool {
+        se.tilemap
+            .as_ref()
+            .map_or(false, |(c, a)| *a == active && c == self)
+    }
+
+    fn commit_to_scene(
+        &self,
+        _: &mut super::SerializedEntity,
+        _: bool,
+        _: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        unimplemented!()
+    }
+
+    fn uncommit_to_scene(&self, _: &mut super::SerializedEntity) {
+        unimplemented!()
     }
 }
