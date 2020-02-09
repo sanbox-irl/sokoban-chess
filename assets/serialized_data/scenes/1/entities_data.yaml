@@ -28,12 +28,21 @@
   prefab_marker: ~
   id: 49eb3578-9977-47ae-b080-b2eee1ea4286
   marker: Camera
-- name: ~
+- name:
+    - name: Grass Override Name
+    - false
   player: ~
-  transform: ~
-  grid_object:
-    - grid_type: NonInteractable
+  transform:
+    - local_position:
+        x: 10.0
+        y: 24.0
+      world_position:
+        x: 10.0
+        y: 24.0
+      parent:
+        target_serialized_id: ~
     - true
+  grid_object: ~
   scene_switcher: ~
   graph_node: ~
   velocity: ~

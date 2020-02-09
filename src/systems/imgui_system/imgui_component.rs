@@ -79,6 +79,13 @@ pub fn entity_inspector(
             if serialize_it {
                 serialization_util::entities::serialize_entity_full(
                     entity,
+                    component_database
+                        .serialization_data
+                        .get(entity)
+                        .as_ref()
+                        .unwrap()
+                        .inner()
+                        .id,
                     component_database,
                     singleton_database,
                 );
@@ -154,11 +161,11 @@ pub fn entity_inspector(
                 }
 
                 if let Some(prefab_submenu) = ui.begin_menu(im_str!("Create Prefab"), !is_prefab) {
-                    let mut prefab_to_instantiate: Option<uuid::Uuid> = None;
+                    let mut new_prefab_to_create: Option<uuid::Uuid> = None;
 
                     if MenuItem::new(im_str!("New Prefab")).build(ui) {
                         match prefab_system::create_blank_prefab(resources) {
-                            Ok(uuid) => prefab_to_instantiate = Some(uuid),
+                            Ok(uuid) => new_prefab_to_create = Some(uuid),
                             Err(e) => error!("Couldn't create prefab: {}", e),
                         }
                     }
@@ -174,20 +181,21 @@ pub fn entity_inspector(
                             };
 
                             if MenuItem::new(&name).build(ui) {
-                                prefab_to_instantiate = Some(prefab.id);
+                                new_prefab_to_create = Some(prefab.id);
                             }
                         }
 
                         overwrite_submenu.end(ui);
                     }
 
-                    if let Some(prefab_to_instantiate) = prefab_to_instantiate {
+                    if let Some(prefab_to_instantiate) = new_prefab_to_create {
                         // Create a serialized entity
-                        if let Some(mut serialized_entity) =
-                            SerializedEntity::new(entity, component_database, singleton_database)
-                        {
-                            serialized_entity.id = prefab_to_instantiate;
-
+                        if let Some(serialized_entity) = SerializedEntity::new(
+                            entity,
+                            prefab_to_instantiate,
+                            component_database,
+                            singleton_database,
+                        ) {
                             // Add our Prefab Marker
                             component_database.prefab_markers.set(
                                 entity,
@@ -265,13 +273,19 @@ pub fn entity_serialization_options(
     let mut sc = None;
     // REVERT SAVE
     if ui.button(im_str!("Revert"), [0.0, 0.0]) {
-        sc = Some(ImGuiSerializationDataCommand::Revert(serialized_marker.id));
+        sc = Some(ImGuiSerializationDataCommand {
+            id: serialized_marker.id,
+            serialization_type: ImGuiSerializationDataType::Revert,
+        });
     }
 
     // OVERWRITE
     ui.same_line(0.0);
     if ui.button(im_str!("Overwrite"), [0.0, 0.0]) {
-        sc = Some(ImGuiSerializationDataCommand::Overwrite);
+        sc = Some(ImGuiSerializationDataCommand {
+            id: serialized_marker.id,
+            serialization_type: ImGuiSerializationDataType::Overwrite,
+        });
     }
 
     Ok(sc)
@@ -328,9 +342,10 @@ where
                     })
                     .build(ui)
                     {
-                        let serialized_entity = serialization_util::entities::load_entity(
-                            &my_serialization_marker.inner(),
-                        )?;
+                        let serialized_entity =
+                            serialization_util::entities::load_committed_entity(
+                                &my_serialization_marker.inner(),
+                            )?;
 
                         if let Some(mut serialized_entity) = serialized_entity {
                             component.inner().commit_to_scene(
@@ -338,7 +353,9 @@ where
                                 component.is_active,
                                 serialized_markers,
                             );
-                            serialization_util::entities::serialize_entity(serialized_entity)?;
+                            serialization_util::entities::commit_entity_to_scene(
+                                serialized_entity,
+                            )?;
                         } else {
                             error!(
                                 "Couldn't find a Serialized Entity for {}. Check the YAML?",
@@ -355,14 +372,17 @@ where
                     })
                     .build(ui)
                     {
-                        let serialized_entity = serialization_util::entities::load_entity(
-                            &my_serialization_marker.inner(),
-                        )?;
+                        let serialized_entity =
+                            serialization_util::entities::load_committed_entity(
+                                &my_serialization_marker.inner(),
+                            )?;
 
                         if let Some(mut serialized_entity) = serialized_entity {
                             component.inner().uncommit_to_scene(&mut serialized_entity);
 
-                            serialization_util::entities::serialize_entity(serialized_entity)?;
+                            serialization_util::entities::commit_entity_to_scene(
+                                serialized_entity,
+                            )?;
                         } else {
                             error!(
                                 "Couldn't find a Serialized Entity for {}. Check the YAML?",

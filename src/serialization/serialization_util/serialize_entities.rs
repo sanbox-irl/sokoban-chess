@@ -22,12 +22,12 @@ pub fn process_serialized_command(
     singleton_database: &mut SingletonDatabase,
     prefab_map: &PrefabMap,
 ) {
-    match command {
-        ImGuiSerializationDataCommand::Revert(id) => {
+    match &command.serialization_type {
+        ImGuiSerializationDataType::Revert => {
             // Remove the Entity
             component_database.deregister_entity(entity);
 
-            match load_entity_by_id(&id) {
+            match load_entity_by_id(&command.id) {
                 Ok(Some(serialized_entity)) => {
                     // Reload the Entity
                     component_database.load_serialized_entity(
@@ -52,9 +52,10 @@ pub fn process_serialized_command(
                 ),
             }
         }
-        ImGuiSerializationDataCommand::Overwrite => {
+
+        ImGuiSerializationDataType::Overwrite => {
             // SERIALIZE OVER:
-            serialize_entity_full(entity, component_database, singleton_database);
+            serialize_entity_full(entity, command.id, component_database, singleton_database);
         }
     }
 }
@@ -70,9 +71,13 @@ pub fn serialize_all_entities(
 
     // FIND THE OLD SERIALIZED ENTITY
     for entity in entities {
-        if component_database.serialization_data.get(entity).is_some() {
-            if let Some(se) = SerializedEntity::new(entity, component_database, singleton_database)
-            {
+        if let Some(serialization_thing) = component_database.serialization_data.get(entity) {
+            if let Some(se) = SerializedEntity::new(
+                entity,
+                serialization_thing.inner().id,
+                component_database,
+                singleton_database,
+            ) {
                 let old_pos = serialized_entities.iter().position(|x| x.id == se.id);
                 if let Some(old_pos) = old_pos {
                     serialized_entities[old_pos] = se;
@@ -86,13 +91,21 @@ pub fn serialize_all_entities(
     save_serialized_file(&serialized_entities, &path)
 }
 
+/// This serializes an entity. It is "full" because of its parameters taken -- it serializes over the
+/// entire entity, essentially creating a new Serialized Entity and then comitting that to the scene.
 pub fn serialize_entity_full(
     entity_id: &Entity,
+    serialized_id: uuid::Uuid,
     component_database: &ComponentDatabase,
     singleton_database: &SingletonDatabase,
 ) -> bool {
-    if let Some(se) = SerializedEntity::new(entity_id, component_database, singleton_database) {
-        match serialize_entity(se) {
+    if let Some(se) = SerializedEntity::new(
+        entity_id,
+        serialized_id,
+        component_database,
+        singleton_database,
+    ) {
+        match commit_entity_to_scene(se) {
             Ok(()) => true,
             Err(e) => {
                 error!("COULDN'T SERIALIZE! {}", e);
@@ -124,7 +137,7 @@ pub fn unserialize_entity(serialized_id: &uuid::Uuid) -> Result<bool, Error> {
     Ok(ret)
 }
 
-pub fn serialize_entity(serialized_entity: SerializedEntity) -> Result<(), Error> {
+pub fn commit_entity_to_scene(serialized_entity: SerializedEntity) -> Result<(), Error> {
     let path = path();
 
     let mut entities: Vec<SerializedEntity> = load_serialized_file(&path)?;
@@ -140,7 +153,7 @@ pub fn serialize_entity(serialized_entity: SerializedEntity) -> Result<(), Error
     save_serialized_file(&entities, &path)
 }
 
-pub fn load_entity(
+pub fn load_committed_entity(
     serialized_data: &SerializationMarker,
 ) -> Result<Option<SerializedEntity>, Error> {
     load_entity_by_id(&serialized_data.id)

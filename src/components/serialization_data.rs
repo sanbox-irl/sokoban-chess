@@ -80,7 +80,7 @@ impl SerializationMarker {
     }
 
     pub fn imgui_serialization(&mut self) {
-        match serialization_util::entities::load_entity(self) {
+        match serialization_util::entities::load_committed_entity(self) {
             Ok(maybe_serialized_entity) => {
                 self.last_save_data_read = maybe_serialized_entity.map(|se| (Instant::now(), se))
             }
@@ -123,7 +123,12 @@ impl ComponentBounds for SerializationMarker {
     }
 }
 
-pub enum ImGuiSerializationDataCommand {
-    Revert(uuid::Uuid),
+pub struct ImGuiSerializationDataCommand {
+    pub id: uuid::Uuid,
+    pub serialization_type: ImGuiSerializationDataType,
+}
+
+pub enum ImGuiSerializationDataType {
+    Revert,
     Overwrite,
 }

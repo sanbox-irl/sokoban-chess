@@ -36,16 +36,10 @@ pub struct SerializedEntity {
 impl SerializedEntity {
     pub fn new(
         entity_id: &Entity,
+        serialization_id: Uuid,
         component_database: &ComponentDatabase,
         singleton_database: &SingletonDatabase,
     ) -> Option<Self> {
-        let serialization_id = component_database
-            .serialization_data
-            .get(entity_id)
-            .map(|c| c.inner().clone())
-            .unwrap_or_default()
-            .id;
-
         let mut serialized_entity = SerializedEntity::default();
 
         // If it's a prefab, add in all the PREFAB components
