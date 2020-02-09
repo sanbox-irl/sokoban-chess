@@ -80,19 +80,21 @@ impl ComponentDatabase {
     pub fn register_entity(&mut self, entity: Entity) {
         let index = entity.index();
         if index == self.size {
-            self.foreach_component_list(NonInspectableEntities::all(), |list| list.expand_list());
+            self.foreach_component_list_mut(NonInspectableEntities::all(), |list| {
+                list.expand_list()
+            });
             self.size = index + 1;
         }
     }
 
     pub fn deregister_entity(&mut self, entity: &Entity) {
-        self.foreach_component_list(NonInspectableEntities::all(), |list| {
+        self.foreach_component_list_mut(NonInspectableEntities::all(), |list| {
             list.unset(entity);
         });
     }
 
     pub fn clone_components(&mut self, original: &Entity, new_entity: &Entity) {
-        self.foreach_component_list(NonInspectableEntities::all(), |component_list| {
+        self.foreach_component_list_mut(NonInspectableEntities::all(), |component_list| {
             component_list.clone_entity(original, new_entity);
         });
 
@@ -103,9 +105,8 @@ impl ComponentDatabase {
     }
 
     // @update_components
-
     /// This loops over every component, including the non-inspectable ones.
-    pub fn foreach_component_list(
+    pub fn foreach_component_list_mut(
         &mut self,
         non_inspectable_entities: NonInspectableEntities,
         mut f: impl FnMut(&mut dyn ComponentListBounds),
@@ -114,7 +115,7 @@ impl ComponentDatabase {
             f(&mut self.names);
         }
 
-        self.foreach_component_list_inspectable(&mut f);
+        self.foreach_component_list_inspectable_mut(&mut f);
         if non_inspectable_entities.contains(NonInspectableEntities::PREFAB) {
             f(&mut self.prefab_markers);
         }
@@ -129,7 +130,7 @@ impl ComponentDatabase {
     /// - PrefabMarker
     /// - SerializationMarker
     /// Use `foreach_component_list` to iterate over all.
-    pub fn foreach_component_list_inspectable(
+    pub fn foreach_component_list_inspectable_mut(
         &mut self,
         f: &mut impl FnMut(&mut dyn ComponentListBounds),
     ) {
@@ -147,6 +148,49 @@ impl ComponentDatabase {
         f(&mut self.text_sources);
         f(&mut self.follows);
         f(&mut self.conversant_npcs);
+    }
+
+    // @update_components
+    /// This loops over every component, including the non-inspectable ones.
+    pub fn foreach_component_list(
+        &self,
+        non_inspectable_entities: NonInspectableEntities,
+        mut f: impl FnMut(&dyn ComponentListBounds),
+    ) {
+        if non_inspectable_entities.contains(NonInspectableEntities::NAME) {
+            f(&self.names);
+        }
+
+        self.foreach_component_list_inspectable(&mut f);
+        if non_inspectable_entities.contains(NonInspectableEntities::PREFAB) {
+            f(&self.prefab_markers);
+        }
+
+        if non_inspectable_entities.contains(NonInspectableEntities::SERIALIZATION) {
+            f(&self.serialization_data);
+        }
+    }
+
+    /// This loops over every component except for the following:
+    /// - Name
+    /// - PrefabMarker
+    /// - SerializationMarker
+    /// Use `foreach_component_list` to iterate over all.
+    pub fn foreach_component_list_inspectable(&self, f: &mut impl FnMut(&dyn ComponentListBounds)) {
+        f(&self.transforms);
+        f(&self.grid_objects);
+        f(&self.players);
+        f(&self.graph_nodes);
+        f(&self.velocities);
+        f(&self.sprites);
+        f(&self.sound_sources);
+        f(&self.bounding_boxes);
+        f(&self.draw_rectangles);
+        f(&self.tilemaps);
+        f(&self.scene_switchers);
+        f(&self.text_sources);
+        f(&self.follows);
+        f(&self.conversant_npcs);
     }
 
     /// We can load anything using this function. The key thing to note here,

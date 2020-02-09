@@ -132,7 +132,7 @@ pub fn entity_list(
 
         if let Some(console_dump_me) = entity_to_console_dump {
             println!("---Console Dump for {}---", console_dump_me);
-            ecs.component_database.foreach_component_list(NonInspectableEntities::all(), |comp_list| {
+            ecs.component_database.foreach_component_list_mut(NonInspectableEntities::all(), |comp_list| {
                 comp_list.dump_to_log(&console_dump_me);
             });
             println!("-------------------------");

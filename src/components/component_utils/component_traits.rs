@@ -51,6 +51,21 @@ pub trait ComponentListBounds {
         // prefab_sync: SyncStatus,
         // serialization_sync: SyncStatus,
     );
+
+    fn serialization_option(
+        &self,
+        ui: &Ui<'_>,
+        entity_id: &Entity,
+        is_prefab: bool,
+        serialized_marker: &ComponentList<super::SerializationMarker>,
+    ) -> failure::Fallible<()>;
+
+    fn create_serialized_entity(
+        &self,
+        entity: &Entity,
+        serialized_entity: &mut super::SerializedEntity,
+        serialization_markers: &ComponentList<super::SerializationMarker>,
+    );
 }
 
 // impl ComponentListBounds for ComponentList<SerializationData> {}
@@ -112,6 +127,31 @@ where
             is_open,
             |inner, ip| inner.entity_inspector(ip),
         );
+    }
+
+    fn serialization_option(
+        &self,
+        ui: &imgui::Ui<'_>,
+        entity_id: &Entity,
+        is_prefab: bool,
+        serialized_markers: &ComponentList<super::SerializationMarker>,
+    ) -> failure::Fallible<()> {
+        self.serialization_option_raw(ui, entity_id, is_prefab, serialized_markers)
+    }
+
+    fn create_serialized_entity(
+        &self,
+        entity: &Entity,
+        serialized_entity: &mut super::SerializedEntity,
+        serialization_markers: &ComponentList<super::SerializationMarker>,
+    ) {
+        if let Some(member_component) = self.get(entity) {
+            member_component.inner().commit_to_scene(
+                serialized_entity,
+                member_component.is_active,
+                serialization_markers,
+            );
+        }
     }
 }
 

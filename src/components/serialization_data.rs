@@ -124,6 +124,6 @@ impl ComponentBounds for SerializationMarker {
 }
 
 pub enum ImGuiSerializationDataCommand {
-    Revert(SerializedEntity),
+    Revert(uuid::Uuid),
     Overwrite,
 }

@@ -23,17 +23,34 @@ pub fn process_serialized_command(
     prefab_map: &PrefabMap,
 ) {
     match command {
-        ImGuiSerializationDataCommand::Revert(serialized_entity) => {
+        ImGuiSerializationDataCommand::Revert(id) => {
             // Remove the Entity
             component_database.deregister_entity(entity);
 
-            // Reload the Entity
-            component_database.load_serialized_entity(
-                entity,
-                serialized_entity,
-                &mut singleton_database.associated_entities,
-                prefab_map,
-            );
+            match load_entity_by_id(&id) {
+                Ok(Some(serialized_entity)) => {
+                    // Reload the Entity
+                    component_database.load_serialized_entity(
+                        entity,
+                        serialized_entity,
+                        &mut singleton_database.associated_entities,
+                        prefab_map,
+                    );
+                }
+
+                Ok(None) => {
+                    error!(
+                        "We couldn't find {}. Is it in the YAML?",
+                        Name::get_name_quick(&component_database.names, entity)
+                    );
+                }
+
+                Err(e) => error!(
+                    "IO Error On Revert for {}: {}",
+                    Name::get_name_quick(&component_database.names, entity),
+                    e
+                ),
+            }
         }
         ImGuiSerializationDataCommand::Overwrite => {
             // SERIALIZE OVER:
@@ -120,12 +137,18 @@ pub fn serialize_entity(serialized_entity: SerializedEntity) -> Result<(), Error
     save_serialized_file(&entities, &path)
 }
 
-pub fn load_entity(serialized_data: &SerializationMarker) -> Result<Option<SerializedEntity>, Error> {
+pub fn load_entity(
+    serialized_data: &SerializationMarker,
+) -> Result<Option<SerializedEntity>, Error> {
+    load_entity_by_id(&serialized_data.id)
+}
+
+pub fn load_entity_by_id(id: &uuid::Uuid) -> Result<Option<SerializedEntity>, Error> {
     // ENTITIES
     let entities: Vec<SerializedEntity> = load_serialized_file(&path())?;
 
     // FIND THE OLD SERIALIZED ENTITY
-    let old_pos = entities.iter().position(|x| x.id == serialized_data.id);
+    let old_pos = entities.iter().position(|x| &x.id == id);
 
     if let Some(old_pos) = old_pos {
         Ok(Some(entities[old_pos].clone()))

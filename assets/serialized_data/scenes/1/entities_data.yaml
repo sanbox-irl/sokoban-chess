@@ -31,7 +31,7 @@
 - id: d024f181-c7b2-46d8-97b2-b43ff1d61f94
   marker: ~
   name:
-    - name: Grass
+    - name: Grass 0
     - true
   player: ~
   transform:
@@ -50,26 +50,7 @@
   scene_switcher: ~
   graph_node: ~
   velocity: ~
-  sprite:
-    - sprite_name: Grass
-      running_data:
-        draw_order:
-          draw_layer: Instance
-          order: 0
-        facing_horizontal: Right
-        facing_vertical: Up
-        scale:
-          x: 1.0
-          y: 1.0
-        tint:
-          r: 1.0
-          g: 1.0
-          b: 1.0
-          a: 1.0
-        current_frame: 0
-        frame_time: 0.0
-        is_animating: false
-    - true
+  sprite: ~
   sound_source: ~
   draw_rectangle: ~
   bounding_box: ~
@@ -83,7 +64,9 @@
   name: ~
   player: ~
   transform: ~
-  grid_object: ~
+  grid_object:
+    - grid_type: NonInteractable
+    - true
   scene_switcher: ~
   graph_node: ~
   velocity: ~
