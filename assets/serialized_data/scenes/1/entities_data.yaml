@@ -1,7 +1,5 @@
 ---
-- id: 49eb3578-9977-47ae-b080-b2eee1ea4286
-  marker: Camera
-  name:
+- name:
     - name: Camera
     - true
   player: ~
@@ -28,40 +26,9 @@
   follow: ~
   conversant_npc: ~
   prefab_marker: ~
-- id: d024f181-c7b2-46d8-97b2-b43ff1d61f94
-  marker: ~
-  name:
-    - name: Grass 0
-    - true
-  player: ~
-  transform:
-    - local_position:
-        x: 24.0
-        y: 24.0
-      world_position:
-        x: 24.0
-        y: 24.0
-      parent:
-        target_serialized_id: ~
-    - true
-  grid_object:
-    - grid_type: NonInteractable
-    - true
-  scene_switcher: ~
-  graph_node: ~
-  velocity: ~
-  sprite: ~
-  sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker: ~
-- id: dc715ec7-4ce0-4378-9bbd-593cadaa3dfc
-  marker: ~
-  name: ~
+  id: 49eb3578-9977-47ae-b080-b2eee1ea4286
+  marker: Camera
+- name: ~
   player: ~
   transform: ~
   grid_object:
@@ -81,49 +48,5 @@
   prefab_marker:
     - id: 81216d25-6021-463c-98fc-abc70612ae57
     - true
-- id: 32c41e1b-1446-466e-94c8-ce11359aeabb
+  id: dc715ec7-4ce0-4378-9bbd-593cadaa3dfc
   marker: ~
-  name:
-    - name: Background
-    - false
-  player: ~
-  transform:
-    - local_position:
-        x: 0.0
-        y: 0.0
-      world_position:
-        x: 0.0
-        y: 0.0
-      parent:
-        target_serialized_id: ~
-    - true
-  grid_object: ~
-  scene_switcher: ~
-  graph_node: ~
-  velocity: ~
-  sprite: ~
-  sound_source: ~
-  draw_rectangle:
-    - rect:
-        min:
-          x: -100.0
-          y: -100.0
-        max:
-          x: 100.0
-          y: 100.0
-      draw_order:
-        draw_layer: Background
-        order: 0
-      tint:
-        r: 0.11350058764219284
-        g: 0.3333333134651184
-        b: 0.25089603662490847
-        a: 1.0
-      bind_to_bounding_box: false
-    - true
-  bounding_box: ~
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker: ~

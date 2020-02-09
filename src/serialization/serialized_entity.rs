@@ -80,24 +80,17 @@ impl SerializedEntity {
         // the the serialized entity, strip that field away from the serialized entity.
         // Therefore, when we load, we will *only* have the prefab to load from.
         if let Some(prefab) = prefab {
-            serialized_entity.foreach_component(
-                NonInspectableEntities::all(),
-                |component, active| {
-                    if component.is_serialized(&prefab, *active) {
-                        component.uncommit_to_scene(&mut unimplemented!());
-                    }
-                },
-            );
+            serialized_entity.foreach_component_dedup(|component, active| {
+                component.is_serialized(&prefab, *active)
+            });
         }
 
         Some(serialized_entity)
     }
 
-    // @update_components
-    pub fn foreach_component(
-        &self,
-        non_inspectable_entities: NonInspectableEntities,
-        mut f: impl FnMut(&dyn ComponentBounds, &bool),
+    pub fn foreach_component_dedup(
+        &mut self,
+        mut f: impl FnMut(&dyn ComponentBounds, &bool) -> bool,
     ) {
         let SerializedEntity {
             name,
@@ -115,27 +108,40 @@ impl SerializedEntity {
             tilemap,
             follow,
             conversant_npc,
-            prefab_marker,
+            prefab_marker: _,
             id: _,
             marker: _,
         } = self;
 
-        name.as_ref().map(|(name, a)| f(name, a));
-        player.as_ref().map(|(c, a)| f(c, a));
-        transform.as_ref().map(|(c, a)| f(c, a));
-        grid_object.as_ref().map(|(c, a)| f(c, a));
-        scene_switcher.as_ref().map(|(c, a)| f(c, a));
-        graph_node.as_ref().map(|(c, a)| f(c, a));
-        velocity.as_ref().map(|(c, a)| f(c, a));
-        sprite.as_ref().map(|(c, a)| f(c, a));
-        sound_source.as_ref().map(|(c, a)| f(c, a));
-        draw_rectangle.as_ref().map(|(c, a)| f(c, a));
-        bounding_box.as_ref().map(|(c, a)| f(c, a));
-        text_source.as_ref().map(|(c, a)| f(c, a));
-        tilemap.as_ref().map(|(c, a)| f(c, a));
-        follow.as_ref().map(|(c, a)| f(c, a));
-        conversant_npc.as_ref().map(|(c, a)| f(c, a));
-        prefab_marker.as_ref().map(|(c, a)| f(c, a));
+        macro_rules! dedup_serialization {
+            ( $( $x:ident ),* ) => {
+                $(
+                    if let Some((c, a)) = $x {
+                        if f(c, a) {
+                            *$x = None;
+                        }
+                    }
+                )*
+            };
+        }
+
+        dedup_serialization!(
+            name,
+            player,
+            transform,
+            grid_object,
+            scene_switcher,
+            graph_node,
+            velocity,
+            sprite,
+            sound_source,
+            draw_rectangle,
+            bounding_box,
+            text_source,
+            tilemap,
+            follow,
+            conversant_npc
+        );
     }
 
     pub fn new_blank() -> Self {

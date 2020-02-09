@@ -224,14 +224,15 @@ pub struct SceneImGuiManager {
 use bitflags::bitflags;
 bitflags! {
     #[derive(Default, Serialize, Deserialize)]
-    pub struct ImGuiFlags: u32 {
-        const TIME_KEEPER           =   0b0000_0001;
-        const SPRITE_RESOURCE       =   0b0000_0010;
-        const TILEMAP_RESOURCE      =   0b0000_0100;
-        const ENTITY_VIEWER         =   0b0000_1000;
-        const SINGLETONS            =   0b0001_0000;
-        const GAME_CONFIG           =   0b0010_0000;
-        const PREFAB_INSPECTOR      =   0b0100_0000;
-        const MAIN_MENU_BAR         =   0b1000_0000;
+    pub struct ImGuiFlags: u64 {
+        const TIME_KEEPER           =   0b0000_0000_0000_0001;
+        const SPRITE_RESOURCE       =   0b0000_0000_0000_0010;
+        const TILEMAP_RESOURCE      =   0b0000_0000_0000_0100;
+        const ENTITY_VIEWER         =   0b0000_0000_0000_1000;
+        const SINGLETONS            =   0b0000_0000_0001_0000;
+        const GAME_CONFIG           =   0b0000_0000_0010_0000;
+        const PREFAB_INSPECTOR      =   0b0000_0000_0100_0000;
+        const MAIN_MENU_BAR         =   0b0000_0000_1000_0000;
+        const IMGUI_EXAMPLE         =   0b0000_0001_0000_0000;
     }
 }

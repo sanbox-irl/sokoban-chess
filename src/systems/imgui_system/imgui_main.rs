@@ -44,12 +44,22 @@ pub fn imgui_main(
     imgui_utility::create_window(ui_handler, ImGuiFlags::TIME_KEEPER, |ui_handler| {
         time_keeper.create_imgui_window(ui_handler)
     });
+    
 
     // Resources Windows
     imgui_resources::create_resources_windows(resources, ui_handler);
 
     // Window for each Prefabs
     imgui_prefab::prefab_editor(ui_handler, resources, &mut ecs.component_database);
+
+    // Demo window!
+    if ui_handler.flags.contains(ImGuiFlags::IMGUI_EXAMPLE) {
+        let mut is_closed = false;
+        ui_handler.ui.show_demo_window(&mut is_closed);
+        if is_closed {
+            ui_handler.flags.remove(ImGuiFlags::IMGUI_EXAMPLE);
+        }
+    }
 
     // Always last here...
     if ui_handler.ui.io().want_capture_mouse {
@@ -185,6 +195,13 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                 menu_option(
                     im_str!("Game Config Inspector"),
                     ImGuiFlags::GAME_CONFIG,
+                    ui,
+                    &mut ui_handler.flags,
+                );
+
+                menu_option(
+                    im_str!("Demo Window"),
+                    ImGuiFlags::IMGUI_EXAMPLE,
                     ui,
                     &mut ui_handler.flags,
                 );
