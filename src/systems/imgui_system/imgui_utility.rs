@@ -1,23 +1,19 @@
 use super::*;
 
-pub fn sized_button(ui: &Ui<'_>, label: &imgui::ImStr) -> bool {
-    let base_size: Vec2 = ui.calc_text_size(label, true, 0.0).into();
-    let size = base_size + Vec2::new(10.0, 10.0);
-    ui.button(label, size.into())
-}
-
-pub fn sized_button_ret(ui: &Ui<'_>, label: &imgui::ImStr) -> (Vec2, bool) {
-    let base_size: Vec2 = ui.calc_text_size(label, true, 0.0).into();
-    let size = base_size + Vec2::new(10.0, 10.0);
-    let ret = ui.button(label, size.into());
-
-    (size, ret)
-}
-
-pub fn sized_button_padding(ui: &Ui<'_>, label: &imgui::ImStr, padding: Vec2) -> (Vec2, bool) {
-    let base_size: Vec2 = ui.calc_text_size(label, true, 0.0).into();
-    let size = base_size + Vec2::new(10.0, 10.0) + padding;
-    (size, ui.button(label, size.into()))
+pub fn display_name_core(
+    name: &str,
+    entity_list_info: &mut EntityListInformation,
+    name_inspector_params: &NameInspectorParameters,
+    ui: &Ui<'_>,
+    uid: &str,
+) -> NameInspectorResult {
+    Name::inspect(
+        name,
+        entity_list_info,
+        &name_inspector_params,
+        &ui,
+        uid,
+    )
 }
 
 pub fn typed_text_ui<T: typename::TypeName>() -> String {
@@ -89,7 +85,7 @@ pub fn typed_enum_selection<
         let mut close_popup = false;
 
         for this_variant in T::iter() {
-            if sized_button(ui, &imgui::im_str!("{:?}", this_variant)) {
+            if ui.button(&imgui::im_str!("{:?}", this_variant), [0.0, 0.0]) {
                 variant = Some(this_variant);
                 close_popup = true;
             }
@@ -160,13 +156,13 @@ where
         let mut close_popup = false;
 
         for this_variant in T::iter() {
-            if sized_button(ui, &imgui::im_str!("{:?}", this_variant)) {
+            if ui.button(&imgui::im_str!("{:?}", this_variant), [0.0, 0.0]) {
                 variant = Some(Some(this_variant));
                 close_popup = true;
             }
         }
 
-        if sized_button(ui, &im_str!("None")) {
+        if ui.button(&im_str!("None"), [0.0, 0.0]) {
             variant = Some(None);
             close_popup = true;
         }
@@ -215,14 +211,14 @@ pub fn select_entity_option(
         for this_entity in entities {
             let name_imstr = imgui::ImString::new(Name::get_name_quick(name_list, this_entity));
 
-            if imgui_utility::sized_button(ui, &name_imstr) {
+            if ui.button(&name_imstr, [0.0, 0.0]) {
                 ret = Some(Some(this_entity.clone()));
                 close_popup = true;
             }
         }
 
         // None
-        if imgui_utility::sized_button(ui, im_str!("None")) {
+        if ui.button(im_str!("None"), [0.0, 0.0]) {
             ret = Some(None);
             close_popup = true;
         }
@@ -244,7 +240,7 @@ pub fn select_entity(
 ) -> Option<Entity> {
     let popup = im_str!("{}## Popup {}", label, uid);
 
-    if sized_button(ui, &im_str!("{}##{}", label, uid)) {
+    if ui.button(&im_str!("{}##{}", label, uid), [0.0, 0.0]) {
         ui.open_popup(&popup);
     }
 
@@ -258,14 +254,14 @@ pub fn select_entity(
         for this_entity in entities {
             let name_imstr = imgui::ImString::new(Name::get_name_quick(name_list, this_entity));
 
-            if imgui_utility::sized_button(ui, &name_imstr) {
+            if ui.button(&name_imstr, [0.0, 0.0]) {
                 ret = Some(this_entity.clone());
                 close_popup = true;
             }
         }
 
         // None
-        if imgui_utility::sized_button(ui, im_str!("None")) {
+        if ui.button(im_str!("None"), [0.0, 0.0]) {
             ret = None;
             close_popup = true;
         }
@@ -322,14 +318,14 @@ pub fn select_prefab_entity(
                 None => im_str!("Prefab Uuid {}", prefab.id),
             };
 
-            if imgui_utility::sized_button(ui, &name_imstr) {
+            if ui.button(&name_imstr, [0.0, 0.0]) {
                 ret = Some(Some(prefab.id));
                 close_popup = true;
             }
         }
 
         // None
-        if imgui_utility::sized_button(ui, im_str!("None")) {
+        if ui.button(im_str!("None"), [0.0, 0.0]) {
             ret = Some(None);
             close_popup = true;
         }

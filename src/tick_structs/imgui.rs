@@ -191,7 +191,7 @@ pub struct UiHandler<'a> {
     pub stored_ids: &'a mut HashSet<Entity>,
     pub stored_prefabs: &'a mut Vec<Uuid>,
     pub scene_graph_entities: &'a mut Vec<Entity>,
-    pub entity_list_information: &'a mut HashMap<Entity, EntityListInformation>,
+    pub entity_list_information: &'a mut HashMap<String, EntityListInformation>,
     pub scene_changing_info: &'a mut SceneImGuiManager,
 }
 
@@ -209,7 +209,7 @@ pub struct ImGuiMetaData {
     #[serde(skip)]
     pub entity_vec: Vec<Entity>,
     #[serde(skip)]
-    pub entity_list_information: HashMap<Entity, EntityListInformation>,
+    pub entity_list_information: HashMap<String, EntityListInformation>,
     #[serde(skip)]
     pub scene_changing_info: SceneImGuiManager,
 }

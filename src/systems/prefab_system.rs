@@ -3,7 +3,7 @@ use super::{
     SerializedEntity,
 };
 
-pub fn create_blank_prefab(
+pub fn commit_blank_prefab(
     resources: &mut ResourcesDatabase,
 ) -> Result<uuid::Uuid, failure::Error> {
     let blank_prefab = SerializedEntity::new_blank();
@@ -15,7 +15,7 @@ pub fn create_blank_prefab(
     Ok(id)
 }
 
-pub fn create_new_prefab_entity(
+pub fn create_new_entity_from_prefab(
     ecs: &mut Ecs,
     prefab_id: uuid::Uuid,
     prefab_map: &PrefabMap,

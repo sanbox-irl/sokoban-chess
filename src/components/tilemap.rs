@@ -125,13 +125,13 @@ impl ComponentBounds for Tilemap {
 
             match &mut self.edit_mode {
                 EditingMode::NoEdit => {
-                    if imgui_system::sized_button(ip.ui, im_str!("Edit Tilemap")) {
+                    if ip.ui.button(im_str!("Edit Tilemap"), [0.0, 0.0]) {
                         self.edit_mode = EditingMode::Editing(Some(0), vec![]);
                     }
                 }
 
                 EditingMode::Editing(tile_to_edit, _) => {
-                    if imgui_system::sized_button(ip.ui, im_str!("Stop Editing")) {
+                    if ip.ui.button(im_str!("Stop Editing"), [0.0, 0.0]) {
                         self.edit_mode = EditingMode::NoEdit;
                     } else {
                         imgui_system::typed_option_selection(

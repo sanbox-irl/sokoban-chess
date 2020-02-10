@@ -164,7 +164,7 @@ pub fn entity_inspector(
                     let mut new_prefab_to_create: Option<uuid::Uuid> = None;
 
                     if MenuItem::new(im_str!("New Prefab")).build(ui) {
-                        match prefab_system::create_blank_prefab(resources) {
+                        match prefab_system::commit_blank_prefab(resources) {
                             Ok(uuid) => new_prefab_to_create = Some(uuid),
                             Err(e) => error!("Couldn't create prefab: {}", e),
                         }
@@ -311,6 +311,56 @@ impl<T> ComponentList<T>
 where
     T: ComponentBounds + typename::TypeName + 'static,
 {
+    pub fn component_inspector_raw<F>(
+        &mut self,
+        entities: &[Entity],
+        entity_names: &ComponentList<Name>,
+        entity: &Entity,
+        prefab_hashmap: &PrefabMap,
+        ui: &mut Ui<'_>,
+        is_open: bool,
+        mut f: F,
+    ) where
+        F: FnMut(&mut T, InspectorParameters<'_, '_>),
+    {
+        if let Some(comp) = self.get_mut(entity) {
+            let delete_component = {
+                let mut delete = false;
+                let name = super::imgui_system::typed_text_ui::<T>();
+
+                ui.tree_node(&imgui::ImString::new(&name))
+                    .default_open(true)
+                    .frame_padding(false)
+                    .build(|| {
+                        // COMPONENT INFO
+                        let mut comp_info = comp.construct_component_info();
+                        super::imgui_system::component_name_and_status(&name, ui, &mut comp_info);
+                        comp.take_component_info(&comp_info);
+
+                        // DELETE ENTITY
+                        if comp_info.is_deleted {
+                            delete = true;
+                        } else {
+                            let inspector_parameters = InspectorParameters {
+                                is_open,
+                                uid: &format!("{}{}", comp.entity_id(), &T::type_name()),
+                                ui,
+                                entities,
+                                entity_names,
+                                prefabs: prefab_hashmap,
+                            };
+                            f(comp.inner_mut(), inspector_parameters);
+                        }
+                    });
+
+                delete
+            };
+            if delete_component {
+                self.unset(entity);
+            }
+        }
+    }
+
     pub fn serialization_option_raw(
         &self,
         ui: &imgui::Ui<'_>,

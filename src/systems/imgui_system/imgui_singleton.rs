@@ -71,15 +71,17 @@ fn inspect_this_singleton_component<T: SingletonBounds, F, F2>(
     let two_thirds_size = ui.window_size()[0] * (2.0 / 3.0);
     ui.same_line(two_thirds_size);
     if let Some(assoc_entity) = associated_entities.get(&singleton_component.marker()) {
-        if imgui_utility::sized_button(ui, &im_str!("Associated Entity##{}", marker_name)) {
+        if ui.button(&im_str!("Associated Entity##{}", marker_name), [0.0, 0.0]) {
             if ui_handler.stored_ids.contains(&assoc_entity) {
                 ui_handler.stored_ids.remove(&assoc_entity);
             } else {
                 ui_handler.stored_ids.insert(*assoc_entity);
             }
         }
-    } else if imgui_utility::sized_button(ui, &im_str!("Select Associated Entity##{}", marker_name))
-    {
+    } else if ui.button(
+        &im_str!("Select Associated Entity##{}", marker_name),
+        [0.0, 0.0],
+    ) {
         ui.open_popup(&popup_name);
     }
 
@@ -101,7 +103,7 @@ fn inspect_this_singleton_component<T: SingletonBounds, F, F2>(
 
     // Serde
     ui.spacing();
-    if imgui_utility::sized_button(ui, &im_str!("Serialize##{}", marker_name)) {
+    if ui.button(&im_str!("Serialize##{}", marker_name), [0.0, 0.0]) {
         if let Err(e) = SingletonDatabase::edit_serialized_singleton_database(
             singleton_component,
             edit_function,
@@ -110,14 +112,17 @@ fn inspect_this_singleton_component<T: SingletonBounds, F, F2>(
         }
     }
     ui.same_line(0.0);
-    if imgui_utility::sized_button(ui, &im_str!("Revert##{}", marker_name)) {
+    if ui.button(&im_str!("Revert##{}", marker_name), [0.0, 0.0]) {
         match serialization_util::singleton_components::load_singleton_database() {
             Ok(scd) => revert_function(scd, singleton_component),
             Err(e) => error!("Error in loading Serialized Singletons {}", e),
         }
     }
     ui.same_line(0.0);
-    if imgui_utility::sized_button(ui, &im_str!("Change Associated Entity##{}", marker_name)) {
+    if ui.button(
+        &im_str!("Change Associated Entity##{}", marker_name),
+        [0.0, 0.0],
+    ) {
         ui.open_popup(&popup_name);
     }
 
@@ -136,7 +141,7 @@ fn inspect_this_singleton_component<T: SingletonBounds, F, F2>(
                     im_str!("Entity ID {}", this_entity.index())
                 };
 
-                if imgui_utility::sized_button(ui, &name_imstr) {
+                if ui.button(&name_imstr, [0.0, 0.0]) {
                     associated_entities.insert(singleton_component.marker(), *this_entity);
                     close_popup = true;
                 }

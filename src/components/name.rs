@@ -16,16 +16,14 @@ pub struct Name {
 impl Name {
     const INDENT_AMOUNT: f32 = 38.0;
 
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-        }
+    pub fn new(name: String) -> Self {
+        Self { name: name }
     }
 
     pub fn inspect(
         name: &str,
         eli: &mut EntityListInformation,
-        nip: NameInspectorParameters,
+        nip: &NameInspectorParameters,
         ui: &imgui::Ui<'_>,
         uid: &str,
     ) -> NameInspectorResult {

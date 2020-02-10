@@ -77,6 +77,7 @@ type GraphInspectorLambda<'a> = &'a mut dyn FnMut(
     &Entity,
     &mut ComponentList<Name>,
     &mut ComponentList<SerializationMarker>,
+    &ComponentList<PrefabMarker>,
     NameInspectorParameters,
 ) -> bool;
 
@@ -135,11 +136,12 @@ fn walk_node_inspect(
             entity,
             names,
             serialization_data,
+            prefabs,
             NameInspectorParameters {
                 depth,
-                is_serialized: serialization_data.get(entity).is_some(),
                 has_children,
-                is_prefab: prefabs.get(entity).is_some(),
+                is_serialized: false,
+                is_prefab: false,
                 being_inspected: false,
             },
         );

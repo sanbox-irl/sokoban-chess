@@ -27,10 +27,20 @@ impl Default for NameInspectorResult {
 #[derive(Debug, Default, PartialEq)]
 pub struct NameInspectorParameters {
     pub has_children: bool,
-    pub is_prefab: bool,
     pub depth: usize,
+    pub is_prefab: bool,
     pub being_inspected: bool,
     pub is_serialized: bool,
+}
+
+impl NameInspectorParameters {
+    pub fn with_scene_graph_data(has_children: bool, depth: usize) -> Self {
+        Self {
+            has_children,
+            depth,
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

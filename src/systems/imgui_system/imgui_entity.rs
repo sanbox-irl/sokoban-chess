@@ -35,7 +35,7 @@ pub fn entity_list(
                     };
 
                     if imgui::MenuItem::new(&name).build(ui) {
-                        prefab_system::create_new_prefab_entity(
+                        prefab_system::create_new_entity_from_prefab(
                             ecs,
                             *prefab_id,
                             &resources.prefabs,
@@ -71,12 +71,17 @@ pub fn entity_list(
             &mut ecs.component_database.names,
             &ecs.component_database.prefab_markers,
             &mut ecs.component_database.serialization_data,
-            &mut |entity, names, serialization_data, name_inspector_params| {
+            &mut |entity, names, serialization_data, prefabs, mut name_inspector_params| {
+                // Update Name Inspector Parameter:
+                name_inspector_params.is_serialized = serialization_data.contains(entity);
+                name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
+                name_inspector_params.is_prefab = prefabs.contains(entity);
+
                 ui_handler.scene_graph_entities.push(*entity);
 
                 display_entity_id(
                     entity,
-                    name_inspector_params,
+                    &name_inspector_params,
                     names,
                     serialization_data,
                     ui_handler,
@@ -106,7 +111,7 @@ pub fn entity_list(
 
                 display_entity_id(
                     entity,
-                    nip,
+                    &nip,
                     &mut ecs.component_database.names,
                     &mut ecs.component_database.serialization_data,
                     ui_handler,
@@ -151,28 +156,20 @@ pub fn entity_list(
 
 fn display_entity_id(
     entity: &Entity,
-    mut name_inspector_params: NameInspectorParameters,
+    name_inspector_params: &NameInspectorParameters,
     names: &mut ComponentList<Name>,
     serialization_data: &mut ComponentList<SerializationMarker>,
     ui_handler: &mut UiHandler<'_>,
+
     clone_me: &mut Option<Entity>,
     delete_me: &mut Option<Entity>,
     console_dump_me: &mut Option<Entity>,
 ) -> bool {
-    // Name Inspector Params
-    name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
-
     // Find our ImGui entry list info
-    let entity_list_info = match ui_handler.entity_list_information.get_mut(entity) {
-        Some(stuff) => stuff,
-        None => {
-            // for none stuff
-            ui_handler
-                .entity_list_information
-                .insert(*entity, EntityListInformation::default());
-            ui_handler.entity_list_information.get_mut(entity).unwrap()
-        }
-    };
+    let entity_list_info = ui_handler
+        .entity_list_information
+        .entry(entity.to_string())
+        .or_default();
 
     let NameInspectorResult {
         clone,
@@ -182,10 +179,10 @@ fn display_entity_id(
         serialize_name,
         show_children,
         unserialize,
-    } = Name::inspect(
+    } = imgui_utility::display_name_core(
         names
-            .get_mut(entity)
-            .map_or(&format!("ID {}", entity), |name| &name.inner_mut().name),
+            .get(entity)
+            .map_or(&format!("{}", entity), |name| &name.inner().name),
         entity_list_info,
         name_inspector_params,
         &ui_handler.ui,

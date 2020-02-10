@@ -1,5 +1,6 @@
 use super::*;
 use sprite_resources::*;
+use uuid::Uuid;
 
 pub fn create_resources_windows(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     imgui_utility::create_window(
@@ -97,8 +98,7 @@ pub fn sprite_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandl
             }
 
             // Serialize, Deserialize
-            let serialize_label = im_str!("Serialize##{}", uid);
-            if imgui_utility::sized_button(ui, &serialize_label) {
+            if ui.button(&im_str!("Serialize##{}", uid), [0.0, 0.0]) {
                 if let Err(e) = serialization_util::sprites::serialize_sprite(sprite_data) {
                     error!(
                         "Couldn't serialize the tile set! Warning! Your data may be lost! {}",
@@ -108,7 +108,7 @@ pub fn sprite_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandl
             }
 
             ui.same_line_with_spacing(0.0, 25.0);
-            if imgui_utility::sized_button(ui, &im_str!("Revert##{}", uid)) {
+            if ui.button(&im_str!("Revert##{}", uid), [0.0, 0.0]) {
                 if let Ok(sprite_ingame_data) = serialization_util::sprites::load_sprite(
                     sprite_data.sprite_name,
                     sprite_data.texture_page.unwrap(),
@@ -226,7 +226,7 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
 
             // Serialize, Deserialize
             let serialize_label = im_str!("Serialize##{}", unique_id);
-            if imgui_utility::sized_button(ui, &serialize_label) {
+            if ui.button(&serialize_label, [0.0, 0.0]) {
                 if let Err(e) =
                     serialization_util::tilesets::serialize_tileset(this_tileset.clone())
                 {
@@ -238,7 +238,7 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             }
 
             ui.same_line_with_spacing(0.0, 25.0);
-            if imgui_utility::sized_button(ui, &im_str!("Revert##{}", unique_id)) {
+            if ui.button(&im_str!("Revert##{}", unique_id), [0.0, 0.0]) {
                 this_tileset.revert = true;
 
                 if let Ok(Some(reverted_tset)) =
@@ -282,7 +282,7 @@ pub fn game_config_editor(
         .build();
 
         // Serialize
-        if imgui_utility::sized_button(ui, &im_str!("Serialize##{}", uid)) {
+        if ui.button(&im_str!("Serialize##{}", uid), [-1.0, 0.0]) {
             if let Err(e) = serialization_util::game_config::serialize_config(config) {
                 error!(
                     "Couldn't serialize the Game Config! Warning! Your data may be lost! {}",
@@ -300,78 +300,49 @@ pub fn prefab_entity_viewer(
     resources: &mut ResourcesDatabase,
     ui_handler: &mut UiHandler<'_>,
 ) -> bool {
-    let ui: &mut Ui<'_> = &mut ui_handler.ui;
-
     let mut open = true;
-    let mut prefab_to_clone: Option<uuid::Uuid> = None;
-    let mut prefab_to_delete: Option<uuid::Uuid> = None;
 
-    let prefab_editor = imgui::Window::new(imgui::im_str!("Prefab Inspector"))
-        .size(
-            Vec2::new(290.0, 400.0).into(),
-            imgui::Condition::FirstUseEver,
-        )
+    let mut prefab_to_clone: Option<Uuid> = None;
+    let mut prefab_to_delete: Option<Uuid> = None;
+    let mut prefab_to_console_dump: Option<Uuid> = None;
+
+    let prefab_list = imgui::Window::new(&im_str!("Prfab List"))
+        .size([200.0, 400.0], imgui::Condition::FirstUseEver)
+        .menu_bar(true)
         .opened(&mut open);
 
-    if let Some(window) = prefab_editor.begin(ui) {
-        for prefab in resources.prefabs.values_mut() {
+    if let Some(window) = prefab_list.begin(&ui_handler.ui) {
+        for (id, prefab) in resources.prefabs.iter_mut() {
+            let nip = NameInspectorParameters {
+                has_children: false,
+                depth: 0,
+                is_prefab: true,
+                being_inspected: ui_handler.stored_prefabs.contains(id),
+                // All this does is stop the "unserialize" option from appearing.
+                is_serialized: false,
+            };
+
             // ENTITY ELEMENTS:
-            display_prefab_id(prefab, ui);
+            let (_, serialize_name) = display_prefab_id(
+                prefab.id,
+                &nip,
+                prefab.name.as_ref().map(|sc| &sc.inner),
+                ui_handler,
+                &mut prefab_to_clone,
+                &mut prefab_to_delete,
+                &mut prefab_to_console_dump,
+            );
 
-            // BUTTONS
-            let mut size = {
-                let (size, pressed) = imgui_utility::sized_button_padding(
-                    ui,
-                    &im_str!("Inspect##{}", prefab.id),
-                    Vec2::ZERO,
-                );
-                if pressed {
-                    // Store or Remove it...
-                    if ui_handler.stored_prefabs.contains(&prefab.id) {
-                        if let Some(position) = ui_handler
-                            .stored_prefabs
-                            .iter()
-                            .position(|x| *x == prefab.id)
-                        {
-                            ui_handler.stored_prefabs.swap_remove(position);
-                        }
-                    } else {
-                        ui_handler.stored_prefabs.push(prefab.id);
-                    }
+            if let Some(new_name) = serialize_name {
+                if let Some(serialized_name) = &mut prefab.name {
+                    serialized_name.inner.name = new_name;
+                } else {
+                    prefab.name = Some(SerializedComponent {
+                        active: true,
+                        inner: Name::new(new_name),
+                    })
                 }
-                size
-            };
-            ui.same_line_with_spacing(0.0, 10.0);
-
-            // CLONE
-            size += {
-                let (size, pressed) = imgui_utility::sized_button_padding(
-                    ui,
-                    &im_str!("Clone##{}", prefab.id),
-                    Vec2::ZERO,
-                );
-                if pressed {
-                    prefab_to_clone = Some(prefab.id);
-                }
-
-                size
-            };
-            ui.same_line_with_spacing(0.0, 12.0);
-
-            // DELETE
-            size += {
-                let (_, pressed) = imgui_utility::sized_button_padding(
-                    ui,
-                    &im_str!("Delete##{}", prefab.id),
-                    Vec2::ZERO,
-                );
-                if pressed {
-                    prefab_to_delete = Some(prefab.id);
-                }
-                size
-            };
-
-            ui.separator();
+            }
         }
 
         if let Some(original) = prefab_to_clone {
@@ -384,38 +355,74 @@ pub fn prefab_entity_viewer(
         if let Some(id) = prefab_to_delete {
             resources.prefabs.remove(&id);
         }
-        window.end(ui);
+
+        if let Some(console_dumper) = prefab_to_console_dump {
+            println!("---Console Dump for {}---", console_dumper);
+            println!("{:#?}", resources.prefabs[&console_dumper]);
+            println!("-------------------------");
+        }
+
+        window.end(&ui_handler.ui);
     }
 
     open
 }
 
-// @techdebt this doesn't handle changing prefab names!
-fn display_prefab_id(prefab: &mut SerializedEntity, ui: &Ui<'_>) {
-    if let Some(sc) = &mut prefab.name {
-        Name::inspect(
-            &sc.inner.name,
-            &mut EntityListInformation::default(),
-            NameInspectorParameters {
-                depth: 0,
-                is_serialized: true,
-                has_children: false,
-                is_prefab: true,
-                being_inspected: false,
-            },
-            ui,
-            &prefab.id.to_string(),
-        );
-    } else {
-        ui.label_text(imgui::im_str!("Prefab ID"), &im_str!("{}", prefab.id));
+fn display_prefab_id(
+    prefab: Uuid,
+    name_inspector_params: &NameInspectorParameters,
+    name: Option<&Name>,
+    ui_handler: &mut UiHandler<'_>,
+    clone_me: &mut Option<Uuid>,
+    delete_me: &mut Option<Uuid>,
+    console_dump_me: &mut Option<Uuid>,
+) -> (bool, Option<String>) {
+    // Find our ImGui entry list info
+    let entity_list_info = ui_handler
+        .entity_list_information
+        .entry(prefab.to_string())
+        .or_default();
 
-        if imgui_utility::sized_button(ui, &im_str!("Name Entity##{:?}", prefab.id)) {
-            let name = Name::new(&format!("Entity ID {}", prefab.id));
+    let NameInspectorResult {
+        serialize_name,
+        unserialize: _,
+        inspect,
+        show_children,
+        clone,
+        delete,
+        dump_into_console_log,
+    } = imgui_utility::display_name_core(
+        name.map_or(&format!("Prefab {}", prefab), |name| &name.name),
+        entity_list_info,
+        name_inspector_params,
+        &ui_handler.ui,
+        &prefab.to_string(),
+    );
 
-            prefab.name = Some(SerializedComponent {
-                active: true,
-                inner: name,
-            });
+    if clone {
+        *clone_me = Some(prefab);
+    }
+
+    if delete {
+        *delete_me = Some(prefab);
+        if let Some(pos) = ui_handler.stored_prefabs.iter().position(|u| *u == prefab) {
+            ui_handler.stored_prefabs.remove(pos);
         }
     }
+
+    if dump_into_console_log {
+        *console_dump_me = Some(prefab);
+    }
+
+    // Store or Remove it...
+    if inspect {
+        if let Some(pos) = ui_handler.stored_prefabs.iter().position(|u| *u == prefab) {
+            ui_handler.stored_prefabs.remove(pos);
+        } else {
+            ui_handler.stored_prefabs.push(prefab);
+        }
+    }
+
+    // Should we change the name?
+    (show_children, serialize_name)
 }
