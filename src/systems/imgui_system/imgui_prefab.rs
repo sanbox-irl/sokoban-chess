@@ -18,7 +18,7 @@ pub fn prefab_editor(
         let mut open = true;
         let mut changed = false;
         let name = match &mut prefab.name {
-            Some((name, _)) => im_str!("{} (Prefab)", &name.name),
+            Some(sc) => im_str!("{} (Prefab)", &sc.inner.name),
             None => im_str!("{} (Prefab)", prefab_id),
         };
 
@@ -66,7 +66,7 @@ pub fn prefab_editor(
                                 for prefab_marker in component_database.prefab_markers.iter() {
                                     if prefab_marker.inner().id == prefab.id {
                                         if let Some(comp) = component_database.$y.get_mut(&prefab_marker.entity_id()) {
-                                            *comp.inner_mut() = prefab.$x.clone().unwrap().0;
+                                            *comp.inner_mut() = prefab.$x.clone().unwrap().inner;
                                         };
                                     }
                                 }
@@ -187,7 +187,7 @@ fn prefab_inspector<
     T: ComponentBounds + typename::TypeName + Clone + PartialEq,
     F: FnMut(&mut T, InspectorParameters<'_, '_>),
 >(
-    prefab_wrapper: &mut Option<(T, bool)>,
+    prefab_wrapper: &mut SerializedComponentWrapper<T>,
     uuid: &str,
     entity_names: &ComponentList<Name>,
     component_info: &mut ComponentInfo,
@@ -204,10 +204,10 @@ fn prefab_inspector<
 
         // COMPONENT INFO
         component_info.is_deleted = false;
-        component_info.is_active = prefab_wrapper.1;
+        component_info.is_active = prefab_wrapper.active;
         let name = imgui_utility::typed_text_ui::<T>();
         super::imgui_component::component_name_and_status(&name, ui, component_info);
-        prefab_wrapper.1 = component_info.is_active;
+        prefab_wrapper.active = component_info.is_active;
 
         // DELETE ENTITY
         ui.tree_node(&imgui::ImString::new(name))
@@ -215,7 +215,7 @@ fn prefab_inspector<
             .build(|| {
                 if component_info.is_deleted == false {
                     // Expensive paying for stuff here...
-                    let duplicate = prefab_wrapper.0.clone();
+                    let duplicate = prefab_wrapper.inner.clone();
                     let inspector_parameters = InspectorParameters {
                         is_open,
                         uid: &format!("{}{}", uuid, &T::type_name()),
@@ -224,9 +224,9 @@ fn prefab_inspector<
                         entity_names,
                         prefabs,
                     };
-                    inspect_function(&mut prefab_wrapper.0, inspector_parameters);
+                    inspect_function(&mut prefab_wrapper.inner, inspector_parameters);
 
-                    change = prefab_wrapper.0 != duplicate;
+                    change = prefab_wrapper.inner != duplicate;
                 } else {
                     delete = true
                 }

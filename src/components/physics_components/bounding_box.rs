@@ -31,7 +31,7 @@ impl ComponentBounds for BoundingBox {
         serialized_entity
             .bounding_box
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -40,7 +40,10 @@ impl ComponentBounds for BoundingBox {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        serialized_entity.bounding_box = Some((self.clone(), active));
+        serialized_entity.bounding_box = Some(super::SerializedComponent {
+            inner: self.clone(),
+            active,
+        });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {

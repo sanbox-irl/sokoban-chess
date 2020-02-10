@@ -7,7 +7,7 @@ struct ArrayEntry<T: GenerationalIndexValue> {
 }
 
 // An array from GenerationalIndex to some Value T.
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GenerationalIndexArray<T: GenerationalIndexValue>(Vec<Option<ArrayEntry<T>>>);
 
 impl<T: GenerationalIndexValue> GenerationalIndexArray<T> {
@@ -105,38 +105,8 @@ impl<T: GenerationalIndexValue> GenerationalIndexArray<T> {
     }
 }
 
-impl<T: Default + typename::TypeName + GenerationalIndexValue> GenerationalIndexArray<T> {
-    /// Gets a mutable reference to the contained if it exists.
-    /// Otherwise, it creates the contained using default and returns
-    /// a mutable reference to that.
-    pub fn get_mut_or_default(&mut self, index: &GenerationalIndex) -> &mut T {
-        if self.get_mut(index).is_none() {
-            error!(
-                "No {} for {} with get_mut_or_default. Generating component...",
-                T::type_name(),
-                index,
-            );
-            self.set(index, T::default());
-        }
-
-        self.get_mut(index).unwrap()
-    }
-
-    /// Gets an immutable reference to the contained if it exists.
-    /// Otherwise, it creates the contained using default and returns
-    /// an immutable reference to that. This is **slower** than just
-    /// `get`, so use that if you can help it.
-    pub fn get_or_default(&mut self, index: &GenerationalIndex) -> &T {
-        if self.get(index).is_none() {
-            error!(
-                "No {} for {} with get_mut. Generating component...",
-                T::type_name(),
-                index
-            );
-
-            self.set(index, T::default());
-        }
-
-        self.get(index).unwrap()
+impl<T: GenerationalIndexValue> Default for GenerationalIndexArray<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -73,7 +73,7 @@ impl ComponentBounds for TextSource {
         serialized_entity
             .text_source
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -82,7 +82,10 @@ impl ComponentBounds for TextSource {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        se.text_source = Some((self.clone(), active));
+        se.text_source = Some(super::SerializedComponent {
+            inner: self.clone(),
+            active,
+        });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {

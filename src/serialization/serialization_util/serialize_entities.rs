@@ -1,5 +1,7 @@
 use super::*;
 pub const ENTITY_SUBPATH: &str = "entities_data.yaml";
+use std::collections::HashMap;
+use uuid::Uuid;
 
 pub fn path() -> String {
     format!(
@@ -10,7 +12,7 @@ pub fn path() -> String {
     )
 }
 
-pub fn load_all_entities() -> Result<Vec<SerializedEntity>, Error> {
+pub fn load_all_entities() -> Result<HashMap<Uuid, SerializedEntity>, Error> {
     let scene_entity_path = path();
     load_serialized_file(&scene_entity_path)
 }
@@ -67,7 +69,7 @@ pub fn serialize_all_entities(
 ) -> Result<(), Error> {
     let path = path();
 
-    let mut serialized_entities: Vec<SerializedEntity> = load_serialized_file(&path)?;
+    let mut serialized_entities: HashMap<Uuid, SerializedEntity> = load_serialized_file(&path)?;
 
     // FIND THE OLD SERIALIZED ENTITY
     for entity in entities {
@@ -78,12 +80,7 @@ pub fn serialize_all_entities(
                 component_database,
                 singleton_database,
             ) {
-                let old_pos = serialized_entities.iter().position(|x| x.id == se.id);
-                if let Some(old_pos) = old_pos {
-                    serialized_entities[old_pos] = se;
-                } else {
-                    serialized_entities.push(se);
-                }
+                serialized_entities.insert(se.id, se);
             }
         }
     }
@@ -140,15 +137,8 @@ pub fn unserialize_entity(serialized_id: &uuid::Uuid) -> Result<bool, Error> {
 pub fn commit_entity_to_scene(serialized_entity: SerializedEntity) -> Result<(), Error> {
     let path = path();
 
-    let mut entities: Vec<SerializedEntity> = load_serialized_file(&path)?;
-
-    // FIND THE OLD SERIALIZED ENTITY
-    let old_pos = entities.iter().position(|x| x.id == serialized_entity.id);
-    if let Some(old_pos) = old_pos {
-        entities[old_pos] = serialized_entity;
-    } else {
-        entities.push(serialized_entity);
-    }
+    let mut entities: HashMap<Uuid, SerializedEntity> = load_serialized_file(&path)?;
+    entities.insert(serialized_entity.id, serialized_entity);
 
     save_serialized_file(&entities, &path)
 }
@@ -161,14 +151,8 @@ pub fn load_committed_entity(
 
 pub fn load_entity_by_id(id: &uuid::Uuid) -> Result<Option<SerializedEntity>, Error> {
     // ENTITIES
-    let entities: Vec<SerializedEntity> = load_serialized_file(&path())?;
+    let mut entities: HashMap<Uuid, SerializedEntity> = load_serialized_file(&path())?;
 
     // FIND THE OLD SERIALIZED ENTITY
-    let old_pos = entities.iter().position(|x| &x.id == id);
-
-    if let Some(old_pos) = old_pos {
-        Ok(Some(entities[old_pos].clone()))
-    } else {
-        Ok(None)
-    }
+    Ok(entities.remove(id))
 }

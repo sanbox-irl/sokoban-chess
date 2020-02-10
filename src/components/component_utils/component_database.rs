@@ -2,7 +2,6 @@ use super::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[derive(Default)]
 pub struct ComponentDatabase {
     pub names: ComponentList<Name>,
     pub prefab_markers: ComponentList<PrefabMarker>,
@@ -35,12 +34,12 @@ impl ComponentDatabase {
         if update_serialization::UPDATE_COMPONENT_DATABASE {
             update_serialization::update_component_database()?;
         }
-        let saved_entities: Vec<SerializedEntity> =
+        let saved_entities: HashMap<Uuid, SerializedEntity> =
             serialization_util::entities::load_all_entities()?;
 
         let mut component_database = ComponentDatabase::default();
 
-        for s_entity in saved_entities {
+        for (_, s_entity) in saved_entities.into_iter() {
             let new_entity =
                 Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
             component_database.load_serialized_entity(&new_entity, s_entity, marker_map, prefabs);
@@ -204,19 +203,16 @@ impl ComponentDatabase {
         prefabs: &HashMap<Uuid, SerializedEntity>,
     ) {
         // Make a serialization data thingee on it...
-        self.serialization_data.set(
+        self.serialization_data.set_component(
             &entity,
-            Component::new(
-                &entity,
-                SerializationMarker::new(serialized_entity.id.clone()),
-            ),
+            SerializationMarker::new(serialized_entity.id.clone()),
         );
 
         // If it's got a prefab, load the prefab. Otherwise,
         // load it like a normal serialized entity:
-        if let Some((prefab_marker, _)) = &serialized_entity.prefab_marker {
+        if let Some(serialized_component) = &serialized_entity.prefab_marker {
             // Base Prefab
-            self.load_serialized_prefab(entity, &prefab_marker.id, prefabs);
+            self.load_serialized_prefab(entity, &serialized_component.inner.id, prefabs);
 
             // Overrides
             self.load_serialized_entity_into_database(entity, serialized_entity);
@@ -289,10 +285,11 @@ impl ComponentDatabase {
         // Helper macro
         macro_rules! transfer_serialized_components {
             ($component_name: ident, $component_database_name: ident) => {
-                if let Some((inner, is_active)) = $component_name {
-                    self.$component_database_name.set(
+                if let Some(serialized_component) = $component_name {
+                    self.$component_database_name.set_component_with_active(
                         &entity,
-                        Component::with_active(entity, inner.into(), is_active),
+                        serialized_component.inner,
+                        serialized_component.active,
                     );
                 }
             };
@@ -316,22 +313,47 @@ impl ComponentDatabase {
         transfer_serialized_components!(conversant_npc, conversant_npcs);
 
         // Tilemap Handling
-        if let Some((serialized_tilemap, is_active)) = tilemap {
+        if let Some(serialized_component) = tilemap {
             let tiles: Vec<Option<Tile>> =
-                serialization_util::tilemaps::load_tiles(&serialized_tilemap.tiles)
+                serialization_util::tilemaps::load_tiles(&serialized_component.inner.tiles)
                     .map_err(|e| {
                         error!(
                             "Couldn't retrieve tilemaps for {}. Error: {}",
-                            &serialized_tilemap.tiles.relative_path, e
+                            &serialized_component.inner.tiles.relative_path, e
                         )
                     })
                     .ok()
                     .unwrap_or_default();
 
-            let tilemap: tilemap::Tilemap = serialized_tilemap.to_tilemap(tiles);
+            let tilemap: tilemap::Tilemap = serialized_component.inner.to_tilemap(tiles);
 
             self.tilemaps
-                .set(entity, Component::with_active(entity, tilemap, is_active));
+                .set_component_with_active(entity, tilemap, serialized_component.active);
+        }
+    }
+}
+
+impl Default for ComponentDatabase {
+    fn default() -> ComponentDatabase {
+        ComponentDatabase {
+            names: Default::default(),
+            prefab_markers: Default::default(),
+            transforms: Default::default(),
+            players: Default::default(),
+            grid_objects: Default::default(),
+            graph_nodes: Default::default(),
+            velocities: Default::default(),
+            sprites: Default::default(),
+            sound_sources: Default::default(),
+            bounding_boxes: Default::default(),
+            draw_rectangles: Default::default(),
+            tilemaps: Default::default(),
+            text_sources: Default::default(),
+            follows: Default::default(),
+            conversant_npcs: Default::default(),
+            scene_switchers: Default::default(),
+            serialization_data: Default::default(),
+            size: 0,
         }
     }
 }

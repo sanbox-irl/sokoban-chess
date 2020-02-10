@@ -392,9 +392,9 @@ pub fn prefab_entity_viewer(
 
 // @techdebt this doesn't handle changing prefab names!
 fn display_prefab_id(prefab: &mut SerializedEntity, ui: &Ui<'_>) {
-    if let Some((name, _)) = &mut prefab.name {
+    if let Some(sc) = &mut prefab.name {
         Name::inspect(
-            &name.name,
+            &sc.inner.name,
             &mut EntityListInformation::default(),
             NameInspectorParameters {
                 depth: 0,
@@ -412,7 +412,10 @@ fn display_prefab_id(prefab: &mut SerializedEntity, ui: &Ui<'_>) {
         if imgui_utility::sized_button(ui, &im_str!("Name Entity##{:?}", prefab.id)) {
             let name = Name::new(&format!("Entity ID {}", prefab.id));
 
-            prefab.name = Some((name, true));
+            prefab.name = Some(SerializedComponent {
+                active: true,
+                inner: name,
+            });
         }
     }
 }

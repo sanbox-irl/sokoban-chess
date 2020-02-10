@@ -89,7 +89,7 @@ where
     fn clone_entity(&mut self, original: &Entity, new_entity: &Entity) {
         if self.get(original).is_some() {
             let new_component = self.get(original).unwrap().inner().clone();
-            self.set(new_entity, Component::new(new_entity, new_component));
+            self.set_component(new_entity, new_component);
         }
     }
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>) {
@@ -99,7 +99,7 @@ where
         .enabled(self.get(index).is_none())
         .build(ui)
         {
-            self.set(index, Component::new(index, T::default()));
+            self.set_component(index, T::default());
         }
     }
 
@@ -159,11 +159,58 @@ where
 
 impl<T> ComponentList<T>
 where
-    T: ComponentBounds + typename::TypeName + 'static,
+    T: ComponentBounds + Default + typename::TypeName + 'static,
 {
     /// Simply a wrapper around creating a new component
     pub fn set_component(&mut self, entity_id: &Entity, new_component: T) {
         self.set(&entity_id, Component::new(&entity_id, new_component));
+    }
+
+    /// Simply a wrapper around creating a new component
+    pub fn set_component_with_active(
+        &mut self,
+        entity_id: &Entity,
+        new_component: T,
+        active: bool,
+    ) {
+        self.set(
+            &entity_id,
+            Component::with_active(&entity_id, new_component, active),
+        );
+    }
+
+    /// Gets a mutable reference to the contained if it exists.
+    /// Otherwise, it creates the contained using default and returns
+    /// a mutable reference to that.
+    pub fn get_mut_or_default(&mut self, index: &Entity) -> &mut Component<T> {
+        if self.get_mut(index).is_none() {
+            error!(
+                "No {} for {} with get_mut_or_default. Generating component...",
+                T::type_name(),
+                index,
+            );
+            self.set_component(index, T::default());
+        }
+
+        self.get_mut(index).unwrap()
+    }
+
+    /// Gets an immutable reference to the contained if it exists.
+    /// Otherwise, it creates the contained using default and returns
+    /// an immutable reference to that. This is **slower** than just
+    /// `get`, so use that if you can help it.
+    pub fn get_or_default(&mut self, index: &Entity) -> &Component<T> {
+        if self.get(index).is_none() {
+            error!(
+                "No {} for {} with get_mut. Generating component...",
+                T::type_name(),
+                index
+            );
+
+            self.set_component(index, T::default());
+        }
+
+        self.get(index).unwrap()
     }
 
     pub fn component_inspector_raw<F>(

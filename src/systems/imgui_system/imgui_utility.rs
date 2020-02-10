@@ -22,7 +22,11 @@ pub fn sized_button_padding(ui: &Ui<'_>, label: &imgui::ImStr, padding: Vec2) ->
 
 pub fn typed_text_ui<T: typename::TypeName>() -> String {
     let type_name = T::type_name();
-    type_name.split("::").last().unwrap_or(&type_name).to_string()
+    type_name
+        .split("::")
+        .last()
+        .unwrap_or(&type_name)
+        .to_string()
 }
 
 pub fn label_button(ui: &Ui<'_>, label: &imgui::ImStr, button: &imgui::ImStr) -> bool {
@@ -286,7 +290,7 @@ pub fn select_prefab_entity(
     let name_str: imgui::ImString = match current_value {
         Some(cv) => match serialized_prefabs.get(cv) {
             Some(serialized_entity) => match &serialized_entity.name {
-                Some((name, _)) => imgui::ImString::new(name.name.clone()),
+                Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
                 None => im_str!("Prefab Uuid {}", serialized_entity.id),
             },
             None => {
@@ -314,7 +318,7 @@ pub fn select_prefab_entity(
         // Somes
         for prefab in serialized_prefabs.values() {
             let name_imstr = match &prefab.name {
-                Some((name, _)) => imgui::ImString::new(name.name.clone()),
+                Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
                 None => im_str!("Prefab Uuid {}", prefab.id),
             };
 

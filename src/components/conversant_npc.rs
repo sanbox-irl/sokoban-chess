@@ -52,7 +52,7 @@ impl ComponentBounds for ConversantNPC {
         serialized_entity
             .conversant_npc
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -67,7 +67,10 @@ impl ComponentBounds for ConversantNPC {
                 .conversation_partner
                 .entity_id_to_serialized_refs(&serialization_marker);
 
-            ((clone, active))
+            super::SerializedComponent {
+                inner: clone,
+                active,
+            }
         });
     }
 

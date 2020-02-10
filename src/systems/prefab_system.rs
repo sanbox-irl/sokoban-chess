@@ -1,5 +1,5 @@
 use super::{
-    serialization_util, Component, Ecs, Entity, PrefabMap, PrefabMarker, ResourcesDatabase,
+    serialization_util, Ecs, Entity, PrefabMap, PrefabMarker, ResourcesDatabase,
     SerializedEntity,
 };
 
@@ -28,10 +28,9 @@ pub fn create_new_prefab_entity(
         .load_serialized_prefab(&entity, &prefab_id, prefab_map);
 
     // Set our Prefab Marker
-    ecs.component_database.prefab_markers.set(
-        &entity,
-        Component::new(&entity, PrefabMarker { id: prefab_id }),
-    );
+    ecs.component_database
+        .prefab_markers
+        .set_component(&entity, PrefabMarker { id: prefab_id });
 
     entity
 }

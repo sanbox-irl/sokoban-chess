@@ -6,7 +6,14 @@ use super::{
 };
 use uuid::Uuid;
 
-pub type SerializedComponentWrapper<T> = Option<(T, bool)>;
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(default)]
+pub struct SerializedComponent<T> {
+    pub inner: T,
+    pub active: bool,
+}
+
+pub type SerializedComponentWrapper<T> = Option<SerializedComponent<T>>;
 
 // This should mirror ComponentDatabse
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -50,7 +57,11 @@ impl SerializedEntity {
                 .map_err(|e| error!("Error On Loading Prefab: {}", e))
                 .ok()??;
 
-            prefab.prefab_marker = Some((prefab_component.inner().clone(), true));
+            prefab.prefab_marker = Some(SerializedComponent {
+                active: true,
+                inner: prefab_component.inner().clone(),
+            });
+
             serialized_entity = prefab.clone();
             Some(prefab)
         } else {
@@ -110,8 +121,8 @@ impl SerializedEntity {
         macro_rules! dedup_serialization {
             ( $( $x:ident ),* ) => {
                 $(
-                    if let Some((c, a)) = $x {
-                        if f(c, a) {
+                    if let Some(serialized_component) = $x {
+                        if f(&serialized_component.inner, &serialized_component.active) {
                             *$x = None;
                         }
                     }
@@ -148,8 +159,11 @@ impl SerializedEntity {
     pub fn clone_component<T: ComponentBounds + Clone>(
         comp: Option<&Component<T>>,
     ) -> SerializedComponentWrapper<T> {
-        if let Some(inner) = comp {
-            Some((inner.inner().clone(), inner.is_active))
+        if let Some(comp) = comp {
+            Some(SerializedComponent {
+                active: comp.is_active,
+                inner: comp.clone_inner(),
+            })
         } else {
             None
         }

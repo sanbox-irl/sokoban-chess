@@ -238,7 +238,7 @@ impl ComponentBounds for Name {
         serialized_entity
             .name
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -247,7 +247,10 @@ impl ComponentBounds for Name {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        se.name = Some((self.clone(), active));
+        se.name = Some(super::SerializedComponent {
+            inner: self.clone(),
+            active,
+        });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {

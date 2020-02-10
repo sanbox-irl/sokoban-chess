@@ -40,13 +40,8 @@ pub fn update_tilemaps_and_tilesets(
                 match transforms.get(&this_tilemap_comp.entity_id()) {
                     Some(comp) => comp.inner().world_position(),
                     None => {
-                        transforms.set(
-                            &this_tilemap_comp.entity_id(),
-                            super::Component::new(
-                                &this_tilemap_comp.entity_id(),
-                                Transform::default(),
-                            ),
-                        );
+                        transforms
+                            .set_component(&this_tilemap_comp.entity_id(), Transform::default());
 
                         Vec2::ZERO
                     }

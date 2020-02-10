@@ -48,10 +48,11 @@ impl ComponentBounds for TilemapSerialized {
         ip.ui
             .text("Tilemaps cannot currently be added as a Prefab because I'm lazy as shit!");
     }
+    
     fn is_serialized(&self, se: &super::SerializedEntity, active: bool) -> bool {
         se.tilemap
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |se| se.active == active && &se.inner == self)
     }
 
     fn commit_to_scene(

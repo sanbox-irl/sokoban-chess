@@ -30,7 +30,7 @@ pub fn entity_list(
             if let Some(prefab_submenu) = ui.begin_menu(im_str!("Instantiate Prefabs"), true) {
                 for (prefab_id, prefab) in resources.prefabs.iter() {
                     let name = match &prefab.name {
-                        Some((name, _)) => im_str!("{}##MenuItem", &name.name),
+                        Some(sc) => im_str!("{}##MenuItem", &sc.inner.name),
                         None => im_str!("ID: {}##MenuItem", prefab.id),
                     };
 
@@ -132,9 +132,12 @@ pub fn entity_list(
 
         if let Some(console_dump_me) = entity_to_console_dump {
             println!("---Console Dump for {}---", console_dump_me);
-            ecs.component_database.foreach_component_list_mut(NonInspectableEntities::all(), |comp_list| {
-                comp_list.dump_to_log(&console_dump_me);
-            });
+            ecs.component_database.foreach_component_list_mut(
+                NonInspectableEntities::all(),
+                |comp_list| {
+                    comp_list.dump_to_log(&console_dump_me);
+                },
+            );
             println!("-------------------------");
         }
 

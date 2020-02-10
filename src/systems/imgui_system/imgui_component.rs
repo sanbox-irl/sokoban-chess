@@ -176,7 +176,7 @@ pub fn entity_inspector(
                     ) {
                         for prefab in resources.prefabs.values() {
                             let name = match &prefab.name {
-                                Some((name, _)) => im_str!("{}", &name.name),
+                                Some(sc) => im_str!("{}", &sc.inner.name),
                                 None => im_str!("ID: {}", prefab.id),
                             };
 
@@ -197,14 +197,11 @@ pub fn entity_inspector(
                             singleton_database,
                         ) {
                             // Add our Prefab Marker
-                            component_database.prefab_markers.set(
+                            component_database.prefab_markers.set_component(
                                 entity,
-                                Component::new(
-                                    entity,
-                                    PrefabMarker {
-                                        id: prefab_to_instantiate,
-                                    },
-                                ),
+                                PrefabMarker {
+                                    id: prefab_to_instantiate,
+                                },
                             );
 
                             if let Err(e) =

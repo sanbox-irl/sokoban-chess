@@ -1,10 +1,45 @@
 ---
-- name:
-    - name: Camera
-    - true
+398e42d1-a687-4267-8f01-511278425584:
+  name:
+    inner:
+      name: Test
+    active: false
   player: ~
   transform:
-    - local_position:
+    inner:
+      local_position:
+        x: 0.0
+        y: 0.0
+      world_position:
+        x: 0.0
+        y: 0.0
+      parent:
+        target_serialized_id: ~
+    active: true
+  grid_object: ~
+  scene_switcher: ~
+  graph_node: ~
+  velocity: ~
+  sprite: ~
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+  id: 398e42d1-a687-4267-8f01-511278425584
+  marker: ~
+49eb3578-9977-47ae-b080-b2eee1ea4286:
+  name:
+    inner:
+      name: Camera
+    active: true
+  player: ~
+  transform:
+    inner:
+      local_position:
         x: 24.0
         y: 42.0
       world_position:
@@ -12,7 +47,7 @@
         y: 42.0
       parent:
         target_serialized_id: ~
-    - true
+    active: true
   grid_object: ~
   scene_switcher: ~
   graph_node: ~
@@ -28,12 +63,15 @@
   prefab_marker: ~
   id: 49eb3578-9977-47ae-b080-b2eee1ea4286
   marker: Camera
-- name:
-    - name: Grass Override Name
-    - false
+dc715ec7-4ce0-4378-9bbd-593cadaa3dfc:
+  name:
+    inner:
+      name: Grass Override Name
+    active: true
   player: ~
   transform:
-    - local_position:
+    inner:
+      local_position:
         x: 10.0
         y: 24.0
       world_position:
@@ -41,7 +79,7 @@
         y: 24.0
       parent:
         target_serialized_id: ~
-    - true
+    active: true
   grid_object: ~
   scene_switcher: ~
   graph_node: ~
@@ -55,7 +93,8 @@
   follow: ~
   conversant_npc: ~
   prefab_marker:
-    - id: 81216d25-6021-463c-98fc-abc70612ae57
-    - true
+    inner:
+      id: 81216d25-6021-463c-98fc-abc70612ae57
+    active: true
   id: dc715ec7-4ce0-4378-9bbd-593cadaa3dfc
   marker: ~

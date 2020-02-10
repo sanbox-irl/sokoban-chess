@@ -67,7 +67,7 @@ impl ComponentBounds for Sprite {
         serialized_entity
             .sprite
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -76,7 +76,10 @@ impl ComponentBounds for Sprite {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        se.sprite = Some((self.clone(), active));
+        se.sprite = Some(super::SerializedComponent {
+            inner: self.clone(),
+            active,
+        });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {

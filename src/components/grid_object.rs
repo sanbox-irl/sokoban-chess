@@ -59,7 +59,7 @@ impl ComponentBounds for GridObject {
         serialized_entity
             .grid_object
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -68,7 +68,10 @@ impl ComponentBounds for GridObject {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        se.grid_object = Some((self.clone(), active));
+        se.grid_object = Some(super::SerializedComponent {
+            inner: self.clone(),
+            active,
+        });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {

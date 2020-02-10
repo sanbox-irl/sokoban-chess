@@ -39,7 +39,7 @@ impl ComponentBounds for DrawRectangle {
         serialized_entity
             .draw_rectangle
             .as_ref()
-            .map_or(false, |(c, a)| *a == active && c == self)
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(
@@ -48,7 +48,10 @@ impl ComponentBounds for DrawRectangle {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        se.draw_rectangle = Some((self.clone(), active));
+        se.draw_rectangle = Some(super::SerializedComponent {
+            inner: self.clone(),
+            active,
+        });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {

@@ -184,28 +184,25 @@ impl ComponentBounds for Tilemap {
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
-        serialized_entity
-            .tilemap
-            .as_ref()
-            .map_or(false, |(serialized_tilemap, is_active)| {
-                if *is_active == active {
-                    let tiles: Vec<Option<Tile>> =
-                        serialization_util::tilemaps::load_tiles(&serialized_tilemap.tiles)
-                            .map_err(|e| {
-                                error!(
-                                    "Couldn't retrieve tilemaps for {}. Error: {}",
-                                    &serialized_tilemap.tiles.relative_path, e
-                                )
-                            })
-                            .ok()
-                            .unwrap_or_default();
+        serialized_entity.tilemap.as_ref().map_or(false, |s| {
+            if s.active == active {
+                let tiles: Vec<Option<Tile>> =
+                    serialization_util::tilemaps::load_tiles(&s.inner.tiles)
+                        .map_err(|e| {
+                            error!(
+                                "Couldn't retrieve tilemaps for {}. Error: {}",
+                                &s.inner.tiles.relative_path, e
+                            )
+                        })
+                        .ok()
+                        .unwrap_or_default();
 
-                    let tilemap = serialized_tilemap.clone().to_tilemap(tiles);
-                    &tilemap == self
-                } else {
-                    false
-                }
-            })
+                let tilemap = s.inner.clone().to_tilemap(tiles);
+                &tilemap == self
+            } else {
+                false
+            }
+        })
     }
 
     fn commit_to_scene(
@@ -222,7 +219,10 @@ impl ComponentBounds for Tilemap {
                 )
             })
             .ok()
-            .map(|tmap_s| (tmap_s, active));
+            .map(|tmap_s| super::SerializedComponent {
+                inner: tmap_s,
+                active,
+            });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
