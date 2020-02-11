@@ -72,13 +72,16 @@ impl SerializedEntity {
         serialized_entity.id = serialization_id;
 
         // Now add in all the normal components:
-        component_database.foreach_component_list(NonInspectableEntities::NAME, |component_list| {
-            component_list.create_serialized_entity(
-                entity_id,
-                &mut serialized_entity,
-                &component_database.serialization_data,
-            );
-        });
+        component_database.foreach_component_list(
+            NonInspectableEntities::NAME | NonInspectableEntities::GRAPH_NODE,
+            |component_list| {
+                component_list.create_serialized_entity(
+                    entity_id,
+                    &mut serialized_entity,
+                    &component_database.serialization_data,
+                );
+            },
+        );
         serialized_entity.marker = singleton_database.save_singleton_markers(entity_id);
 
         // Now, load the prefab again, and for every field where the prefab matches with
@@ -91,6 +94,76 @@ impl SerializedEntity {
         }
 
         Some(serialized_entity)
+    }
+
+    pub fn foreach_component(
+        &mut self,
+        entity_bitmask: NonInspectableEntities,
+        mut f: impl FnMut(&dyn ComponentBounds, &bool),
+        f_util: Option<impl FnMut(&mut Uuid, &mut Option<Marker>)>,
+    ) {
+        let SerializedEntity {
+            name,
+            player,
+            transform,
+            grid_object,
+            scene_switcher,
+            graph_node,
+            velocity,
+            sprite,
+            sound_source,
+            draw_rectangle,
+            bounding_box,
+            text_source,
+            tilemap,
+            follow,
+            conversant_npc,
+            prefab_marker,
+            id,
+            marker,
+        } = self;
+
+        macro_rules! do_action {
+            ( $( $x:ident ),* ) => {
+                $(
+                    if let Some(serialized_component) = $x {
+                        f(&serialized_component.inner, &serialized_component.active);
+                    }
+                )*
+            };
+        }
+
+        if entity_bitmask.contains(NonInspectableEntities::NAME) {
+            do_action!(name);
+        }
+
+        do_action!(
+            player,
+            transform,
+            grid_object,
+            scene_switcher,
+            velocity,
+            sprite,
+            sound_source,
+            draw_rectangle,
+            bounding_box,
+            text_source,
+            tilemap,
+            follow,
+            conversant_npc
+        );
+
+        if entity_bitmask.contains(NonInspectableEntities::GRAPH_NODE) {
+            do_action!(graph_node);
+        }
+
+        if entity_bitmask.contains(NonInspectableEntities::PREFAB) {
+            do_action!(prefab_marker);
+        }
+
+        if let Some(mut f_util) = f_util {
+            f_util(id, marker);
+        }
     }
 
     pub fn foreach_component_dedup(

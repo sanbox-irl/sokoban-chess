@@ -105,7 +105,7 @@ pub fn entity_inspector(
                     // @update_components exception
                     let had_transform = component_database.transforms.get(entity).is_some();
 
-                    // Prefab Marker, Name is omitted
+                    // Prefab Marker, Name, Graph Node is omitted
                     component_database.foreach_component_list_mut(
                         NonInspectableEntities::SERIALIZATION,
                         |component_list| component_list.component_add_button(entity, ui),
@@ -252,7 +252,7 @@ pub fn entity_serialization_options(
     component_database: &ComponentDatabase,
 ) -> failure::Fallible<Option<ImGuiSerializationDataCommand>> {
     component_database.foreach_component_list(
-        NonInspectableEntities::NAME | NonInspectableEntities::PREFAB,
+        NonInspectableEntities::NAME | NonInspectableEntities::PREFAB | NonInspectableEntities::GRAPH_NODE,
         |component_list| {
             if let Err(e) = component_list.serialization_option(
                 ui,

@@ -9,6 +9,7 @@ pub fn prefab_editor(
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
 
     let mut remove_this_id = None;
+    
     // @techdebt BORROW CHECKER NONSENSE
     let fake_prefab_map = resources.prefabs.clone();
 

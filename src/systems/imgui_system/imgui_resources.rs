@@ -304,7 +304,7 @@ pub fn prefab_entity_viewer(
 
     let mut prefab_to_clone: Option<Uuid> = None;
     let mut prefab_to_delete: Option<Uuid> = None;
-    let mut prefab_to_console_dump: Option<Uuid> = None;
+    let mut prefab_to_console_log: Option<Uuid> = None;
 
     let prefab_list = imgui::Window::new(&im_str!("Prfab List"))
         .size([200.0, 400.0], imgui::Condition::FirstUseEver)
@@ -330,7 +330,7 @@ pub fn prefab_entity_viewer(
                 ui_handler,
                 &mut prefab_to_clone,
                 &mut prefab_to_delete,
-                &mut prefab_to_console_dump,
+                &mut prefab_to_console_log,
             );
 
             if let Some(new_name) = serialize_name {
@@ -356,9 +356,9 @@ pub fn prefab_entity_viewer(
             resources.prefabs.remove(&id);
         }
 
-        if let Some(console_dumper) = prefab_to_console_dump {
-            println!("---Console Dump for {}---", console_dumper);
-            println!("{:#?}", resources.prefabs[&console_dumper]);
+        if let Some(console_log) = prefab_to_console_log {
+            println!("---Console Log for {}---", console_log);
+            println!("{:#?}", resources.prefabs[&console_log]);
             println!("-------------------------");
         }
 

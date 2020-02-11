@@ -115,6 +115,10 @@ impl ComponentDatabase {
         }
 
         self.foreach_component_list_inspectable_mut(&mut f);
+        if non_inspectable_entities.contains(NonInspectableEntities::GRAPH_NODE) {
+            f(&mut self.graph_nodes);
+        }
+
         if non_inspectable_entities.contains(NonInspectableEntities::PREFAB) {
             f(&mut self.prefab_markers);
         }
@@ -128,6 +132,7 @@ impl ComponentDatabase {
     /// - Name
     /// - PrefabMarker
     /// - SerializationMarker
+    /// - GraphNode
     /// Use `foreach_component_list` to iterate over all.
     pub fn foreach_component_list_inspectable_mut(
         &mut self,
@@ -136,7 +141,6 @@ impl ComponentDatabase {
         f(&mut self.transforms);
         f(&mut self.grid_objects);
         f(&mut self.players);
-        f(&mut self.graph_nodes);
         f(&mut self.velocities);
         f(&mut self.sprites);
         f(&mut self.sound_sources);
@@ -161,6 +165,10 @@ impl ComponentDatabase {
         }
 
         self.foreach_component_list_inspectable(&mut f);
+
+        if non_inspectable_entities.contains(NonInspectableEntities::GRAPH_NODE) {
+            f(&self.graph_nodes);
+        }
         if non_inspectable_entities.contains(NonInspectableEntities::PREFAB) {
             f(&self.prefab_markers);
         }
@@ -174,6 +182,7 @@ impl ComponentDatabase {
     /// - Name
     /// - PrefabMarker
     /// - SerializationMarker
+    /// - GraphNode
     /// Use `foreach_component_list` to iterate over all.
     pub fn foreach_component_list_inspectable(&self, f: &mut impl FnMut(&dyn ComponentListBounds)) {
         f(&self.transforms);
@@ -364,5 +373,6 @@ bitflags! {
         const NAME                  =   0b0000_0001;
         const PREFAB                =   0b0000_0010;
         const SERIALIZATION         =   0b0000_0100;
+        const GRAPH_NODE            =   0b0000_1000;
     }
 }
