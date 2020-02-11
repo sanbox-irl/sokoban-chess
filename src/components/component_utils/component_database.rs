@@ -28,7 +28,7 @@ impl ComponentDatabase {
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
-        prefabs: &HashMap<Uuid, SerializedEntity>,
+        prefabs: &PrefabMap,
     ) -> Result<ComponentDatabase, failure::Error> {
         // CFG if
         if update_serialization::UPDATE_COMPONENT_DATABASE {
@@ -209,7 +209,7 @@ impl ComponentDatabase {
         entity: &Entity,
         serialized_entity: SerializedEntity,
         marker_map: &mut HashMap<Marker, Entity>,
-        prefabs: &HashMap<Uuid, SerializedEntity>,
+        prefabs: &PrefabMap,
     ) {
         // Make a serialization data thingee on it...
         self.serialization_data.set_component(
@@ -219,9 +219,9 @@ impl ComponentDatabase {
 
         // If it's got a prefab, load the prefab. Otherwise,
         // load it like a normal serialized entity:
-        if let Some(serialized_component) = &serialized_entity.prefab_marker {
+        if let Some(serialized_prefab_marker) = &serialized_entity.prefab_marker {
             // Base Prefab
-            self.load_serialized_prefab(entity, &serialized_component.inner.id, prefabs);
+            self.load_serialized_prefab(entity, &serialized_prefab_marker.inner.main_id(), prefabs);
 
             // Overrides
             self.load_serialized_entity_into_database(entity, serialized_entity);
@@ -244,12 +244,25 @@ impl ComponentDatabase {
         &mut self,
         entity_to_load_into: &Entity,
         prefab_id: &Uuid,
-        prefabs: &HashMap<Uuid, SerializedEntity>,
+        cold_prefabs: &PrefabMap,
     ) {
-        if let Some(serialized_data) = prefabs.get(&prefab_id) {
-            self.load_serialized_entity_into_database(entity_to_load_into, serialized_data.clone());
-            self.prefab_markers
-                .set_component(entity_to_load_into, PrefabMarker { id: *prefab_id });
+        if let Some(prefab) = cold_prefabs.get(&prefab_id) {
+            // Load the Main
+            let main = prefab
+                .members
+                .iter()
+                .find(|p| p.id == prefab.main_id())
+                .unwrap()
+                .clone();
+
+            self.load_serialized_entity_into_database(entity_to_load_into, main);
+            self.prefab_markers.set_component(
+                entity_to_load_into,
+                PrefabMarker::new_main(prefab.main_id()),
+            );
+
+            // Load the Sub IDs:
+            compile_error!("We need to load the sub ids here too! That means reworking a lot of this function...");
         } else {
             error!(
                 "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",

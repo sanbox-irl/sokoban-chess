@@ -1,21 +1,16 @@
-use super::{
-    serialization_util, Ecs, Entity, PrefabMap, PrefabMarker, ResourcesDatabase,
-    SerializedEntity,
-};
+use super::{serialization_util, Ecs, Entity, Prefab, PrefabMap, PrefabMarker, ResourcesDatabase};
+use failure::Fallible;
 
-pub fn commit_blank_prefab(
-    resources: &mut ResourcesDatabase,
-) -> Result<uuid::Uuid, failure::Error> {
-    let blank_prefab = SerializedEntity::new_blank();
+pub fn commit_blank_prefab(resources: &mut ResourcesDatabase) -> Fallible<uuid::Uuid> {
+    let blank_prefab = Prefab::new_blank();
 
     serialization_util::prefabs::serialize_prefab(&blank_prefab)?;
-    let id = blank_prefab.id;
-    resources.prefabs.insert(id, blank_prefab);
-
+    let id = blank_prefab.main_id();
+    resources.add_prefab(blank_prefab);
     Ok(id)
 }
 
-pub fn create_new_entity_from_prefab(
+pub fn instantiate_entity_from_prefab(
     ecs: &mut Ecs,
     prefab_id: uuid::Uuid,
     prefab_map: &PrefabMap,
@@ -30,7 +25,7 @@ pub fn create_new_entity_from_prefab(
     // Set our Prefab Marker
     ecs.component_database
         .prefab_markers
-        .set_component(&entity, PrefabMarker { id: prefab_id });
+        .set_component(&entity, PrefabMarker::new_main(prefab_id));
 
     entity
 }

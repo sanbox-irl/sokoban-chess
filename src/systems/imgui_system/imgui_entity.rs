@@ -28,17 +28,17 @@ pub fn entity_list(
 
             // PREFABS
             if let Some(prefab_submenu) = ui.begin_menu(im_str!("Instantiate Prefabs"), true) {
-                for (prefab_id, prefab) in resources.prefabs.iter() {
-                    let name = match &prefab.name {
+                for (prefab_id, prefab) in resources.prefabs().iter() {
+                    let name = match &prefab.main_entity().name {
                         Some(sc) => im_str!("{}##MenuItem", &sc.inner.name),
-                        None => im_str!("ID: {}##MenuItem", prefab.id),
+                        None => im_str!("ID: {}##MenuItem", prefab.main_id()),
                     };
 
                     if imgui::MenuItem::new(&name).build(ui) {
-                        prefab_system::create_new_entity_from_prefab(
+                        prefab_system::instantiate_entity_from_prefab(
                             ecs,
                             *prefab_id,
-                            &resources.prefabs,
+                            resources.prefabs(),
                         );
                     }
                 }
@@ -51,6 +51,7 @@ pub fn entity_list(
                     &ecs.entities,
                     &ecs.component_database,
                     &ecs.singleton_database,
+                    resources,
                 ) {
                     Ok(()) => info!("Serialized Scene"),
                     Err(e) => {

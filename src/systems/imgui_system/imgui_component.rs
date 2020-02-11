@@ -44,7 +44,7 @@ pub fn entity_inspector(
                     entities,
                     unsafe { &*names_raw_pointer },
                     entity,
-                    &resources.prefabs,
+                    resources.prefabs(),
                     ui,
                     is_open,
                 );
@@ -55,7 +55,7 @@ pub fn entity_inspector(
                 entities,
                 &component_database.names,
                 entity,
-                &resources.prefabs,
+                resources.prefabs(),
                 ui,
                 is_open,
             );
@@ -69,13 +69,14 @@ pub fn entity_inspector(
                     entities,
                     &component_database.names,
                     entity,
-                    &resources.prefabs,
+                    resources.prefabs(),
                     ui,
                     is_open,
                     |inner, ip| {
                         serialize_it = inner.entity_inspector_results(ip);
                     },
                 );
+
             if serialize_it {
                 serialization_util::entities::serialize_entity_full(
                     entity,
@@ -88,6 +89,7 @@ pub fn entity_inspector(
                         .id,
                     component_database,
                     singleton_database,
+                    resources,
                 );
             }
 
@@ -147,7 +149,7 @@ pub fn entity_inspector(
                                     command,
                                     component_database,
                                     singleton_database,
-                                    &resources.prefabs,
+                                    resources,
                                 );
                             }
                             Ok(None) => {}
@@ -172,57 +174,52 @@ pub fn entity_inspector(
 
                     if let Some(overwrite_submenu) = ui.begin_menu(
                         im_str!("Overwrite Prefab"),
-                        resources.prefabs.is_empty() == false,
+                        resources.prefabs().is_empty() == false,
                     ) {
-                        for prefab in resources.prefabs.values() {
-                            let name = match &prefab.name {
+                        for prefab in resources.prefabs().values() {
+                            let name = match &prefab.main_entity().name {
                                 Some(sc) => im_str!("{}", &sc.inner.name),
-                                None => im_str!("ID: {}", prefab.id),
+                                None => im_str!("ID: {}", prefab.main_id()),
                             };
 
                             if MenuItem::new(&name).build(ui) {
-                                new_prefab_to_create = Some(prefab.id);
+                                new_prefab_to_create = Some(prefab.main_id());
                             }
                         }
 
                         overwrite_submenu.end(ui);
                     }
 
-                    if let Some(prefab_to_instantiate) = new_prefab_to_create {
+                    if let Some(prefab_to_create) = new_prefab_to_create {
                         // Create a serialized entity
                         if let Some(serialized_entity) = SerializedEntity::new(
                             entity,
-                            prefab_to_instantiate,
+                            prefab_to_create,
                             component_database,
                             singleton_database,
+                            resources,
                         ) {
-                            // Add our Prefab Marker
-                            component_database.prefab_markers.set_component(
-                                entity,
-                                PrefabMarker {
-                                    id: prefab_to_instantiate,
-                                },
-                            );
+                            let prefab = Prefab::new(serialized_entity.id, vec![serialized_entity]);
 
-                            if let Err(e) =
-                                serialization_util::prefabs::serialize_prefab(&serialized_entity)
-                            {
+                            if let Err(e) = serialization_util::prefabs::serialize_prefab(&prefab) {
                                 error!("Error Creating Prefab: {}", e);
                             }
 
-                            match serialization_util::prefabs::cycle_prefab(serialized_entity) {
+                            match serialization_util::prefabs::cycle_prefab(prefab) {
                                 Ok(prefab) => {
-                                    resources.prefabs.insert(prefab.id, prefab);
+                                    resources.add_prefab(prefab);
                                 }
                                 Err(e) => {
                                     error!("We couldn't cycle the Prefab! It wasn't saved! {}", e)
                                 }
                             }
+
+                            // Add our Prefab Marker back to the Original entity we made into a prefab...
+                            component_database
+                                .prefab_markers
+                                .set_component(entity, PrefabMarker::new_main(prefab_to_create));
                         } else {
-                            error!(
-                                "We couldn't find a prefab with the ID {}",
-                                prefab_to_instantiate
-                            )
+                            error!("We couldn't find a prefab with the ID {}", prefab_to_create)
                         }
                     }
 
@@ -252,7 +249,9 @@ pub fn entity_serialization_options(
     component_database: &ComponentDatabase,
 ) -> failure::Fallible<Option<ImGuiSerializationDataCommand>> {
     component_database.foreach_component_list(
-        NonInspectableEntities::NAME | NonInspectableEntities::PREFAB | NonInspectableEntities::GRAPH_NODE,
+        NonInspectableEntities::NAME
+            | NonInspectableEntities::PREFAB
+            | NonInspectableEntities::GRAPH_NODE,
         |component_list| {
             if let Err(e) = component_list.serialization_option(
                 ui,

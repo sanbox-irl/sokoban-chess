@@ -1,5 +1,6 @@
 use super::*;
 const PREFAB_PATH: &str = "assets/serialized_data/prefabs";
+use failure::Fallible;
 use uuid::Uuid;
 
 pub fn path(entity_id: &str) -> String {
@@ -12,38 +13,38 @@ pub fn path(entity_id: &str) -> String {
 /// live prefab instantiation create incorrect data. If you cycle a prefab
 /// through this function, the prefab returned will be stripped of all
 /// runtime data, as if it was loaded off disk.
-pub fn cycle_prefab(prefab: SerializedEntity) -> Result<SerializedEntity, Error> {
+pub fn cycle_prefab(prefab: Prefab) -> Result<Prefab, Error> {
     Ok(serde_yaml::from_value(serde_yaml::to_value(prefab)?)?)
 }
 
-pub fn serialize_prefab(prefab: &SerializedEntity) -> Result<(), Error> {
-    let path = path(&prefab.id.to_string());
+pub fn serialize_prefab(prefab: &Prefab) -> Result<(), Error> {
+    let path = path(&prefab.main_id().to_string());
 
     save_serialized_file(&prefab, &path)
 }
 
-pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<SerializedEntity>, Error> {
+pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<Prefab>, Error> {
     // ENTITIES
-    let prefab: Result<SerializedEntity, _> = load_serialized_file(&path(&prefab_id.to_string()));
+    let prefab: Result<Prefab, _> = load_serialized_file(&path(&prefab_id.to_string()));
 
     Ok(prefab
         .map_err(|e| error!("Error loading Prefab File: {}", e))
         .map(|ok| {
-            assert_eq!(&ok.id, prefab_id);
+            assert_eq!(&ok.main_id(), prefab_id);
             ok
         })
         .ok())
 }
 
-pub fn load_all_prefabs() -> Result<std::collections::HashMap<uuid::Uuid, SerializedEntity>, Error> {
+pub fn load_all_prefabs() -> Fallible<PrefabMap> {
     let paths = std::fs::read_dir(PREFAB_PATH)?;
     let mut ret = std::collections::HashMap::new();
 
     for path in paths {
         let path = path?;
 
-        let prefab: SerializedEntity = load_serialized_file(path.path().to_str().unwrap())?;
-        ret.insert(prefab.id, prefab);
+        let prefab: Prefab = load_serialized_file(path.path().to_str().unwrap())?;
+        ret.insert(prefab.main_id(), prefab);
     }
 
     Ok(ret)

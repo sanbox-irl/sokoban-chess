@@ -17,7 +17,7 @@ pub struct Clockwork {
 impl Clockwork {
     pub fn new() -> Result<Self, Error> {
         // Create Hardware Interfaces and Resources Handler
-        let mut resources = ResourcesDatabase::new()?;
+        let mut resources = ResourcesDatabase::new();
         let mut hardware_interfaces = HardwareInterface::new(&resources.config)?;
         resources.initialize(&mut hardware_interfaces.renderer)?;
 
@@ -197,7 +197,7 @@ impl Clockwork {
         let mut grid = Array2D::filled_with(None, 5, 10);
 
         // Initialize the ECS
-        let mut ecs = Ecs::new(&resources.prefabs)?;
+        let mut ecs = Ecs::new(&resources.prefabs())?;
         ecs.game_start(resources, hardware_interfaces, &mut grid)?;
 
         // Load in the Scene Graph

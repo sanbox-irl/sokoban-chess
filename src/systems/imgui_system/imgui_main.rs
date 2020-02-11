@@ -35,7 +35,7 @@ pub fn imgui_main(
             &mut ecs.singleton_database,
             &ecs.component_database.names,
             &ecs.entities,
-            &resources.prefabs,
+            resources.prefabs(),
             ui_handler,
         )
     });
@@ -44,7 +44,6 @@ pub fn imgui_main(
     imgui_utility::create_window(ui_handler, ImGuiFlags::TIME_KEEPER, |ui_handler| {
         time_keeper.create_imgui_window(ui_handler)
     });
-    
 
     // Resources Windows
     imgui_resources::create_resources_windows(resources, ui_handler);

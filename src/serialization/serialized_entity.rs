@@ -1,7 +1,7 @@
 use super::{
-    component_serialization::*, physics_components::*, serialization_util, Component,
-    ComponentBounds, ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode,
-    GridObject, Marker, Name, NonInspectableEntities, Player, PrefabMarker, SceneSwitcher,
+    component_serialization::*, physics_components::*, Component, ComponentBounds,
+    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker,
+    Name, NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher,
     SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
 };
 use uuid::Uuid;
@@ -46,27 +46,33 @@ impl SerializedEntity {
         serialization_id: Uuid,
         component_database: &ComponentDatabase,
         singleton_database: &SingletonDatabase,
+        resources: &ResourcesDatabase,
     ) -> Option<Self> {
         let mut serialized_entity = SerializedEntity::default();
 
         // If it's a prefab, add in all the PREFAB components
-        let prefab = if let Some(prefab_component) =
-            component_database.prefab_markers.get(entity_id)
-        {
-            let mut prefab = serialization_util::prefabs::load_prefab(&prefab_component.inner().id)
-                .map_err(|e| error!("Error On Loading Prefab: {}", e))
-                .ok()??;
+        let prefab =
+            if let Some(prefab_component) = component_database.prefab_markers.get(entity_id) {
+                let prefab = resources
+                    .prefabs()
+                    .get(&prefab_component.inner().main_id())?;
 
-            prefab.prefab_marker = Some(SerializedComponent {
-                active: true,
-                inner: prefab_component.inner().clone(),
-            });
+                let mut serialized_prefab = prefab
+                    .members
+                    .iter()
+                    .find(|p| p.id == prefab_component.inner().sub_id())?
+                    .clone();
 
-            serialized_entity = prefab.clone();
-            Some(prefab)
-        } else {
-            None
-        };
+                serialized_prefab.prefab_marker = Some(SerializedComponent {
+                    active: true,
+                    inner: prefab_component.inner().clone(),
+                });
+
+                serialized_entity = serialized_prefab.clone();
+                Some(serialized_prefab)
+            } else {
+                None
+            };
 
         // Save over the ID at this stage (we'll be copying over the prefab ID)
         serialized_entity.id = serialization_id;

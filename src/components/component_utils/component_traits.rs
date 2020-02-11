@@ -17,7 +17,7 @@ pub struct InspectorParameters<'a, 'b> {
     pub ui: &'b mut imgui::Ui<'a>,
     pub entities: &'b [Entity],
     pub entity_names: &'b ComponentList<Name>,
-    pub prefabs: &'b std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+    pub prefabs: &'b PrefabMap,
     pub uid: &'b str,
     pub is_open: bool,
 }
@@ -41,7 +41,7 @@ pub trait ComponentListBounds {
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         entity: &Entity,
-        prefab_hashmap: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+        prefab_hashmap: &PrefabMap,
         ui: &mut imgui::Ui<'_>,
         is_open: bool,
         // prefab_sync: SyncStatus,

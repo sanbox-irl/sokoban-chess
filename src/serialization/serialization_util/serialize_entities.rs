@@ -22,7 +22,7 @@ pub fn process_serialized_command(
     command: ImGuiSerializationDataCommand,
     component_database: &mut ComponentDatabase,
     singleton_database: &mut SingletonDatabase,
-    prefab_map: &PrefabMap,
+    resources: &ResourcesDatabase,
 ) {
     match &command.serialization_type {
         ImGuiSerializationDataType::Revert => {
@@ -36,7 +36,7 @@ pub fn process_serialized_command(
                         entity,
                         serialized_entity,
                         &mut singleton_database.associated_entities,
-                        prefab_map,
+                        resources.prefabs(),
                     );
                 }
 
@@ -57,7 +57,13 @@ pub fn process_serialized_command(
 
         ImGuiSerializationDataType::Overwrite => {
             // SERIALIZE OVER:
-            serialize_entity_full(entity, command.id, component_database, singleton_database);
+            serialize_entity_full(
+                entity,
+                command.id,
+                component_database,
+                singleton_database,
+                resources,
+            );
         }
     }
 }
@@ -66,6 +72,7 @@ pub fn serialize_all_entities(
     entities: &[Entity],
     component_database: &ComponentDatabase,
     singleton_database: &SingletonDatabase,
+    resources: &ResourcesDatabase,
 ) -> Result<(), Error> {
     let path = path();
 
@@ -79,6 +86,7 @@ pub fn serialize_all_entities(
                 serialization_thing.inner().id,
                 component_database,
                 singleton_database,
+                resources,
             ) {
                 serialized_entities.insert(se.id, se);
             }
@@ -95,12 +103,14 @@ pub fn serialize_entity_full(
     serialized_id: uuid::Uuid,
     component_database: &ComponentDatabase,
     singleton_database: &SingletonDatabase,
+    resources: &ResourcesDatabase,
 ) -> bool {
     if let Some(se) = SerializedEntity::new(
         entity_id,
         serialized_id,
         component_database,
         singleton_database,
+        resources,
     ) {
         match commit_entity_to_scene(se) {
             Ok(()) => true,

@@ -3,7 +3,7 @@ use super::{
     components_singleton::SingletonDatabase,
     entities::EntityAllocator,
     hardware_interfaces::HardwareInterface,
-    resources::ResourcesDatabase,
+    resources::{ResourcesDatabase, PrefabMap},
     systems::*,
     ActionMap, GameWorldDrawCommands,
 };

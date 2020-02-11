@@ -11,31 +11,31 @@ use super::{
     renderer_system, serialization_util,
     sprite_resources::{SpriteData, SpriteInGameData, SpriteName, TextureInformation},
     tile_resources::{TileSet, TileSetName, TileSetSerialized},
-    RendererComponent, SerializedEntity, SoundResource, Vec2,
+    Prefab, PrefabMap, RendererComponent, SoundResource, Vec2,
 };
 use strum::IntoEnumIterator;
-
-pub type PrefabMap = std::collections::HashMap<uuid::Uuid, SerializedEntity>;
 
 pub struct ResourcesDatabase {
     pub sprites: HashMap<SpriteName, SpriteData>,
     pub tilesets: HashMap<TileSetName, TileSet>,
     pub sounds: HashMap<SoundResource, Cursor<&'static [u8]>>,
     pub fonts: HashMap<FontName, FontData>,
-    pub prefabs: PrefabMap,
     pub config: Config,
+    hot_prefabs: PrefabMap,
+    cold_prefabs: PrefabMap,
 }
 
 impl ResourcesDatabase {
-    pub fn new() -> Result<Self, Error> {
-        Ok(Self {
+    pub fn new() -> Self {
+        Self {
             tilesets: HashMap::new(),
             sprites: HashMap::new(),
             sounds: HashMap::new(),
             fonts: HashMap::new(),
-            prefabs: HashMap::new(),
-            config: serialization_util::game_config::load_config()?,
-        })
+            cold_prefabs: HashMap::new(),
+            hot_prefabs: HashMap::new(),
+            config: serialization_util::game_config::load_config().unwrap_or_default(),
+        }
     }
 
     pub fn initialize(&mut self, renderer: &mut RendererComponent) -> Result<(), Error> {
@@ -50,7 +50,8 @@ impl ResourcesDatabase {
 
         // LOAD PREFABS
         info!("....................Loading Prefabs");
-        self.prefabs = serialization_util::prefabs::load_all_prefabs()?;
+        self.cold_prefabs = serialization_util::prefabs::load_all_prefabs()?;
+        self.hot_prefabs = self.cold_prefabs.clone();
         info!("...✔ Loaded Resources");
 
         // INITIALIZE OTHER RESOURCES
@@ -190,5 +191,25 @@ impl ResourcesDatabase {
                 PACKED_SHEET_DIR
             ),
         }
+    }
+
+    pub fn prefabs(&self) -> &PrefabMap {
+        &self.cold_prefabs
+    }
+
+    pub fn hot_prefabs(&self) -> &PrefabMap {
+        &self.hot_prefabs
+    }
+
+    pub fn hot_prefabs_mut(&mut self) -> &mut PrefabMap {
+        &mut self.hot_prefabs
+    }
+
+    /// Adds a prefab to both the cold and the hot prefab maps.
+    /// Basically, this should be used only when we're creating a new
+    /// prefab -- to copy a prefab from hot to cold, use the `hot_to_cold` function.
+    pub fn add_prefab(&mut self, prefab: Prefab) {
+        self.hot_prefabs.insert(prefab.main_id(), prefab.clone());
+        self.cold_prefabs.insert(prefab.main_id(), prefab);
     }
 }

@@ -7,13 +7,7 @@ pub fn display_name_core(
     ui: &Ui<'_>,
     uid: &str,
 ) -> NameInspectorResult {
-    Name::inspect(
-        name,
-        entity_list_info,
-        &name_inspector_params,
-        &ui,
-        uid,
-    )
+    Name::inspect(name, entity_list_info, &name_inspector_params, &ui, uid)
 }
 
 pub fn typed_text_ui<T: typename::TypeName>() -> String {
@@ -279,19 +273,19 @@ pub fn select_prefab_entity(
     current_value: &Option<uuid::Uuid>,
     uid: &str,
     ui: &Ui<'_>,
-    serialized_prefabs: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+    serialized_prefabs: &PrefabMap,
 ) -> Option<Option<uuid::Uuid>> {
     let popup = im_str!("{}## Popup {}", label, uid);
 
     let name_str: imgui::ImString = match current_value {
         Some(cv) => match serialized_prefabs.get(cv) {
-            Some(serialized_entity) => match &serialized_entity.name {
+            Some(prefab) => match &prefab.main_entity().name {
                 Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
-                None => im_str!("Prefab Uuid {}", serialized_entity.id),
+                None => im_str!("Prefab Uuid {}", prefab.main_id()),
             },
             None => {
                 error!(
-                    "Prefab has current value {:?} but not prefab matches that ID!",
+                    "Prefab has current value {:?} but no prefab matches that ID!",
                     current_value
                 );
                 im_str!("None").to_owned()
@@ -313,13 +307,13 @@ pub fn select_prefab_entity(
 
         // Somes
         for prefab in serialized_prefabs.values() {
-            let name_imstr = match &prefab.name {
+            let name_imstr = match &prefab.main_entity().name {
                 Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
-                None => im_str!("Prefab Uuid {}", prefab.id),
+                None => im_str!("Prefab Uuid {}", prefab.main_id()),
             };
 
             if ui.button(&name_imstr, [0.0, 0.0]) {
-                ret = Some(Some(prefab.id));
+                ret = Some(Some(prefab.main_id()));
                 close_popup = true;
             }
         }

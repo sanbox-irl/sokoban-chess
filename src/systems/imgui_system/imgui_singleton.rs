@@ -5,7 +5,7 @@ pub fn singleton_inspector(
     sd: &mut SingletonDatabase,
     cd_n: &ComponentList<Name>,
     entities: &[Entity],
-    prefab_hashmap: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+    prefab_hashmap: &PrefabMap,
     ui_handler: &mut UiHandler<'_>,
 ) -> bool {
     let mut is_open = true;
@@ -52,7 +52,7 @@ fn inspect_this_singleton_component<T: SingletonBounds, F, F2>(
     associated_entities: &mut HashMap<Marker, Entity>,
     name_list: &ComponentList<Name>,
     entities: &[Entity],
-    prefabs: &std::collections::HashMap<uuid::Uuid, SerializedEntity>,
+    prefabs: &PrefabMap,
     ui_handler: &mut UiHandler<'_>,
     is_open: bool,
     edit_function: F,

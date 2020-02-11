@@ -3,18 +3,41 @@ use uuid::Uuid;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName, Hash)]
 pub struct PrefabMarker {
-    pub id: Uuid,
+    main_id: Uuid,
+    sub_id: Uuid,
+}
+
+impl PrefabMarker {
+    pub fn new(main_id: Uuid, sub_id: Uuid) -> Self {
+        Self { main_id, sub_id }
+    }
+
+    pub fn new_main(main_id: Uuid) -> Self {
+        Self {
+            main_id,
+            sub_id: main_id,
+        }
+    }
+
+    pub fn main_id(&self) -> Uuid {
+        self.main_id
+    }
+
+    pub fn sub_id(&self) -> Uuid {
+        self.sub_id
+    }
 }
 
 impl ComponentBounds for PrefabMarker {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
-        if let Some(serialized_name) = &ip.prefabs.get(&self.id).unwrap().name {
+        if let Some(serialized_name) = &ip.prefabs.get(&self.main_id).unwrap().main_entity().name {
             ip.ui.text(imgui::im_str!(
                 "Original Prefab: {}",
                 serialized_name.inner.name
             ));
         } else {
-            ip.ui.text(imgui::im_str!("Original Prefab: {}", self.id));
+            ip.ui
+                .text(imgui::im_str!("Original Prefab: {}", self.main_id));
         }
     }
 
