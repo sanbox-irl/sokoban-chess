@@ -61,8 +61,6 @@ pub fn player_update(
         info!("No players are active!");
         info!("Setting player zero to active!");
         set_player_active(true, zeroeth, sprites);
-    } else {
-        log_once::error_once!("We have no active players. That seems bad.");
     }
 }
 

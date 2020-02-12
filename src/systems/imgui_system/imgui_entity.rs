@@ -43,6 +43,12 @@ pub fn entity_list(
                     }
                 }
 
+                if resources.prefabs().is_empty() {
+                    imgui::MenuItem::new(imgui::im_str!("(None -- Get Crackin'!)"))
+                        .enabled(false)
+                        .build(ui);
+                }
+
                 prefab_submenu.end(ui);
             }
 

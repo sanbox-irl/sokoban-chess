@@ -69,7 +69,7 @@ impl GraphNode {
 
         // Make the reference to the new_child...
         let new_child_reference =
-            SerializableEntityReference::into_reference(Some(new_child), serializations);
+            SerializableEntityReference::from_entity_id(Some(new_child), serializations);
 
         match &mut self.children {
             Some(children) => children.push(new_child_reference),
@@ -99,7 +99,7 @@ impl GraphNode {
 
         // Make the reference to the new_child...
         let new_child_reference =
-            SerializableEntityReference::into_reference(Some(id), serializations);
+            SerializableEntityReference::from_entity_id(Some(id), serializations);
 
         match &mut self.children {
             Some(children) => children.push(new_child_reference),

@@ -1,36 +1,4 @@
 ---
-398e42d1-a687-4267-8f01-511278425584:
-  name:
-    inner:
-      name: Test
-    active: false
-  player: ~
-  transform:
-    inner:
-      local_position:
-        x: 0.0
-        y: 0.0
-      world_position:
-        x: 0.0
-        y: 0.0
-      parent:
-        target_serialized_id: ~
-    active: true
-  grid_object: ~
-  scene_switcher: ~
-  graph_node: ~
-  velocity: ~
-  sprite: ~
-  sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker: ~
-  id: 398e42d1-a687-4267-8f01-511278425584
-  marker: ~
 49eb3578-9977-47ae-b080-b2eee1ea4286:
   name:
     inner:
@@ -63,20 +31,17 @@
   prefab_marker: ~
   id: 49eb3578-9977-47ae-b080-b2eee1ea4286
   marker: Camera
-dc715ec7-4ce0-4378-9bbd-593cadaa3dfc:
-  name:
-    inner:
-      name: Grass Override Name
-    active: true
+68484efe-4fbd-4727-952e-ed738ac6de4a:
+  name: ~
   player: ~
   transform:
     inner:
       local_position:
-        x: 10.0
-        y: 24.0
+        x: 20.0
+        y: 16.0
       world_position:
-        x: 10.0
-        y: 24.0
+        x: 20.0
+        y: 16.0
       parent:
         target_serialized_id: ~
     active: true
@@ -84,7 +49,27 @@ dc715ec7-4ce0-4378-9bbd-593cadaa3dfc:
   scene_switcher: ~
   graph_node: ~
   velocity: ~
-  sprite: ~
+  sprite:
+    inner:
+      sprite_name: Grass
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    active: true
   sound_source: ~
   draw_rectangle: ~
   bounding_box: ~
@@ -94,7 +79,60 @@ dc715ec7-4ce0-4378-9bbd-593cadaa3dfc:
   conversant_npc: ~
   prefab_marker:
     inner:
-      id: 81216d25-6021-463c-98fc-abc70612ae57
+      main_id: c6265103-fa70-44f1-a0ed-007dcae6883a
+      sub_id: c6265103-fa70-44f1-a0ed-007dcae6883a
     active: true
-  id: dc715ec7-4ce0-4378-9bbd-593cadaa3dfc
+  id: 68484efe-4fbd-4727-952e-ed738ac6de4a
+  marker: ~
+e81a3638-e57d-4fe6-ac40-d7df45034398:
+  name:
+    inner:
+      name: Grass Prefab of Prefabs
+    active: true
+  player: ~
+  transform:
+    inner:
+      local_position:
+        x: 16.0
+        y: 16.0
+      world_position:
+        x: 16.0
+        y: 16.0
+      parent:
+        target_serialized_id: ~
+    active: true
+  grid_object: ~
+  scene_switcher: ~
+  graph_node: ~
+  velocity: ~
+  sprite:
+    inner:
+      sprite_name: Grass
+      running_data:
+        draw_order:
+          draw_layer: Instance
+          order: 0
+        facing_horizontal: Right
+        facing_vertical: Up
+        scale:
+          x: 1.0
+          y: 1.0
+        tint:
+          r: 1.0
+          g: 1.0
+          b: 1.0
+          a: 1.0
+        current_frame: 0
+        frame_time: 0.0
+        is_animating: false
+    active: true
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker: ~
+  id: e81a3638-e57d-4fe6-ac40-d7df45034398
   marker: ~

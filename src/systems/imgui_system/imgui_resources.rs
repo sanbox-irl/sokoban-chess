@@ -360,7 +360,7 @@ pub fn prefab_entity_viewer(
             prefab.invalidate();
 
             if let Err(e) = serialization_util::prefabs::invalidate_prefab(prefab) {
-                error!("Couldn't invalidate prefab {:?}", prefab.root_entity().name);
+                error!("Couldn't invalidate prefab {:?} because {}", prefab.root_entity().name, e);
             }
         }
 

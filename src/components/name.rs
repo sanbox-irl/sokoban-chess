@@ -205,23 +205,27 @@ impl Name {
         }
     }
 
-    pub fn get_name_quick(names: &ComponentList<Name>, id: &Entity) -> String {
-        if let Some(name) = names.get(id) {
-            name.inner().name.clone()
+    pub fn get_name(names: Option<&ComponentList<Name>>, id: &Entity) -> String {
+        if let Some(names) = names {
+            Name::get_name_quick(names, id)
         } else {
-            format!("Entity ID {}", id.index())
+            id.to_string()
         }
     }
 
-    pub fn get_name(names: Option<&ComponentList<Name>>, id: &Entity) -> String {
-        if let Some(names) = names {
-            if let Some(name) = names.get(id) {
-                name.inner().name.clone()
-            } else {
-                format!("Entity ID {}", id.index())
-            }
+    pub fn get_name_quick(names: &ComponentList<Name>, id: &Entity) -> String {
+        let inner: Option<&str> = names.get(id).map(|nc| nc.inner().name.as_str());
+        Name::get_name_even_quicklier(inner, &id)
+    }
+
+    pub fn get_name_even_quicklier<S: ToString>(
+        maybe_name: Option<&str>,
+        default: S,
+    ) -> String {
+        if let Some(name) = maybe_name {
+            name.to_string()
         } else {
-            format!("Entity ID {}", id.index())
+            default.to_string()
         }
     }
 }

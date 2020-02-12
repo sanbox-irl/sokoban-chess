@@ -36,7 +36,7 @@ impl Scene {
 
     pub fn entity_path(&self) -> String {
         if self.is_prefab {
-            format!("{}/{}.yaml", PREFAB_DIRECTORY, &self.name)
+            format!("{}/{}.prefab", PREFAB_DIRECTORY, &self.name)
         } else {
             format!("{}/{}/{}", SCENE_DIRECTORY, &self.name, ENTITY_SUBPATH)
         }
@@ -46,7 +46,7 @@ impl Scene {
         if self.is_prefab {
             format!("{}/{}", PREFAB_DIRECTORY, DEFAULT_SINGLETONS_SUBPATH)
         } else {
-            format!("{}/{}/{}", SCENE_DIRECTORY, &self.name, ENTITY_SUBPATH)
+            format!("{}/{}/{}", SCENE_DIRECTORY, &self.name, SINGLETONS_SUBPATH)
         }
     }
 

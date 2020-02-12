@@ -225,6 +225,18 @@ pub fn entity_inspector(
                             component_database
                                 .prefab_markers
                                 .set_component(entity, PrefabMarker::new_main(prefab_to_create));
+
+                            // And if it's serialized, let's cycle our Serialization too!
+                            // We do this to remove the "Overrides" that would otherwise appear
+                            if let Some(sc) = component_database.serialization_data.get(entity) {
+                                serialization_util::entities::serialize_entity_full(
+                                    entity,
+                                    sc.inner().id,
+                                    component_database,
+                                    singleton_database,
+                                    resources,
+                                );
+                            }
                         } else {
                             error!("We couldn't find a prefab with the ID {}", prefab_to_create)
                         }

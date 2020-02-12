@@ -30,10 +30,13 @@ impl ComponentDatabase {
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
         prefabs: &PrefabMap,
     ) -> Result<ComponentDatabase, failure::Error> {
-        // CFG if
-        if update_serialization::UPDATE_COMPONENT_DATABASE {
-            update_serialization::update_component_database()?;
+        // Update the database...
+        if cfg!(debug_assertions) {
+            if update_serialization::UPDATE_COMPONENT_DATABASE {
+                update_serialization::update_component_database()?;
+            }
         }
+
         let saved_entities: HashMap<Uuid, SerializedEntity> =
             serialization_util::entities::load_all_entities()?;
 
@@ -266,23 +269,66 @@ impl ComponentDatabase {
     ) {
         if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
-            let main = prefab
-                .members
-                .iter()
-                .find(|p| p.id == prefab.root_id())
-                .unwrap()
-                .clone();
+            let root_entity: SerializedEntity = prefab.root_entity().clone();
+            let root_entity_children: SerializedComponentWrapper<GraphNode> =
+                root_entity.graph_node.clone();
 
-            self.load_serialized_entity_into_database(entity_to_load_into, main);
+            self.load_serialized_entity_into_database(entity_to_load_into, root_entity);
             self.prefab_markers.set_component(
                 entity_to_load_into,
                 PrefabMarker::new_main(prefab.root_id()),
             );
 
-            let new_entity = Ecs::create_entity_raw(self, entity_allocator, entities);
+            if let Some(SerializedComponent { inner, .. }) = root_entity_children {
+                if let Some(children) = inner.children {
+                    for child in children.iter() {
+                        let member_serialized_id = child.target_serialized_id().unwrap();
 
-            // Load the Sub IDs:
-            compile_error!("We need to load the sub ids here too! That means reworking a lot of this function...");
+                        match prefab
+                            .members
+                            .iter()
+                            .find(|se| se.id == member_serialized_id)
+                            .cloned()
+                        {
+                            Some(serialized_entity) => {
+                                let new_id =
+                                    Ecs::create_entity_raw(self, entity_allocator, entities);
+
+                                self.load_serialized_entity_into_database(
+                                    &new_id,
+                                    serialized_entity,
+                                );
+
+                                self.prefab_markers.set_component(
+                                    &new_id,
+                                    PrefabMarker::new(prefab.root_id(), member_serialized_id),
+                                );
+                            }
+
+                            None => {
+                                error!("Our Root ID for Prefab {} had a child {} but we couldn't find it in the prefab list! Are you sure it's there?",
+                                        Name::get_name_even_quicklier(prefab.root_entity().name.as_ref().map(|sc| sc.inner.name.as_str()), prefab.root_id()),
+                                        member_serialized_id
+                                    );
+                            }
+                        }
+                    }
+
+                    #[cfg(debug_assertions)]
+                    {
+                        if children.iter().all(|child| {
+                            let id = child.target_serialized_id().unwrap();
+                            self.serialization_data.iter().any(|sd| sd.inner().id == id)
+                        }) == false
+                        {
+                            error!(
+                                "Not all members of Prefab {prefab_name} were assigned into the Scene! Prefab {prefab_name} does not make a true Scene Graph!",
+                                prefab_name = Name::get_name_even_quicklier(prefab.root_entity().name.as_ref().map(|sc| sc.inner.name.as_str()), prefab.root_id()),
+                            )
+                        }
+                    }
+                }
+            }
         } else {
             error!(
                 "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",
@@ -302,7 +348,6 @@ impl ComponentDatabase {
         entity: &Entity,
         serialized_entity: SerializedEntity,
     ) {
-        // @update_components
         let SerializedEntity {
             bounding_box,
             conversant_npc,

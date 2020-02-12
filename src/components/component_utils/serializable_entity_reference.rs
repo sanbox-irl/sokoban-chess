@@ -1,10 +1,11 @@
 use super::{imgui_system, ComponentList, Entity, InspectorParameters, SerializationMarker};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Hash)]
 pub struct SerializableEntityReference {
     #[serde(skip)]
     pub target: Option<Entity>,
-    target_serialized_id: Option<uuid::Uuid>,
+    target_serialized_id: Option<Uuid>,
 }
 
 impl SerializableEntityReference {
@@ -22,17 +23,25 @@ impl SerializableEntityReference {
         }
     }
 
-    pub fn inspect(&mut self, label: &str, ip: &InspectorParameters<'_, '_>) {
-        if let Some(new_target) = imgui_system::select_entity_option(
-            label,
-            &self.target,
-            ip.uid,
-            ip.ui,
-            ip.entities,
-            ip.entity_names,
-        ) {
-            self.target = new_target;
+    pub fn from_entity_id(
+        maybe_entity: Option<Entity>,
+        serialized_data: &ComponentList<SerializationMarker>,
+    ) -> Self {
+        if let Some(entity) = maybe_entity {
+            SerializableEntityReference {
+                target_serialized_id: serialized_data.get(&entity).map(|sd| sd.inner().id),
+                target: Some(entity),
+            }
+        } else {
+            SerializableEntityReference {
+                target: None,
+                target_serialized_id: None,
+            }
         }
+    }
+
+    pub fn target_serialized_id(&self) -> Option<Uuid> {
+        self.target_serialized_id
     }
 
     pub fn entity_id_to_serialized_refs(
@@ -50,10 +59,10 @@ impl SerializableEntityReference {
 
     pub fn serialized_refs_to_entity_id(
         &mut self,
-        serialized_data: &ComponentList<SerializationMarker>,
+        serialization_marker: &ComponentList<SerializationMarker>,
     ) {
         if let Some(tsi) = &self.target_serialized_id {
-            self.target = serialized_data
+            self.target = serialization_marker
                 .iter()
                 .find(|sd| &sd.inner().id == tsi)
                 .map(|i| i.entity_id());
@@ -66,21 +75,19 @@ impl SerializableEntityReference {
             }
         }
     }
+}
 
-    pub fn into_reference(
-        maybe_entity: Option<Entity>,
-        serialized_data: &ComponentList<SerializationMarker>,
-    ) -> Self {
-        if let Some(entity) = maybe_entity {
-            SerializableEntityReference {
-                target_serialized_id: serialized_data.get(&entity).map(|sd| sd.inner().id),
-                target: Some(entity),
-            }
-        } else {
-            SerializableEntityReference {
-                target: None,
-                target_serialized_id: None,
-            }
+impl SerializableEntityReference {
+    pub fn inspect(&mut self, label: &str, ip: &InspectorParameters<'_, '_>) {
+        if let Some(new_target) = imgui_system::select_entity_option(
+            label,
+            &self.target,
+            ip.uid,
+            ip.ui,
+            ip.entities,
+            ip.entity_names,
+        ) {
+            self.target = new_target;
         }
     }
 }

@@ -3,12 +3,16 @@ use super::*;
 use failure::Fallible;
 use uuid::Uuid;
 
+lazy_static::lazy_static! {
+    static ref PREFAB_GLOB: String = format!("{}/**/*.prefab", PREFAB_DIRECTORY);
+}
+
 fn path(entity_id: &str) -> String {
-    format!("{}/{}.yaml", PREFAB_DIRECTORY, entity_id)
+    format!("{}/{}.prefab", PREFAB_DIRECTORY, entity_id)
 }
 
 fn invalid_path(entity_id: &str) -> String {
-    format!("{}/invalid_prefabs/{}.yaml", PREFAB_DIRECTORY, entity_id)
+    format!("{}/invalid_prefabs/{}.prefab", PREFAB_DIRECTORY, entity_id)
 }
 
 /// This is a weird function. We essentially are going to pass the prefab
@@ -48,15 +52,15 @@ pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<Prefab>, Error> {
 }
 
 pub fn load_all_prefabs() -> Fallible<PrefabMap> {
-    let paths = std::fs::read_dir(PREFAB_DIRECTORY)?;
     let mut ret = std::collections::HashMap::new();
 
-    for path in paths {
+    for path in glob::glob(&PREFAB_GLOB)? {
         let path = path?;
-
-        let prefab: Prefab = load_serialized_file(path.path().to_str().unwrap())?;
+        let prefab: Prefab = load_serialized_file(path.to_str().unwrap())?;
         ret.insert(prefab.root_id(), prefab);
     }
+
+    info!("Loaded: {:#?}", ret);
 
     Ok(ret)
 }

@@ -195,7 +195,7 @@ impl ResourcesDatabase {
     }
 
     pub fn prefabs_mut(&mut self) -> Option<&mut PrefabMap> {
-        compile_error!("We need to have the inspecting mode set here!");
+        // compile_error!("We need to have the inspecting mode set here!");
         Some(&mut self.prefabs)
     }
 

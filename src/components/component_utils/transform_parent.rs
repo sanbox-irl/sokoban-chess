@@ -1,7 +1,7 @@
 use super::{Component, ComponentList, Entity, GraphNode, RawComponent, SerializationMarker};
 use std::ptr;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 #[serde(default)]
 pub struct TransformParent {
     #[serde(skip)]
@@ -21,8 +21,31 @@ impl Default for TransformParent {
     }
 }
 
+impl PartialEq for TransformParent {
+    fn eq(&self, other: &TransformParent) -> bool {
+        if self.is_root() {
+            other.is_root()
+        } else {
+            self.target.graph_node == other.target.graph_node
+        }
+    }
+}
+
+// impl Clone for TransformParent {
+//     fn clone(&self) -> Self {
+
+//         let raw_component: RawComponent = RawComponent {
+//             entity
+//         }
+//         unimplemented!()
+//     }
+// }
+
 impl TransformParent {
-    pub fn new(graph_node: &mut Component<GraphNode>, serialized_data: &Option<&SerializationMarker>) -> Self {
+    pub fn new(
+        graph_node: &mut Component<GraphNode>,
+        serialized_data: &Option<&SerializationMarker>,
+    ) -> Self {
         Self {
             target: RawComponent::new(graph_node),
             target_serialized_id: serialized_data.map(|sd| sd.id.clone()),
@@ -39,6 +62,10 @@ impl TransformParent {
         }
     }
 
+    pub fn is_root(&self) -> bool {
+        self.parent_id().is_none()
+    }
+
     pub fn parent_mut(&mut self) -> Option<&mut GraphNode> {
         if self.target.graph_node == ptr::null_mut() {
             None
@@ -47,7 +74,7 @@ impl TransformParent {
         }
     }
 
-    pub fn parent_id(&mut self) -> Option<Entity> {
+    pub fn parent_id(&self) -> Option<Entity> {
         self.target.entity
     }
 

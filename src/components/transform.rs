@@ -116,7 +116,12 @@ impl ComponentBounds for Transform {
         serialized_entity
             .transform
             .as_ref()
-            .map_or(false, |s| s.active == active && &s.inner == self)
+            .map_or(false, |serialized_transform| {
+                if serialized_transform.active != active {
+                    return false;
+                }
+                self == &serialized_transform.inner
+            })
     }
 
     fn commit_to_scene(
