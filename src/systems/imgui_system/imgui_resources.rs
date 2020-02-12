@@ -355,8 +355,8 @@ pub fn prefab_entity_viewer(
         }
 
         if let Some(id) = prefab_to_delete {
-            compile_error!("We need to also delete from the cold prefabs in some manner here...");
-            compile_error!("And also from the actual file system too!");
+            // compile_error!("We need to also delete from the cold prefabs in some manner here...");
+            // compile_error!("And also from the actual file system too!");
             resources.prefabs_mut().unwrap().remove(&id);
         }
 

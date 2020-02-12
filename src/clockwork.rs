@@ -188,7 +188,7 @@ impl Clockwork {
             let next_scene = scene_system::NEXT_SCENE.lock().unwrap().take();
             let mut value = scene_system::CURRENT_SCENE.lock().unwrap();
             if let Some(next_scene) = next_scene {
-                info!("Loading Scene {}", next_scene);
+                info!("Loading {}", next_scene);
                 *value = next_scene;
             }
         }

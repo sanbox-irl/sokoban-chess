@@ -262,7 +262,7 @@ impl ComponentDatabase {
             );
 
             // Load the Sub IDs:
-            compile_error!("We need to load the sub ids here too! That means reworking a lot of this function...");
+            // compile_error!("We need to load the sub ids here too! That means reworking a lot of this function...");
         } else {
             error!(
                 "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",

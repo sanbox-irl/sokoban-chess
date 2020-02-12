@@ -83,7 +83,7 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
             // SCENE
 
             if let Some(menu) = ui.begin_menu(
-                &im_str!("Scene: {}", &scene_system::CURRENT_SCENE.lock().unwrap()),
+                &im_str!("{}", &scene_system::CURRENT_SCENE.lock().unwrap()),
                 true,
             ) {
                 scene_change(
@@ -91,7 +91,7 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
                     ui,
                     &mut ui_handler.scene_changing_info.switch_scene_name,
                     |new_name| {
-                        if scene_system::set_next_scene(new_name) == false {
+                        if scene_system::set_next_scene(Scene::new(new_name.to_string())) == false {
                             error!("Couldn't switch to Scene {}", new_name);
                             error!("Does a Scene by that name exist?");
                         }

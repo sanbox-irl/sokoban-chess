@@ -1,15 +1,9 @@
 use super::*;
-pub const ENTITY_SUBPATH: &str = "entities_data.yaml";
 use std::collections::HashMap;
 use uuid::Uuid;
 
 pub fn path() -> String {
-    format!(
-        "{}/{}/{}",
-        SCENE_DIRECTORY,
-        scene_system::CURRENT_SCENE.lock().unwrap(),
-        ENTITY_SUBPATH
-    )
+    scene_system::CURRENT_SCENE.lock().unwrap().entity_path()
 }
 
 pub fn load_all_entities() -> Result<HashMap<Uuid, SerializedEntity>, Error> {

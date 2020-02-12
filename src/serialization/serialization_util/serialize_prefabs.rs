@@ -1,10 +1,10 @@
 use super::*;
-const PREFAB_PATH: &str = "assets/serialized_data/prefabs";
+
 use failure::Fallible;
 use uuid::Uuid;
 
 pub fn path(entity_id: &str) -> String {
-    format!("{}/{}.yaml", PREFAB_PATH, entity_id)
+    format!("{}/{}.yaml", PREFAB_DIRECTORY, entity_id)
 }
 
 /// This is a weird function. We essentially are going to pass the prefab
@@ -37,7 +37,7 @@ pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<Prefab>, Error> {
 }
 
 pub fn load_all_prefabs() -> Fallible<PrefabMap> {
-    let paths = std::fs::read_dir(PREFAB_PATH)?;
+    let paths = std::fs::read_dir(PREFAB_DIRECTORY)?;
     let mut ret = std::collections::HashMap::new();
 
     for path in paths {

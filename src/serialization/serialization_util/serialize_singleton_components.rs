@@ -1,13 +1,7 @@
 use super::*;
-pub const SINGLETONS_SUBPATH: &str = "singleton_data.yaml";
 
 pub fn path() -> String {
-    format!(
-        "{}/{}/{}",
-        SCENE_DIRECTORY,
-        scene_system::CURRENT_SCENE.lock().unwrap(),
-        SINGLETONS_SUBPATH
-    )
+    scene_system::CURRENT_SCENE.lock().unwrap().singleton_path()
 }
 
 pub fn load_singleton_database() -> Result<SingletonDatabase, Error> {

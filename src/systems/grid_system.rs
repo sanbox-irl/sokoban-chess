@@ -139,8 +139,9 @@ fn attempt_to_move(
                     if let Some(scene_switcher) =
                         ecs.component_database.scene_switchers.get(&entity_in_grid)
                     {
-                        if scene_system::set_next_scene(&scene_switcher.inner().target_scene)
-                            == false
+                        if scene_system::set_next_scene(super::Scene::new(
+                            scene_switcher.inner().target_scene.clone(),
+                        )) == false
                         {
                             error!("Couldn't switch scenes! Does it exist?");
                         };

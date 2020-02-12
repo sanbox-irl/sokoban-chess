@@ -16,12 +16,14 @@ mod entities;
 mod hardware_interfaces;
 mod physics;
 mod resources;
+mod scene;
 mod scene_graph;
 mod serialization;
 mod systems;
 mod tick_structs;
 mod utilities;
 
+pub use action_map::ActionMap;
 pub use clockwork::*;
 pub use components::*;
 pub use components_singleton::*;
@@ -30,12 +32,12 @@ pub use entities::*;
 pub use hardware_interfaces::*;
 pub use physics::*;
 pub use resources::*;
+pub use scene::*;
 pub use scene_graph::*;
 pub use serialization::*;
 pub use systems::*;
 pub use tick_structs::*;
 pub use utilities::*;
-pub use action_map::ActionMap;
 
 fn main() {
     pretty_env_logger::init();

@@ -1,27 +1,31 @@
-use super::serialization_util::{self, SCENE_DIRECTORY};
-use super::{SerializedEntity, SingletonDatabase};
+use super::{
+    serialization_util, Scene, SerializedEntity, SingletonDatabase, ENTITY_SUBPATH,
+    SCENE_DIRECTORY, SINGLETONS_SUBPATH,
+};
 use failure::Error;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 
 lazy_static! {
-    pub static ref CURRENT_SCENE: Mutex<String> = Mutex::new("NULL".to_string());
-    pub static ref NEXT_SCENE: Mutex<Option<String>> = Mutex::new(Some("1".to_string()));
+    pub static ref CURRENT_SCENE: Mutex<Scene> = Mutex::new(Scene::new("NULL".to_string()));
+    pub static ref NEXT_SCENE: Mutex<Option<Scene>> = Mutex::new(Some(Scene::new("1".to_string())));
 }
 
-pub fn set_next_scene(name: &str) -> bool {
-    if scene_exists(&name) == false {
+pub fn set_next_scene(scene: Scene) -> bool {
+    if scene_exists(&scene) == false {
         return false;
     }
 
     let mut next_scene_handle = NEXT_SCENE.lock().unwrap();
-    *next_scene_handle = Some(name.to_string());
+    *next_scene_handle = Some(scene);
 
     true
 }
 
 pub fn create_scene(scene_name: &str) -> Result<bool, Error> {
-    if scene_exists(&scene_name) {
+    let scene = Scene::new(scene_name.to_string());
+
+    if scene_exists(&scene) {
         return Ok(false);
     }
 
@@ -32,22 +36,14 @@ pub fn create_scene(scene_name: &str) -> Result<bool, Error> {
     // Entities Data
     {
         let blank_entity_save_data: Vec<SerializedEntity> = vec![];
-        let entity_path = format!(
-            "{}/{}",
-            scene_path,
-            serialization_util::entities::ENTITY_SUBPATH
-        );
+        let entity_path = format!("{}/{}", scene_path, ENTITY_SUBPATH);
         serialization_util::save_serialized_file(&blank_entity_save_data, &entity_path)?;
     }
 
     // Make a blank singleton database!
     {
         let singleton_database_blank: SingletonDatabase = SingletonDatabase::default();
-        let singleton_path = format!(
-            "{}/{}",
-            scene_path,
-            serialization_util::singleton_components::SINGLETONS_SUBPATH
-        );
+        let singleton_path = format!("{}/{}", scene_path, SINGLETONS_SUBPATH);
         serialization_util::save_serialized_file(&singleton_database_blank, &singleton_path)?;
     }
 
@@ -55,7 +51,9 @@ pub fn create_scene(scene_name: &str) -> Result<bool, Error> {
 }
 
 pub fn delete_scene(name: &str) -> Result<bool, Error> {
-    if scene_exists(&name) == false {
+    let scene = Scene::new(name.to_string());
+
+    if scene_exists(&scene) == false {
         return Ok(false);
     }
 
@@ -65,8 +63,12 @@ pub fn delete_scene(name: &str) -> Result<bool, Error> {
     Ok(true)
 }
 
-fn scene_exists(name: &str) -> bool {
-    let path = format!("{}/{}", SCENE_DIRECTORY, name);
-    let path = std::path::Path::new(&path);
-    path.exists()
+fn scene_exists(scene: &Scene) -> bool {
+    if scene.is_prefab() {
+        false
+    } else {
+        let path = format!("{}/{}", SCENE_DIRECTORY, scene.name());
+        let path = std::path::Path::new(&path);
+        path.exists()
+    }
 }
