@@ -29,9 +29,9 @@ pub fn entity_list(
             // PREFABS
             if let Some(prefab_submenu) = ui.begin_menu(im_str!("Instantiate Prefabs"), true) {
                 for (prefab_id, prefab) in resources.prefabs().iter() {
-                    let name = match &prefab.main_entity().name {
+                    let name = match &prefab.root_entity().name {
                         Some(sc) => im_str!("{}##MenuItem", &sc.inner.name),
-                        None => im_str!("ID: {}##MenuItem", prefab.main_id()),
+                        None => im_str!("ID: {}##MenuItem", prefab.root_id()),
                     };
 
                     if imgui::MenuItem::new(&name).build(ui) {

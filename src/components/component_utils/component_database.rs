@@ -251,14 +251,14 @@ impl ComponentDatabase {
             let main = prefab
                 .members
                 .iter()
-                .find(|p| p.id == prefab.main_id())
+                .find(|p| p.id == prefab.root_id())
                 .unwrap()
                 .clone();
 
             self.load_serialized_entity_into_database(entity_to_load_into, main);
             self.prefab_markers.set_component(
                 entity_to_load_into,
-                PrefabMarker::new_main(prefab.main_id()),
+                PrefabMarker::new_main(prefab.root_id()),
             );
 
             // Load the Sub IDs:

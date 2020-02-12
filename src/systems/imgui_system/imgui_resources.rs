@@ -312,7 +312,7 @@ pub fn prefab_entity_viewer(
         .opened(&mut open);
 
     if let Some(window) = prefab_list.begin(&ui_handler.ui) {
-        for (id, prefab) in resources.hot_prefabs_mut().iter_mut() {
+        for (id, prefab) in resources.prefabs_mut().unwrap().iter_mut() {
             let nip = NameInspectorParameters {
                 has_children: false,
                 depth: 0,
@@ -324,9 +324,9 @@ pub fn prefab_entity_viewer(
 
             // ENTITY ELEMENTS:
             let (_, serialize_name) = display_prefab_id(
-                prefab.main_id(),
+                prefab.root_id(),
                 &nip,
-                prefab.main_entity().name.as_ref().map(|sc| &sc.inner),
+                prefab.root_entity().name.as_ref().map(|sc| &sc.inner),
                 ui_handler,
                 &mut prefab_to_clone,
                 &mut prefab_to_delete,
@@ -334,10 +334,10 @@ pub fn prefab_entity_viewer(
             );
 
             if let Some(new_name) = serialize_name {
-                if let Some(serialized_name) = &mut prefab.main_entity_mut().name {
+                if let Some(serialized_name) = &mut prefab.root_entity_mut().name {
                     serialized_name.inner.name = new_name;
                 } else {
-                    prefab.main_entity_mut().name = Some(SerializedComponent {
+                    prefab.root_entity_mut().name = Some(SerializedComponent {
                         active: true,
                         inner: Name::new(new_name),
                     })
@@ -346,20 +346,23 @@ pub fn prefab_entity_viewer(
         }
 
         if let Some(original) = prefab_to_clone {
-            let clone: Prefab = resources.hot_prefabs().get(&original).unwrap().clone();
+            let clone: Prefab = resources.prefabs().get(&original).unwrap().clone();
 
-            resources.hot_prefabs_mut().insert(clone.main_id(), clone);
+            resources
+                .prefabs_mut()
+                .unwrap()
+                .insert(clone.root_id(), clone);
         }
 
         if let Some(id) = prefab_to_delete {
             compile_error!("We need to also delete from the cold prefabs in some manner here...");
             compile_error!("And also from the actual file system too!");
-            resources.hot_prefabs_mut().remove(&id);
+            resources.prefabs_mut().unwrap().remove(&id);
         }
 
         if let Some(console_log) = prefab_to_console_log {
             println!("---Console Log for {}---", console_log);
-            println!("{:#?}", resources.hot_prefabs()[&console_log]);
+            println!("{:#?}", resources.prefabs_mut().unwrap()[&console_log]);
             println!("-------------------------");
         }
 

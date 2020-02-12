@@ -177,13 +177,13 @@ pub fn entity_inspector(
                         resources.prefabs().is_empty() == false,
                     ) {
                         for prefab in resources.prefabs().values() {
-                            let name = match &prefab.main_entity().name {
+                            let name = match &prefab.root_entity().name {
                                 Some(sc) => im_str!("{}", &sc.inner.name),
-                                None => im_str!("ID: {}", prefab.main_id()),
+                                None => im_str!("ID: {}", prefab.root_id()),
                             };
 
                             if MenuItem::new(&name).build(ui) {
-                                new_prefab_to_create = Some(prefab.main_id());
+                                new_prefab_to_create = Some(prefab.root_id());
                             }
                         }
 

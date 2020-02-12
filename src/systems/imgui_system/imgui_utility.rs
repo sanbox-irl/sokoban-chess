@@ -279,9 +279,9 @@ pub fn select_prefab_entity(
 
     let name_str: imgui::ImString = match current_value {
         Some(cv) => match serialized_prefabs.get(cv) {
-            Some(prefab) => match &prefab.main_entity().name {
+            Some(prefab) => match &prefab.root_entity().name {
                 Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
-                None => im_str!("Prefab Uuid {}", prefab.main_id()),
+                None => im_str!("Prefab Uuid {}", prefab.root_id()),
             },
             None => {
                 error!(
@@ -307,13 +307,13 @@ pub fn select_prefab_entity(
 
         // Somes
         for prefab in serialized_prefabs.values() {
-            let name_imstr = match &prefab.main_entity().name {
+            let name_imstr = match &prefab.root_entity().name {
                 Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
-                None => im_str!("Prefab Uuid {}", prefab.main_id()),
+                None => im_str!("Prefab Uuid {}", prefab.root_id()),
             };
 
             if ui.button(&name_imstr, [0.0, 0.0]) {
-                ret = Some(Some(prefab.main_id()));
+                ret = Some(Some(prefab.root_id()));
                 close_popup = true;
             }
         }

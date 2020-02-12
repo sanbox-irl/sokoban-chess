@@ -5,7 +5,7 @@ pub fn commit_blank_prefab(resources: &mut ResourcesDatabase) -> Fallible<uuid::
     let blank_prefab = Prefab::new_blank();
 
     serialization_util::prefabs::serialize_prefab(&blank_prefab)?;
-    let id = blank_prefab.main_id();
+    let id = blank_prefab.root_id();
     resources.add_prefab(blank_prefab);
     Ok(id)
 }

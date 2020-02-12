@@ -18,7 +18,7 @@ pub fn cycle_prefab(prefab: Prefab) -> Result<Prefab, Error> {
 }
 
 pub fn serialize_prefab(prefab: &Prefab) -> Result<(), Error> {
-    let path = path(&prefab.main_id().to_string());
+    let path = path(&prefab.root_id().to_string());
 
     save_serialized_file(&prefab, &path)
 }
@@ -30,7 +30,7 @@ pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<Prefab>, Error> {
     Ok(prefab
         .map_err(|e| error!("Error loading Prefab File: {}", e))
         .map(|ok| {
-            assert_eq!(&ok.main_id(), prefab_id);
+            assert_eq!(&ok.root_id(), prefab_id);
             ok
         })
         .ok())
@@ -44,7 +44,7 @@ pub fn load_all_prefabs() -> Fallible<PrefabMap> {
         let path = path?;
 
         let prefab: Prefab = load_serialized_file(path.path().to_str().unwrap())?;
-        ret.insert(prefab.main_id(), prefab);
+        ret.insert(prefab.root_id(), prefab);
     }
 
     Ok(ret)

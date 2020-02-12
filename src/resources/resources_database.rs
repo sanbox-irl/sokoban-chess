@@ -21,8 +21,7 @@ pub struct ResourcesDatabase {
     pub sounds: HashMap<SoundResource, Cursor<&'static [u8]>>,
     pub fonts: HashMap<FontName, FontData>,
     pub config: Config,
-    hot_prefabs: PrefabMap,
-    cold_prefabs: PrefabMap,
+    prefabs: PrefabMap,
 }
 
 impl ResourcesDatabase {
@@ -32,8 +31,7 @@ impl ResourcesDatabase {
             sprites: HashMap::new(),
             sounds: HashMap::new(),
             fonts: HashMap::new(),
-            cold_prefabs: HashMap::new(),
-            hot_prefabs: HashMap::new(),
+            prefabs: HashMap::new(),
             config: serialization_util::game_config::load_config().unwrap_or_default(),
         }
     }
@@ -50,8 +48,7 @@ impl ResourcesDatabase {
 
         // LOAD PREFABS
         info!("....................Loading Prefabs");
-        self.cold_prefabs = serialization_util::prefabs::load_all_prefabs()?;
-        self.hot_prefabs = self.cold_prefabs.clone();
+        self.prefabs = serialization_util::prefabs::load_all_prefabs()?;
         info!("...✔ Loaded Resources");
 
         // INITIALIZE OTHER RESOURCES
@@ -194,22 +191,17 @@ impl ResourcesDatabase {
     }
 
     pub fn prefabs(&self) -> &PrefabMap {
-        &self.cold_prefabs
+        &self.prefabs
     }
 
-    pub fn hot_prefabs(&self) -> &PrefabMap {
-        &self.hot_prefabs
+    pub fn prefabs_mut(&self) -> Option<&mut PrefabMap> {
+        compile_error!("We need to have the inspecting mode set here!");
+        Some(&mut self.prefabs)
     }
 
-    pub fn hot_prefabs_mut(&mut self) -> &mut PrefabMap {
-        &mut self.hot_prefabs
-    }
-
-    /// Adds a prefab to both the cold and the hot prefab maps.
-    /// Basically, this should be used only when we're creating a new
-    /// prefab -- to copy a prefab from hot to cold, use the `hot_to_cold` function.
+    /// The only prefab actions we're allowed to take outside Draft mode is adding new
+    /// prefabs members!
     pub fn add_prefab(&mut self, prefab: Prefab) {
-        self.hot_prefabs.insert(prefab.main_id(), prefab.clone());
-        self.cold_prefabs.insert(prefab.main_id(), prefab);
+        self.prefabs.insert(prefab.root_id(), prefab);
     }
 }

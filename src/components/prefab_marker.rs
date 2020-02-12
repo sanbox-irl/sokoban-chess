@@ -30,7 +30,7 @@ impl PrefabMarker {
 
 impl ComponentBounds for PrefabMarker {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
-        if let Some(serialized_name) = &ip.prefabs.get(&self.main_id).unwrap().main_entity().name {
+        if let Some(serialized_name) = &ip.prefabs.get(&self.main_id).unwrap().root_entity().name {
             ip.ui.text(imgui::im_str!(
                 "Original Prefab: {}",
                 serialized_name.inner.name
