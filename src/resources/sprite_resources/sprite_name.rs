@@ -1,8 +1,5 @@
-use strum_macros::{Display, EnumCount, EnumIter, EnumString};
-
 #[derive(
     Debug,
-    Display,
     PartialEq,
     Ord,
     PartialOrd,
@@ -10,9 +7,10 @@ use strum_macros::{Display, EnumCount, EnumIter, EnumString};
     Copy,
     Clone,
     Hash,
-    EnumIter,
-    EnumString,
-    EnumCount,
+    strum_macros::Display,
+    strum_macros::EnumIter,
+    strum_macros::EnumString,
+    strum_macros::EnumCount,
     Serialize,
     Deserialize,
     typename::TypeName,
@@ -31,15 +29,14 @@ pub enum SpriteName {
     Button,
     Target,
 }
+impl Default for SpriteName {
+    fn default() -> Self {
+        Self::WhitePixel
+    }
+}
 
 impl SpriteName {
     pub fn better_display(&self) -> String {
         format!("{:?}", self)
-    }
-}
-
-impl Default for SpriteName {
-    fn default() -> Self {
-        Self::WhitePixel
     }
 }
