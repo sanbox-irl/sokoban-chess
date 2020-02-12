@@ -21,13 +21,7 @@ pub fn imgui_main(
     }
 
     // Window for Each Entity
-    imgui_component::entity_inspector(
-        &mut ecs.component_database,
-        &mut ecs.singleton_database,
-        resources,
-        &ecs.entities,
-        ui_handler,
-    );
+    imgui_component::entity_inspector(ecs, resources, ui_handler);
 
     // Singleton
     imgui_utility::create_window(ui_handler, ImGuiFlags::SINGLETONS, |ui_handler| {

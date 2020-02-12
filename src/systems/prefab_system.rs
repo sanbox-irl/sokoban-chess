@@ -19,8 +19,13 @@ pub fn instantiate_entity_from_prefab(
     let entity = ecs.create_entity();
 
     // Instantiate the Prefab
-    ecs.component_database
-        .load_serialized_prefab(&entity, &prefab_id, prefab_map);
+    ecs.component_database.load_serialized_prefab(
+        &entity,
+        &prefab_id,
+        &mut ecs.entity_allocator,
+        &mut ecs.entities,
+        prefab_map,
+    );
 
     // Set our Prefab Marker
     ecs.component_database

@@ -3,8 +3,12 @@ use super::*;
 use failure::Fallible;
 use uuid::Uuid;
 
-pub fn path(entity_id: &str) -> String {
+fn path(entity_id: &str) -> String {
     format!("{}/{}.yaml", PREFAB_DIRECTORY, entity_id)
+}
+
+fn invalid_path(entity_id: &str) -> String {
+    format!("{}/invalid_prefabs/{}.yaml", PREFAB_DIRECTORY, entity_id)
 }
 
 /// This is a weird function. We essentially are going to pass the prefab
@@ -21,6 +25,13 @@ pub fn serialize_prefab(prefab: &Prefab) -> Result<(), Error> {
     let path = path(&prefab.root_id().to_string());
 
     save_serialized_file(&prefab, &path)
+}
+
+pub fn invalidate_prefab(prefab: &Prefab) -> Fallible<()> {
+    let path = path(&prefab.root_id().to_string());
+    fs::remove_file(&path)?;
+
+    save_serialized_file(prefab, &invalid_path(&prefab.root_id().to_string()))
 }
 
 pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<Prefab>, Error> {

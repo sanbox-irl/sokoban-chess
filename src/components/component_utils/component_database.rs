@@ -42,7 +42,15 @@ impl ComponentDatabase {
         for (_, s_entity) in saved_entities.into_iter() {
             let new_entity =
                 Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
-            component_database.load_serialized_entity(&new_entity, s_entity, marker_map, prefabs);
+
+            component_database.load_serialized_entity(
+                &new_entity,
+                s_entity,
+                entity_allocator,
+                entities,
+                marker_map,
+                prefabs,
+            );
         }
 
         // Post-Deserialization Work...
@@ -208,7 +216,9 @@ impl ComponentDatabase {
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,
-        marker_map: &mut HashMap<Marker, Entity>,
+        entity_allocator: &mut EntityAllocator,
+        entities: &mut Vec<Entity>,
+        marker_map: &mut std::collections::HashMap<Marker, Entity>,
         prefabs: &PrefabMap,
     ) {
         // Make a serialization data thingee on it...
@@ -221,7 +231,13 @@ impl ComponentDatabase {
         // load it like a normal serialized entity:
         if let Some(serialized_prefab_marker) = &serialized_entity.prefab_marker {
             // Base Prefab
-            self.load_serialized_prefab(entity, &serialized_prefab_marker.inner.main_id(), prefabs);
+            self.load_serialized_prefab(
+                entity,
+                &serialized_prefab_marker.inner.main_id(),
+                entity_allocator,
+                entities,
+                prefabs,
+            );
 
             // Overrides
             self.load_serialized_entity_into_database(entity, serialized_entity);
@@ -244,9 +260,11 @@ impl ComponentDatabase {
         &mut self,
         entity_to_load_into: &Entity,
         prefab_id: &Uuid,
-        cold_prefabs: &PrefabMap,
+        entity_allocator: &mut EntityAllocator,
+        entities: &mut Vec<Entity>,
+        prefabs: &PrefabMap,
     ) {
-        if let Some(prefab) = cold_prefabs.get(&prefab_id) {
+        if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
             let main = prefab
                 .members
@@ -261,8 +279,10 @@ impl ComponentDatabase {
                 PrefabMarker::new_main(prefab.root_id()),
             );
 
+            let new_entity = Ecs::create_entity_raw(self, entity_allocator, entities);
+
             // Load the Sub IDs:
-            // compile_error!("We need to load the sub ids here too! That means reworking a lot of this function...");
+            compile_error!("We need to load the sub ids here too! That means reworking a lot of this function...");
         } else {
             error!(
                 "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",

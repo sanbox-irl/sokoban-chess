@@ -42,11 +42,6 @@ impl Clockwork {
         );
         renderer_system::initialize_imgui(&mut self.hardware_interfaces.renderer, &mut imgui)?;
 
-        info!(
-            "Final Window Size is {}",
-            self.hardware_interfaces.window.get_window_size()
-        );
-
         loop {
             self.time_keeper.start_frame();
 

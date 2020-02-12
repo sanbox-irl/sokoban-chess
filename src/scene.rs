@@ -5,7 +5,7 @@ pub const SINGLETONS_SUBPATH: &str = "singleton_data.yaml";
 pub const DEFAULT_SINGLETONS_SUBPATH: &str = "default_singleton_data.yaml";
 pub const TILEMAP_SUBPATH: &str = "tilemap";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scene {
     name: String,
     is_prefab: bool,

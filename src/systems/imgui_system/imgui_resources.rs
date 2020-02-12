@@ -355,9 +355,13 @@ pub fn prefab_entity_viewer(
         }
 
         if let Some(id) = prefab_to_delete {
-            // compile_error!("We need to also delete from the cold prefabs in some manner here...");
-            // compile_error!("And also from the actual file system too!");
-            resources.prefabs_mut().unwrap().remove(&id);
+            // Invalidate our live prefab:
+            let prefab = resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
+            prefab.invalidate();
+
+            if let Err(e) = serialization_util::prefabs::invalidate_prefab(prefab) {
+                error!("Couldn't invalidate prefab {:?}", prefab.root_entity().name);
+            }
         }
 
         if let Some(console_log) = prefab_to_console_log {

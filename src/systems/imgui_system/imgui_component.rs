@@ -2,14 +2,19 @@ use super::*;
 use imgui::{Condition, ImString, MenuItem, Window};
 
 pub fn entity_inspector(
-    component_database: &mut ComponentDatabase,
-    singleton_database: &mut SingletonDatabase,
+    ecs: &mut Ecs,
     resources: &mut ResourcesDatabase,
-    entities: &[Entity],
     ui_handler: &mut UiHandler<'_>,
 ) {
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let mut remove_this_entity = None;
+
+    let Ecs {
+        component_database,
+        singleton_database,
+        entity_allocator,
+        entities,
+    } = ecs;
 
     for entity in ui_handler.stored_ids.iter() {
         let mut is_open = true;
@@ -149,6 +154,8 @@ pub fn entity_inspector(
                                     command,
                                     component_database,
                                     singleton_database,
+                                    entities,
+                                    entity_allocator,
                                     resources,
                                 );
                             }

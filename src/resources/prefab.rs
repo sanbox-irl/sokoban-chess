@@ -7,6 +7,7 @@ pub type PrefabMap = std::collections::HashMap<Uuid, Prefab>;
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Prefab {
     root_id: Uuid,
+    valid: bool,
     pub members: Vec<SerializedEntity>,
 }
 
@@ -27,13 +28,21 @@ impl Clone for Prefab {
             }
         }
 
-        Prefab { root_id: new_main_id, members }
+        Prefab {
+            root_id: new_main_id,
+            members,
+            valid: true,
+        }
     }
 }
 
 impl Prefab {
     pub fn new(root_id: Uuid, members: Vec<SerializedEntity>) -> Prefab {
-        Prefab { root_id, members }
+        Prefab {
+            root_id,
+            members,
+            valid: true,
+        }
     }
 
     pub fn new_blank() -> Prefab {
@@ -44,6 +53,7 @@ impl Prefab {
                 id: uuid,
                 ..Default::default()
             }],
+            valid: true,
         }
     }
 
@@ -53,13 +63,14 @@ impl Prefab {
 
     pub fn root_entity_mut(&mut self) -> &mut SerializedEntity {
         let id = self.root_id;
-        self.members
-            .iter_mut()
-            .find(|p| p.id == id)
-            .unwrap()
+        self.members.iter_mut().find(|p| p.id == id).unwrap()
     }
 
     pub fn root_id(&self) -> Uuid {
         self.root_id
+    }
+
+    pub fn invalidate(&mut self) {
+        self.valid = false;
     }
 }

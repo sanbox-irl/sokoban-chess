@@ -16,6 +16,8 @@ pub fn process_serialized_command(
     command: ImGuiSerializationDataCommand,
     component_database: &mut ComponentDatabase,
     singleton_database: &mut SingletonDatabase,
+    entities: &mut Vec<Entity>,
+    entity_allocator: &mut EntityAllocator,
     resources: &ResourcesDatabase,
 ) {
     match &command.serialization_type {
@@ -29,6 +31,8 @@ pub fn process_serialized_command(
                     component_database.load_serialized_entity(
                         entity,
                         serialized_entity,
+                        entity_allocator,
+                        entities,
                         &mut singleton_database.associated_entities,
                         resources.prefabs(),
                     );
