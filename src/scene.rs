@@ -5,10 +5,11 @@ pub const SINGLETONS_SUBPATH: &str = "singleton_data.yaml";
 pub const DEFAULT_SINGLETONS_SUBPATH: &str = "default_singleton_data.yaml";
 pub const TILEMAP_SUBPATH: &str = "tilemap";
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct Scene {
     name: String,
     is_prefab: bool,
+    mode: SceneMode,
 }
 
 impl Scene {
@@ -16,6 +17,7 @@ impl Scene {
         Scene {
             name,
             is_prefab: false,
+            mode: SceneMode::Draft,
         }
     }
 
@@ -23,6 +25,7 @@ impl Scene {
         Scene {
             name: prefab_id.to_string(),
             is_prefab: true,
+            mode: SceneMode::Draft,
         }
     }
 
@@ -32,6 +35,18 @@ impl Scene {
 
     pub fn is_prefab(&self) -> bool {
         self.is_prefab
+    }
+
+    pub fn mode(&self) -> SceneMode {
+        self.mode
+    }
+
+    pub fn play_scene(&mut self) {
+        self.mode = SceneMode::Playing;
+    }
+
+    pub fn pause_scene(&mut self) {
+        self.mode = SceneMode::Paused;
     }
 
     pub fn entity_path(&self) -> String {
@@ -76,4 +91,11 @@ impl fmt::Display for Scene {
             self.name
         )
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum SceneMode {
+    Draft,
+    Playing,
+    Paused,
 }

@@ -3,7 +3,7 @@ use super::{
     components_singleton::SingletonDatabase,
     entities::EntityAllocator,
     hardware_interfaces::HardwareInterface,
-    resources::{ResourcesDatabase, PrefabMap},
+    resources::{PrefabMap, ResourcesDatabase},
     systems::*,
     ActionMap, GameWorldDrawCommands,
 };
@@ -90,7 +90,8 @@ impl Ecs {
         Ok(())
     }
 
-    pub fn update_resources(&mut self, resources: &ResourcesDatabase) {
+    pub fn update_resources(&mut self, resources: &ResourcesDatabase, delta_time: f32) {
+        sprite_system::update_sprites(&mut self.component_database.sprites, resources, delta_time);
         cross_cutting_system::cross_cutting_system(self, resources);
     }
 

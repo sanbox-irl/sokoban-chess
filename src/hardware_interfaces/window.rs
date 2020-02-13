@@ -5,7 +5,7 @@ use winit::{
     window::{Window as WinitWindow, WindowBuilder},
 };
 
-const WINDOW_NAME: &'static str = "The Clockwork";
+const WINDOW_NAME: &'static str = "Bit Bots";
 
 pub struct Window {
     pub name: &'static str,
@@ -14,8 +14,9 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(size: Vec2) -> Result<Self, winit::error::OsError> {
+    pub fn new(size: Vec2) -> Result<Self, failure::Error> {
         let events_loop = EventLoop::new();
+
         let output = WindowBuilder::new()
             .with_title(WINDOW_NAME)
             .with_inner_size(PhysicalSize {
@@ -25,11 +26,11 @@ impl Window {
             .with_resizable(false)
             .build(&events_loop);
 
-        output.map(|window| Self {
+        Ok(output.map(|window| Self {
             events_loop,
             window,
             name: WINDOW_NAME,
-        })
+        })?)
     }
 
     pub fn get_window_size(&self) -> Vec2 {

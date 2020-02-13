@@ -43,6 +43,7 @@ impl Clockwork {
         renderer_system::initialize_imgui(&mut self.hardware_interfaces.renderer, &mut imgui)?;
 
         loop {
+            let scene_mode: SceneMode = scene_system::CURRENT_SCENE.lock().unwrap().mode();
             self.time_keeper.start_frame();
 
             // GET INPUT PER FRAME
@@ -62,7 +63,6 @@ impl Clockwork {
                 self.time_keeper.delta_time,
             )?;
 
-            // CFG Resource Updates
             imgui_system::imgui_main(
                 &mut self.ecs,
                 &mut self.resources,
@@ -70,19 +70,17 @@ impl Clockwork {
                 &mut ui_handler,
                 &self.time_keeper,
             );
-            sprite_system::update_sprites(
-                &mut self.ecs.component_database.sprites,
-                &mut self.resources,
-                self.time_keeper.delta_time,
-            );
-            tilemap_system::update_tilemaps_and_tilesets(
-                &mut self.ecs.component_database.tilemaps,
-                &mut self.ecs.component_database.transforms,
-                &mut self.resources.tilesets,
-                &mut self.resources.sprites,
-                &self.hardware_interfaces.input,
-                &self.ecs.singleton_database,
-            );
+
+            if scene_mode == SceneMode::Draft {
+                tilemap_system::update_tilemaps_and_tilesets(
+                    &mut self.ecs.component_database.tilemaps,
+                    &mut self.ecs.component_database.transforms,
+                    &mut self.resources.tilesets,
+                    &mut self.resources.sprites,
+                    &self.hardware_interfaces.input,
+                    &self.ecs.singleton_database,
+                );
+            }
 
             // Make the Action Map:
             self.action_map
@@ -90,8 +88,11 @@ impl Clockwork {
 
             // Update
             while self.time_keeper.accumulator >= self.time_keeper.delta_time {
-                self.ecs.update(&mut self.grid, &self.action_map)?;
-                self.ecs.update_resources(&self.resources);
+                if scene_mode == SceneMode::Playing {
+                    self.ecs.update(&mut self.grid, &self.action_map)?;
+                    self.ecs
+                        .update_resources(&self.resources, self.time_keeper.delta_time);
+                }
                 self.time_keeper.accumulator -= self.time_keeper.delta_time;
             }
 

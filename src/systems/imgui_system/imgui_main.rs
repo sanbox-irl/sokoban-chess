@@ -42,9 +42,6 @@ pub fn imgui_main(
     // Resources Windows
     imgui_resources::create_resources_windows(resources, ui_handler);
 
-    // Window for each Prefabs
-    imgui_prefab::prefab_editor(ui_handler, resources, &mut ecs.component_database);
-
     // Demo window!
     if ui_handler.flags.contains(ImGuiFlags::IMGUI_EXAMPLE) {
         let mut is_closed = false;

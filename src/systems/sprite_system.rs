@@ -5,7 +5,7 @@ use super::{
 
 pub fn update_sprites<'a>(
     sprites: &mut ComponentList<Sprite>,
-    resources: &mut ResourcesDatabase,
+    resources: &ResourcesDatabase,
     delta_time: f32,
 ) {
     for this_sprite_component in sprites.iter_mut() {
