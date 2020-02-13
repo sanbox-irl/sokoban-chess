@@ -206,7 +206,7 @@ pub fn entity_inspector(
                             singleton_database,
                             resources,
                         ) {
-                            let prefab = Prefab::new(serialized_entity.id, vec![serialized_entity]);
+                            let prefab = Prefab::new(serialized_entity);
 
                             if let Err(e) = serialization_util::prefabs::serialize_prefab(&prefab) {
                                 error!("Error Creating Prefab: {}", e);
@@ -267,6 +267,9 @@ pub fn entity_serialization_options(
     is_prefab: bool,
     component_database: &ComponentDatabase,
 ) -> failure::Fallible<Option<ImGuiSerializationDataCommand>> {
+    // If this is a prefab we're inspecting, we're gonna do some stuff here!
+    let mut reload_prefab = false;
+
     component_database.foreach_component_list(
         NonInspectableEntities::NAME
             | NonInspectableEntities::PREFAB

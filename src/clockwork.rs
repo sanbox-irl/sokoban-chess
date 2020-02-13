@@ -169,7 +169,6 @@ impl Clockwork {
             imgui.meta_data.entity_list_information.clear();
             imgui.meta_data.entity_vec.clear();
             imgui.meta_data.stored_ids.clear();
-            imgui.meta_data.stored_prefabs.clear();
         }
 
         Ok(())

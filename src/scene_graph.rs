@@ -140,9 +140,9 @@ fn walk_node_inspect(
             NameInspectorParameters {
                 depth,
                 has_children,
-                is_serialized: false,
-                is_prefab: false,
-                being_inspected: false,
+                is_serialized: Default::default(),
+                prefab_status: Default::default(),
+                being_inspected: Default::default(),
             },
         );
     }

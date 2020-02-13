@@ -1,6 +1,6 @@
 use super::*;
 
-use failure::Error;
+use failure::{Error, Fallible};
 use std::fs;
 
 mod serialize_entities;

@@ -19,7 +19,7 @@ pub fn instantiate_entity_from_prefab(
     let entity = ecs.create_entity();
 
     // Instantiate the Prefab
-    ecs.component_database.load_serialized_prefab(
+    let success = ecs.component_database.load_serialized_prefab(
         &entity,
         &prefab_id,
         &mut ecs.entity_allocator,
@@ -27,10 +27,16 @@ pub fn instantiate_entity_from_prefab(
         prefab_map,
     );
 
-    // Set our Prefab Marker
-    ecs.component_database
-        .prefab_markers
-        .set_component(&entity, PrefabMarker::new_main(prefab_id));
+    if success {
+        // Set our Prefab Marker
+        ecs.component_database
+            .prefab_markers
+            .set_component(&entity, PrefabMarker::new_main(prefab_id));
+    } else {
+        if ecs.remove_entity(&entity) == false {
+            error!("We couldn't remove the Entity either, so we have a dangler!");
+        }
+    }
 
     entity
 }

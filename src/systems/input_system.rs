@@ -62,7 +62,9 @@ pub fn poll_events<F>(
                         ..
                     }),
                 ..
-            } => input_component.record_input(state, code, &keys_pressed_last_frame),
+            } => {
+                input_component.record_input(state, code, &keys_pressed_last_frame);
+            }
 
             Event::WindowEvent {
                 event: WindowEvent::CursorMoved { position, .. },

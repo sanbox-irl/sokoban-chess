@@ -1,6 +1,6 @@
 use super::{
     component_utils::{
-        EntityListInformation, NameEdit, NameInspectorParameters, NameInspectorResult,
+        EntityListInformation, NameEdit, NameInspectorParameters, NameInspectorResult, PrefabStatus,
     },
     imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
 };
@@ -17,7 +17,7 @@ impl Name {
     const INDENT_AMOUNT: f32 = 38.0;
 
     pub fn new(name: String) -> Self {
-        Self { name: name }
+        Self { name }
     }
 
     pub fn inspect(
@@ -69,12 +69,10 @@ impl Name {
 
         // Object Symbol:
         ui.text_colored(
-            if nip.is_prefab {
-                // Nice Blue
-                Color::with_u8(188, 203, 222, 255)
-            } else {
-                // Nice Grey
-                Color::with_u8(225, 225, 225, 255)
+            match nip.prefab_status {
+                PrefabStatus::None => Color::with_u8(225, 225, 225, 255),
+                PrefabStatus::Prefab => Color::with_u8(188, 203, 222, 255),
+                PrefabStatus::PrefabInstance => Color::with_u8(188, 203, 222, 255),
             }
             .into(),
             // the dice from FontAwesome
@@ -160,6 +158,14 @@ impl Name {
                     res.unserialize = true;
                 }
             }
+            ui.same_line(0.0);
+
+            if nip.prefab_status == PrefabStatus::PrefabInstance {
+                if ui.button(&im_str!("Go To Prefab##{}", uid), [0.0, 0.0]) {
+                    res.go_to_prefab = true;
+                    ui.close_current_popup();
+                }
+            }
 
             ui.same_line(0.0);
             if ui.button(&im_str!("Console Dump##{}", uid), [0.0, 0.0]) {
@@ -218,10 +224,7 @@ impl Name {
         Name::get_name_even_quicklier(inner, &id)
     }
 
-    pub fn get_name_even_quicklier<S: ToString>(
-        maybe_name: Option<&str>,
-        default: S,
-    ) -> String {
+    pub fn get_name_even_quicklier<S: ToString>(maybe_name: Option<&str>, default: S) -> String {
         if let Some(name) = maybe_name {
             name.to_string()
         } else {

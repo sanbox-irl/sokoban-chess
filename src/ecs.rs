@@ -100,27 +100,20 @@ impl Ecs {
         draw_commands: &'b mut DrawCommand<'a>,
         resources: &'a ResourcesDatabase,
     ) {
-        if let Some(camera_entity) = self
-            .singleton_database
-            .associated_entities
-            .get(&self.singleton_database.camera.marker())
-        {
-            draw_commands.game_world = Some(GameWorldDrawCommands {
-                text_sources: &self.component_database.text_sources,
-                sprites: &self.component_database.sprites,
-                rects: &self.component_database.draw_rectangles,
-                tilemaps: &self.component_database.tilemaps,
-                transforms: &self.component_database.transforms,
-                camera_entity,
-                camera: self.singleton_database.camera.inner(),
-                rendering_utility: &mut self.singleton_database.rendering_utility,
-                resources,
-            })
-        } else {
-            log_once::error_once!(
-                "No camera is present! The game world cannot draw without a camera entity!"
-            );
-        }
+        draw_commands.game_world = Some(GameWorldDrawCommands {
+            text_sources: &self.component_database.text_sources,
+            sprites: &self.component_database.sprites,
+            rects: &self.component_database.draw_rectangles,
+            tilemaps: &self.component_database.tilemaps,
+            transforms: &self.component_database.transforms,
+            camera_entity: self
+                .singleton_database
+                .associated_entities
+                .get(&self.singleton_database.camera.marker()),
+            camera: self.singleton_database.camera.inner(),
+            rendering_utility: &mut self.singleton_database.rendering_utility,
+            resources,
+        })
     }
 }
 
@@ -134,6 +127,25 @@ impl Ecs {
             &mut self.entity_allocator,
             &mut self.entities,
         )
+    }
+
+    /// For use during creation and startup, before we have an Ecs
+    /// to do anything with
+    pub fn remove_entity_raw(
+        entity_allocator: &mut EntityAllocator,
+        entities: &mut Vec<Entity>,
+        component_database: &mut ComponentDatabase,
+        entity_to_delete: &Entity,
+    ) -> bool {
+        let is_dealloc = entity_allocator.deallocate(entity_to_delete);
+        if is_dealloc {
+            component_database.deregister_entity(&entity_to_delete);
+            entities
+                .iter()
+                .position(|i| i == entity_to_delete)
+                .map(|i| entities.remove(i));
+        }
+        is_dealloc
     }
 
     /// Use this only in weird situations. Otherwise, prefer to pass
@@ -151,15 +163,12 @@ impl Ecs {
     }
 
     pub fn remove_entity(&mut self, entity_to_delete: &Entity) -> bool {
-        let is_dealloc = self.entity_allocator.deallocate(entity_to_delete);
-        if is_dealloc {
-            self.component_database.deregister_entity(&entity_to_delete);
-            self.entities
-                .iter()
-                .position(|i| i == entity_to_delete)
-                .map(|i| self.entities.remove(i));
-        }
-        is_dealloc
+        Ecs::remove_entity_raw(
+            &mut self.entity_allocator,
+            &mut self.entities,
+            &mut self.component_database,
+            entity_to_delete,
+        )
     }
 
     pub fn clone_entity(&mut self, original: &Entity) -> Entity {

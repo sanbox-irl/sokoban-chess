@@ -16,6 +16,7 @@ pub fn entity_list(
     let mut entity_to_clone = None;
     let mut entity_to_delete = None;
     let mut entity_to_console_dump = None;
+    let mut entity_to_go_to_prefab = None;
 
     if let Some(entity_inspector_window) = entity_window.begin(&ui_handler.ui) {
         // Top menu bar!
@@ -82,7 +83,10 @@ pub fn entity_list(
                 // Update Name Inspector Parameter:
                 name_inspector_params.is_serialized = serialization_data.contains(entity);
                 name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
-                name_inspector_params.is_prefab = prefabs.contains(entity);
+                name_inspector_params.prefab_status = prefabs
+                    .get(entity)
+                    .map(|_| PrefabStatus::PrefabInstance)
+                    .unwrap_or_default();
 
                 ui_handler.scene_graph_entities.push(*entity);
 
@@ -95,6 +99,7 @@ pub fn entity_list(
                     &mut entity_to_clone,
                     &mut entity_to_delete,
                     &mut entity_to_console_dump,
+                    &mut entity_to_go_to_prefab,
                 )
             },
         );
@@ -105,7 +110,12 @@ pub fn entity_list(
         for entity in ecs.entities.iter_mut() {
             if ui_handler.scene_graph_entities.contains(entity) == false {
                 let nip = NameInspectorParameters {
-                    is_prefab: ecs.component_database.prefab_markers.get(entity).is_some(),
+                    prefab_status: ecs
+                        .component_database
+                        .prefab_markers
+                        .get(entity)
+                        .map(|_| PrefabStatus::PrefabInstance)
+                        .unwrap_or_default(),
                     being_inspected: ui_handler.stored_ids.contains(entity),
                     depth: 0,
                     has_children: false,
@@ -125,6 +135,7 @@ pub fn entity_list(
                     &mut entity_to_clone,
                     &mut entity_to_delete,
                     &mut entity_to_console_dump,
+                    &mut entity_to_go_to_prefab,
                 );
             }
         }
@@ -153,6 +164,25 @@ pub fn entity_list(
             println!("-------------------------");
         }
 
+        if let Some(go_to_prefab_entity) = entity_to_go_to_prefab {
+            if let Some(prefab_marker) = ecs
+                .component_database
+                .prefab_markers
+                .get(&go_to_prefab_entity)
+            {
+                let id = prefab_marker.inner().main_id();
+                if scene_system::set_next_scene(Scene::new_prefab(id)) == false {
+                    error!("Couldn't switch to Prefab {}", id);
+                    error!("Does a Prefab by that name exist?");
+                }
+            } else {
+                error!(
+                    "{} requested to view its Prefab, but it had no PrefabMarker!",
+                    Name::get_name_quick(&ecs.component_database.names, &go_to_prefab_entity)
+                );
+            }
+        }
+
         entity_inspector_window.end(&ui_handler.ui);
     }
 
@@ -171,6 +201,7 @@ fn display_entity_id(
     clone_me: &mut Option<Entity>,
     delete_me: &mut Option<Entity>,
     console_dump_me: &mut Option<Entity>,
+    entity_to_go_to_prefab: &mut Option<Entity>,
 ) -> bool {
     // Find our ImGui entry list info
     let entity_list_info = ui_handler
@@ -186,6 +217,7 @@ fn display_entity_id(
         serialize_name,
         show_children,
         unserialize,
+        go_to_prefab,
     } = imgui_utility::display_name_core(
         names
             .get(entity)
@@ -201,18 +233,19 @@ fn display_entity_id(
             match serialization_util::entities::unserialize_entity(&serialization_data.inner().id) {
                 Ok(success) => success,
                 Err(e) => {
-                    error!("Couldn't unserialize! {}", e);
+                    error!("Couldn't unserialize! IO Errors: {}", e);
                     false
                 }
             }
         } else {
+            error!("You can't unserialize that! It doesn't have a SerializationMarker yet you tried to unserialize it!");
             false
         };
 
         if can_unserialize {
             serialization_data.unset(entity);
         } else {
-            error!("Couldn't unserialize!");
+            error!("Couldn't find the entity to usnerialize it!");
         }
     }
 
@@ -238,6 +271,10 @@ fn display_entity_id(
         } else {
             ui_handler.stored_ids.insert(entity.clone());
         }
+    }
+
+    if go_to_prefab {
+        *entity_to_go_to_prefab = Some(*entity);
     }
 
     // Should we change the name?

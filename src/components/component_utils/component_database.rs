@@ -234,7 +234,7 @@ impl ComponentDatabase {
         // load it like a normal serialized entity:
         if let Some(serialized_prefab_marker) = &serialized_entity.prefab_marker {
             // Base Prefab
-            self.load_serialized_prefab(
+            let success = self.load_serialized_prefab(
                 entity,
                 &serialized_prefab_marker.inner.main_id(),
                 entity_allocator,
@@ -242,8 +242,14 @@ impl ComponentDatabase {
                 prefabs,
             );
 
-            // Overrides
-            self.load_serialized_entity_into_database(entity, serialized_entity);
+            if success {
+                // Overrides
+                self.load_serialized_entity_into_database(entity, serialized_entity);
+            } else {
+                // if Ecs::remove_entity_raw(entity_allocator, entities, self, entity) == false {
+                //     error!("We couldn't remove the entity either! Watch out -- weird stuff might happen there.");
+                // }
+            }
         } else {
             // Singleton Components
             if let Some(singleton_marker) = serialized_entity.marker {
@@ -266,7 +272,7 @@ impl ComponentDatabase {
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
         prefabs: &PrefabMap,
-    ) {
+    ) -> bool {
         if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
             let root_entity: SerializedEntity = prefab.root_entity().clone();
@@ -284,12 +290,7 @@ impl ComponentDatabase {
                     for child in children.iter() {
                         let member_serialized_id = child.target_serialized_id().unwrap();
 
-                        match prefab
-                            .members
-                            .iter()
-                            .find(|se| se.id == member_serialized_id)
-                            .cloned()
-                        {
+                        match prefab.members.get(&member_serialized_id).cloned() {
                             Some(serialized_entity) => {
                                 let new_id =
                                     Ecs::create_entity_raw(self, entity_allocator, entities);
@@ -329,12 +330,15 @@ impl ComponentDatabase {
                     }
                 }
             }
+            true
         } else {
             error!(
                 "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",
                 prefab_id,
                 Name::get_name_quick(&self.names, entity_to_load_into)
             );
+
+            false
         }
     }
 

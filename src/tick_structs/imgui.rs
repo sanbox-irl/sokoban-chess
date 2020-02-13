@@ -5,7 +5,6 @@ use failure::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use std::collections::HashMap;
-use uuid::Uuid;
 use winit::{event::Event, window::Window as WinitWindow};
 
 #[allow(dead_code)]
@@ -108,7 +107,6 @@ impl ImGui {
             ui,
             flags: &mut self.meta_data.flags,
             stored_ids: &mut self.meta_data.stored_ids,
-            stored_prefabs: &mut self.meta_data.stored_prefabs,
             scene_graph_entities: &mut self.meta_data.entity_vec,
             entity_list_information: &mut self.meta_data.entity_list_information,
             scene_changing_info: &mut self.meta_data.scene_changing_info,
@@ -189,7 +187,6 @@ pub struct UiHandler<'a> {
     pub platform: &'a WinitPlatform,
     pub flags: &'a mut ImGuiFlags,
     pub stored_ids: &'a mut HashSet<Entity>,
-    pub stored_prefabs: &'a mut Vec<Uuid>,
     pub scene_graph_entities: &'a mut Vec<Entity>,
     pub entity_list_information: &'a mut HashMap<String, EntityListInformation>,
     pub scene_changing_info: &'a mut SceneImGuiManager,
@@ -205,7 +202,6 @@ impl<'a> UiHandler<'a> {
 pub struct ImGuiMetaData {
     pub flags: ImGuiFlags,
     pub stored_ids: HashSet<Entity>,
-    pub stored_prefabs: Vec<Uuid>,
     #[serde(skip)]
     pub entity_vec: Vec<Entity>,
     #[serde(skip)]

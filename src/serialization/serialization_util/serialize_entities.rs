@@ -2,13 +2,31 @@ use super::*;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-pub fn path() -> String {
-    scene_system::CURRENT_SCENE.lock().unwrap().entity_path()
+pub fn path() -> (String, bool) {
+    let scene: &Scene = &scene_system::CURRENT_SCENE.lock().unwrap();
+    (scene.entity_path(), scene.is_prefab())
 }
 
 pub fn load_all_entities() -> Result<HashMap<Uuid, SerializedEntity>, Error> {
-    let scene_entity_path = path();
-    load_serialized_file(&scene_entity_path)
+    let (scene_entity_path, is_prefab) = path();
+    if is_prefab {
+        let prefab: Prefab = load_serialized_file(&scene_entity_path)?;
+        Ok(prefab.members)
+    } else {
+        load_serialized_file(&scene_entity_path)
+    }
+}
+
+pub fn save_entity_list(entities: &HashMap<Uuid, SerializedEntity>) -> Fallible<()> {
+    let (path, is_prefab) = path();
+    if is_prefab {
+        let mut prefab: Prefab = load_serialized_file(&path)?;
+        prefab.members = entities.clone();
+
+        save_serialized_file(&prefab, &path)
+    } else {
+        save_serialized_file(entities, &path)
+    }
 }
 
 pub fn process_serialized_command(
@@ -72,9 +90,7 @@ pub fn serialize_all_entities(
     singleton_database: &SingletonDatabase,
     resources: &ResourcesDatabase,
 ) -> Result<(), Error> {
-    let path = path();
-
-    let mut serialized_entities: HashMap<Uuid, SerializedEntity> = load_serialized_file(&path)?;
+    let mut serialized_entities = load_all_entities()?;
 
     // FIND THE OLD SERIALIZED ENTITY
     for entity in entities {
@@ -91,7 +107,7 @@ pub fn serialize_all_entities(
         }
     }
 
-    save_serialized_file(&serialized_entities, &path)
+    save_entity_list(&serialized_entities)
 }
 
 /// This serializes an entity. It is "full" because of its parameters taken -- it serializes over the
@@ -124,31 +140,20 @@ pub fn serialize_entity_full(
 
 // @techdebt Use it or lose it!
 pub fn unserialize_entity(serialized_id: &uuid::Uuid) -> Result<bool, Error> {
-    let path = path();
-
-    let mut entities: Vec<SerializedEntity> = load_serialized_file(&path)?;
+    let mut entities = load_all_entities()?;
 
     // FIND THE OLD PREFAB
-    let ret;
-    let old_pos = entities.iter().position(|x| x.id == *serialized_id);
-    if let Some(old_pos) = old_pos {
-        entities.remove(old_pos);
-        ret = true;
-    } else {
-        ret = false;
-    }
+    let succeeded = entities.remove(serialized_id).is_some();
+    save_entity_list(&entities)?;
 
-    save_serialized_file(&entities, &path)?;
-    Ok(ret)
+    Ok(succeeded)
 }
 
 pub fn commit_entity_to_scene(serialized_entity: SerializedEntity) -> Result<(), Error> {
-    let path = path();
-
-    let mut entities: HashMap<Uuid, SerializedEntity> = load_serialized_file(&path)?;
+    let mut entities = load_all_entities()?;
     entities.insert(serialized_entity.id, serialized_entity);
 
-    save_serialized_file(&entities, &path)
+    save_entity_list(&entities)
 }
 
 pub fn load_committed_entity(
@@ -158,9 +163,6 @@ pub fn load_committed_entity(
 }
 
 pub fn load_entity_by_id(id: &uuid::Uuid) -> Result<Option<SerializedEntity>, Error> {
-    // ENTITIES
-    let mut entities: HashMap<Uuid, SerializedEntity> = load_serialized_file(&path())?;
-
-    // FIND THE OLD SERIALIZED ENTITY
+    let mut entities: HashMap<Uuid, SerializedEntity> = load_all_entities()?;
     Ok(entities.remove(id))
 }

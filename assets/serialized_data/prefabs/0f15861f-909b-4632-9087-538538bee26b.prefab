@@ -1,24 +1,28 @@
 ---
-root_id: c6265103-fa70-44f1-a0ed-007dcae6883a
+root_id: 0f15861f-909b-4632-9087-538538bee26b
 valid: true
 members:
-  - name:
+  0f15861f-909b-4632-9087-538538bee26b:
+    name:
       inner:
-        name: Grass Prefab
+        name: Grass
       active: true
     player: ~
     transform:
       inner:
         local_position:
-          x: 16.0
-          y: 16.0
+          x: 10.0
+          y: 10.0
         world_position:
-          x: 16.0
-          y: 16.0
+          x: 10.0
+          y: 10.0
         parent:
           target_serialized_id: ~
       active: true
-    grid_object: ~
+    grid_object:
+      inner:
+        grid_type: Blockable
+      active: true
     scene_switcher: ~
     graph_node: ~
     velocity: ~
@@ -51,5 +55,5 @@ members:
     follow: ~
     conversant_npc: ~
     prefab_marker: ~
-    id: c6265103-fa70-44f1-a0ed-007dcae6883a
+    id: 0f15861f-909b-4632-9087-538538bee26b
     marker: ~

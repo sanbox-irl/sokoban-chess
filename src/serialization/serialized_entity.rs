@@ -59,8 +59,7 @@ impl SerializedEntity {
 
                 let mut serialized_prefab = prefab
                     .members
-                    .iter()
-                    .find(|p| p.id == prefab_component.inner().sub_id())?
+                    .get(&prefab_component.inner().sub_id())?
                     .clone();
 
                 serialized_prefab.prefab_marker = Some(SerializedComponent {

@@ -1,35 +1,40 @@
 use super::SerializedEntity;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 /// Where the Key in the HashMap is the same as the MainID in the Prefab.
-pub type PrefabMap = std::collections::HashMap<Uuid, Prefab>;
+pub type PrefabMap = HashMap<Uuid, Prefab>;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Prefab {
     root_id: Uuid,
     valid: bool,
-    pub members: Vec<SerializedEntity>,
+    pub members: HashMap<Uuid, SerializedEntity>,
 }
 
 impl Clone for Prefab {
     fn clone(&self) -> Self {
         // Make a new ID
-        let new_main_id = Uuid::new_v4();
+        let new_root_id = Uuid::new_v4();
 
         // Find our Old Main and give it the new ID:
-        let mut members = self.members.clone();
+        let mut members = HashMap::with_capacity(self.members.len());
 
-        // Iterate over all the others and give them new IDs:
-        for member in members.iter_mut() {
-            member.id = if member.id == self.root_id {
-                new_main_id
+        for (old_id, old_member) in self.members.iter() {
+            let new_key = if old_id == &self.root_id {
+                new_root_id
             } else {
                 Uuid::new_v4()
-            }
+            };
+
+            let mut new_member = old_member.clone();
+            new_member.id = new_key;
+
+            members.insert(new_key, new_member);
         }
 
         Prefab {
-            root_id: new_main_id,
+            root_id: new_root_id,
             members,
             valid: true,
         }
@@ -37,7 +42,12 @@ impl Clone for Prefab {
 }
 
 impl Prefab {
-    pub fn new(root_id: Uuid, members: Vec<SerializedEntity>) -> Prefab {
+    pub fn new(root_entity: SerializedEntity) -> Prefab {
+        let root_id = root_entity.id;
+        let members = maplit::hashmap! {
+            root_id => root_entity
+        };
+
         Prefab {
             root_id,
             members,
@@ -46,24 +56,27 @@ impl Prefab {
     }
 
     pub fn new_blank() -> Prefab {
-        let uuid = Uuid::new_v4();
-        Prefab {
-            root_id: uuid,
-            members: vec![SerializedEntity {
-                id: uuid,
+        let root_id = Uuid::new_v4();
+        let members = maplit::hashmap! {
+            root_id => SerializedEntity {
+                id: root_id,
                 ..Default::default()
-            }],
+            }
+        };
+
+        Prefab {
+            root_id,
+            members,
             valid: true,
         }
     }
 
     pub fn root_entity(&self) -> &SerializedEntity {
-        self.members.iter().find(|p| p.id == self.root_id).unwrap()
+        &self.members[&self.root_id]
     }
 
     pub fn root_entity_mut(&mut self) -> &mut SerializedEntity {
-        let id = self.root_id;
-        self.members.iter_mut().find(|p| p.id == id).unwrap()
+        self.members.get_mut(&self.root_id).unwrap()
     }
 
     pub fn root_id(&self) -> Uuid {

@@ -1,6 +1,6 @@
 ---
-texture_width: 145
-texture_height: 8
+texture_width: 80
+texture_height: 32
 sprites:
   - name: Background
     x: 0
@@ -12,125 +12,135 @@ sprites:
         y: 0
         width: 48
         height: 8
-  - name: Fire
+  - name: YellowBot
     x: 48
     y: 0
-    width: 24
-    height: 8
+    width: 32
+    height: 32
     frames:
       - x: 48
         y: 0
+        width: 32
+        height: 32
+  - name: Fire
+    x: 0
+    y: 8
+    width: 24
+    height: 8
+    frames:
+      - x: 0
+        y: 8
         width: 8
         height: 8
-      - x: 56
-        y: 0
+      - x: 8
+        y: 8
         width: 8
         height: 8
-      - x: 64
-        y: 0
+      - x: 16
+        y: 8
         width: 8
         height: 8
   - name: PixelMainCharacterStanding
-    x: 72
-    y: 0
+    x: 24
+    y: 8
     width: 16
     height: 8
     frames:
-      - x: 72
-        y: 0
+      - x: 24
+        y: 8
         width: 8
         height: 8
-      - x: 80
-        y: 0
+      - x: 32
+        y: 8
         width: 8
         height: 8
   - name: Grass
-    x: 88
-    y: 0
+    x: 40
+    y: 8
     width: 8
     height: 8
     frames:
-      - x: 88
-        y: 0
+      - x: 40
+        y: 8
         width: 8
         height: 8
   - name: Block
-    x: 96
-    y: 0
+    x: 0
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 96
-        y: 0
+      - x: 0
+        y: 16
         width: 8
         height: 8
   - name: Button
-    x: 104
-    y: 0
+    x: 8
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 104
-        y: 0
+      - x: 8
+        y: 16
         width: 8
         height: 8
   - name: Flag
-    x: 112
-    y: 0
+    x: 16
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 112
-        y: 0
+      - x: 16
+        y: 16
         width: 8
         height: 8
   - name: PlayerDead
-    x: 120
-    y: 0
+    x: 24
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 120
-        y: 0
+      - x: 24
+        y: 16
         width: 8
         height: 8
   - name: Target
-    x: 128
-    y: 0
+    x: 32
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 128
-        y: 0
+      - x: 32
+        y: 16
         width: 8
         height: 8
   - name: Wall
-    x: 136
-    y: 0
+    x: 40
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 136
-        y: 0
+      - x: 40
+        y: 16
         width: 8
         height: 8
   - name: WhitePixel
-    x: 144
-    y: 0
+    x: 0
+    y: 24
     width: 1
     height: 1
     frames:
-      - x: 144
-        y: 0
+      - x: 0
+        y: 24
         width: 1
         height: 1
   - name: PushableBlock
-    x: 104
-    y: 0
+    x: 8
+    y: 16
     width: 8
     height: 8
     frames:
-      - x: 104
-        y: 0
+      - x: 8
+        y: 16
         width: 8
         height: 8

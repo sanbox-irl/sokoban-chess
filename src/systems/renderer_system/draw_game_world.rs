@@ -120,11 +120,18 @@ pub(super) unsafe fn draw_game_world<'a>(
         &[],
     );
 
-    let camera_position = transforms
-        .get(camera_entity)
-        .unwrap()
-        .inner()
-        .world_position();
+    let camera_position = camera_entity
+        .map(|camera_entity| {
+            transforms
+                .get(camera_entity)
+                .unwrap()
+                .inner()
+                .world_position()
+        })
+        .unwrap_or_else(|| {
+            log_once::info_once!("Camera had no associated entity. We're using a default value!");
+            super::Vec2::ZERO
+        });
 
     for quad in quad_buffer {
         let mut push_constants = StandardPushConstants::with_camera_data(camera_position, camera);

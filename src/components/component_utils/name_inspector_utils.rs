@@ -8,6 +8,7 @@ pub struct NameInspectorResult {
     pub clone: bool,
     pub delete: bool,
     pub dump_into_console_log: bool,
+    pub go_to_prefab: bool,
 }
 
 impl Default for NameInspectorResult {
@@ -20,6 +21,7 @@ impl Default for NameInspectorResult {
             clone: false,
             delete: false,
             dump_into_console_log: false,
+            go_to_prefab: false,
         }
     }
 }
@@ -28,7 +30,7 @@ impl Default for NameInspectorResult {
 pub struct NameInspectorParameters {
     pub has_children: bool,
     pub depth: usize,
-    pub is_prefab: bool,
+    pub prefab_status: PrefabStatus,
     pub being_inspected: bool,
     pub is_serialized: bool,
 }
@@ -40,6 +42,19 @@ impl NameInspectorParameters {
             depth,
             ..Default::default()
         }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PrefabStatus {
+    None,
+    Prefab,
+    PrefabInstance,
+}
+
+impl Default for PrefabStatus {
+    fn default() -> Self {
+        Self::None
     }
 }
 

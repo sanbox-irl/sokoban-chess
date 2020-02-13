@@ -1,6 +1,6 @@
 use super::{
     serialization_util, Scene, SerializedEntity, SingletonDatabase, ENTITY_SUBPATH,
-    SCENE_DIRECTORY, SINGLETONS_SUBPATH,
+    PREFAB_DIRECTORY, SCENE_DIRECTORY, SINGLETONS_SUBPATH,
 };
 use failure::Error;
 use lazy_static::lazy_static;
@@ -64,11 +64,12 @@ pub fn delete_scene(name: &str) -> Result<bool, Error> {
 }
 
 fn scene_exists(scene: &Scene) -> bool {
-    if scene.is_prefab() {
-        false
+    let path = if scene.is_prefab() {
+        format!("{}/{}.prefab", PREFAB_DIRECTORY, scene.name())
     } else {
-        let path = format!("{}/{}", SCENE_DIRECTORY, scene.name());
-        let path = std::path::Path::new(&path);
-        path.exists()
-    }
+        format!("{}/{}", SCENE_DIRECTORY, scene.name())
+    };
+
+    let path = std::path::Path::new(&path);
+    path.exists()
 }
