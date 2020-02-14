@@ -7,6 +7,7 @@ pub struct Camera {
     pub current_mode: CameraMode,
     #[serde(skip)]
     display_size: Option<Vec2>,
+    pub default_position: Vec2,
 }
 
 impl Camera {
@@ -61,6 +62,7 @@ impl Default for Camera {
             zoom_level: 1.0,
             current_mode: CameraMode::Standard,
             display_size: None,
+            default_position: Vec2::ZERO,
         }
     }
 }
@@ -82,6 +84,14 @@ impl SingletonBounds for Camera {
         if let Some(new_mode) = imgui_system::typed_enum_selection(ui, &self.current_mode, uid) {
             self.current_mode = new_mode;
         }
+
+        self.default_position
+            .inspector(ui, imgui::im_str!("Default Position"));
+
+        imgui_system::help_marker(
+            ui,
+            "This is only used when we don't have an associated entity. Do not rely on it!",
+        );
     }
 }
 

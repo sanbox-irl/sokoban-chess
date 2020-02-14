@@ -9,3 +9,9 @@ pub mod update_serialization;
 
 pub use fragmented_data::FragmentedData;
 pub use serialized_entity::*;
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum SerializationDelta {
+    Unchanged,
+    Updated,
+}

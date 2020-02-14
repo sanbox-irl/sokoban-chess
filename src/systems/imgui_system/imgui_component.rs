@@ -1,4 +1,5 @@
 use super::*;
+use failure::Fallible;
 use imgui::{Condition, ImString, MenuItem, Window};
 
 pub fn entity_inspector(
@@ -15,6 +16,8 @@ pub fn entity_inspector(
         entity_allocator,
         entities,
     } = ecs;
+
+    let scene_is_prefab = scene_system::CURRENT_SCENE.lock().unwrap().is_prefab();
 
     for entity in ui_handler.stored_ids.iter() {
         let mut is_open = true;
@@ -64,7 +67,16 @@ pub fn entity_inspector(
                 ui,
                 is_open,
             );
-            let is_prefab = component_database.prefab_markers.get(entity).is_some();
+
+            let prefab_status = if scene_is_prefab {
+                PrefabStatus::Prefab
+            } else {
+                if component_database.prefab_markers.get(entity).is_some() {
+                    PrefabStatus::PrefabInstance
+                } else {
+                    PrefabStatus::None
+                }
+            };
 
             // Serialization
             let mut serialize_it = false;
@@ -100,7 +112,7 @@ pub fn entity_inspector(
 
             // Menu bar funtimes!
             if let Some(menu_bar) = ui.begin_menu_bar() {
-                let component_add_button_text = if is_prefab {
+                let component_add_button_text = if prefab_status == PrefabStatus::PrefabInstance {
                     "Add Override"
                 } else {
                     "Add Component"
@@ -130,7 +142,7 @@ pub fn entity_inspector(
                     add_component_submenu.end(ui);
                 }
 
-                let serialization_menu_text = if is_prefab {
+                let serialization_menu_text = if prefab_status == PrefabStatus::PrefabInstance {
                     "Serialize Overrides"
                 } else {
                     "Serialization"
@@ -141,25 +153,45 @@ pub fn entity_inspector(
                     component_database.serialization_data.get(entity).is_some(),
                 ) {
                     if let Some(comp) = component_database.serialization_data.get(entity) {
+                        let id = comp.inner().id;
                         match entity_serialization_options(
                             comp.inner(),
                             ui,
                             entity,
-                            is_prefab,
+                            prefab_status,
                             component_database,
                         ) {
-                            Ok(Some(command)) => {
-                                serialization_util::entities::process_serialized_command(
-                                    entity,
-                                    command,
-                                    component_database,
-                                    singleton_database,
-                                    entities,
-                                    entity_allocator,
-                                    resources,
-                                );
+                            Ok((command, reload_prefab)) => {
+                                if let Some(command) = command {
+                                    serialization_util::entities::process_serialized_command(
+                                        entity,
+                                        command,
+                                        component_database,
+                                        singleton_database,
+                                        entities,
+                                        entity_allocator,
+                                        resources,
+                                    );
+                                }
+
+                                if reload_prefab {
+                                    let prefab =
+                                        resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
+
+                                    match serialization_util::entities::load_entity_by_id(&id) {
+                                        Result::Ok(new_prefab) => {
+                                            if let Some(new_prefab) = new_prefab {
+                                                prefab.members.insert(id, new_prefab);
+                                            } else {
+                                                error!("We tried to reload Prefab with UUID {} but we couldn't find it. Did the file get deleted?", id);
+                                            }
+                                        }
+                                        Result::Err(e) => {
+                                            error!("Couldn't reload the prefab that we just edited. The current application is out of date! {}", e);
+                                        }
+                                    }
+                                }
                             }
-                            Ok(None) => {}
                             Err(e) => {
                                 error!("{}", e);
                             }
@@ -169,7 +201,10 @@ pub fn entity_inspector(
                     serialization_submenu.end(ui);
                 }
 
-                if let Some(prefab_submenu) = ui.begin_menu(im_str!("Create Prefab"), !is_prefab) {
+                if let Some(prefab_submenu) = ui.begin_menu(
+                    im_str!("Create Prefab"),
+                    prefab_status == PrefabStatus::None,
+                ) {
                     let mut new_prefab_to_create: Option<uuid::Uuid> = None;
 
                     if MenuItem::new(im_str!("New Prefab")).build(ui) {
@@ -264,23 +299,32 @@ pub fn entity_serialization_options(
     serialized_marker: &SerializationMarker,
     ui: &mut Ui<'_>,
     entity_id: &Entity,
-    is_prefab: bool,
+    prefab_status: PrefabStatus,
     component_database: &ComponentDatabase,
-) -> failure::Fallible<Option<ImGuiSerializationDataCommand>> {
+) -> Fallible<(Option<ImGuiSerializationDataCommand>, bool)> {
     // If this is a prefab we're inspecting, we're gonna do some stuff here!
+    // compile_error!("Hey Jack we're here right now! We need to reload prefabs after we've edited them when we're in prefab mode!");
     let mut reload_prefab = false;
 
     component_database.foreach_component_list(
         NonInspectableEntities::NAME
             | NonInspectableEntities::PREFAB
             | NonInspectableEntities::GRAPH_NODE,
-        |component_list| {
-            if let Err(e) = component_list.serialization_option(
-                ui,
-                entity_id,
-                is_prefab,
-                &component_database.serialization_data,
-            ) {
+        |component_list| match component_list.serialization_option(
+            ui,
+            entity_id,
+            prefab_status,
+            &component_database.serialization_data,
+        ) {
+            Ok(serialization_delta) => {
+                if serialization_delta == SerializationDelta::Updated
+                    && prefab_status == PrefabStatus::Prefab
+                {
+                    reload_prefab = true;
+                }
+            }
+
+            Err(e) => {
                 error!("Error in Serialization Option {}", e);
             }
         },
@@ -306,7 +350,11 @@ pub fn entity_serialization_options(
         });
     }
 
-    Ok(sc)
+    if sc.is_some() && prefab_status == PrefabStatus::Prefab {
+        reload_prefab = true;
+    }
+
+    Ok((sc, reload_prefab))
 }
 
 // @techdebt this is weirdly public, maybe we put it in the
@@ -386,9 +434,9 @@ where
         &self,
         ui: &imgui::Ui<'_>,
         entity_id: &Entity,
-        is_prefab: bool,
+        prefab_status: PrefabStatus,
         serialized_markers: &ComponentList<SerializationMarker>,
-    ) -> failure::Fallible<()> {
+    ) -> failure::Fallible<SerializationDelta> {
         lazy_static::lazy_static! {
             static ref DEFAULT_SERIALIZE_TEXT: ImString = ImString::new("Serialize");
             static ref DEFAULT_DESERIALIZE_TEXT: ImString = ImString::new("Deserialize");
@@ -399,11 +447,13 @@ where
         let type_name = ImString::new(imgui_system::typed_text_ui::<T>());
         let component_exists = self.get(entity_id).is_some();
 
+        let mut serialization_delta = SerializationDelta::Unchanged;
+
         if let Some(my_serialization_marker) = serialized_markers.get(entity_id) {
             if let Some(serde_menu) = ui.begin_menu(&type_name, component_exists) {
                 if let Some(component) = self.get(entity_id) {
                     // SERIALIZE
-                    if MenuItem::new(if is_prefab {
+                    if MenuItem::new(if prefab_status == PrefabStatus::PrefabInstance {
                         &PREFAB_SERIALIZE_TEXT
                     } else {
                         &DEFAULT_SERIALIZE_TEXT
@@ -424,6 +474,7 @@ where
                             serialization_util::entities::commit_entity_to_scene(
                                 serialized_entity,
                             )?;
+                            serialization_delta = SerializationDelta::Updated;
                         } else {
                             error!(
                                 "Couldn't find a Serialized Entity for {}. Check the YAML?",
@@ -433,7 +484,7 @@ where
                     }
 
                     // DESERIALIZE
-                    if MenuItem::new(if is_prefab {
+                    if MenuItem::new(if prefab_status == PrefabStatus::PrefabInstance {
                         &PREFAB_DESERIALIZE_TEXT
                     } else {
                         &DEFAULT_DESERIALIZE_TEXT
@@ -451,6 +502,7 @@ where
                             serialization_util::entities::commit_entity_to_scene(
                                 serialized_entity,
                             )?;
+                            serialization_delta = SerializationDelta::Updated;
                         } else {
                             error!(
                                 "Couldn't find a Serialized Entity for {}. Check the YAML?",
@@ -462,6 +514,6 @@ where
                 serde_menu.end(ui);
             }
         }
-        Ok(())
+        Ok(serialization_delta)
     }
 }

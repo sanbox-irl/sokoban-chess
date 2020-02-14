@@ -11,11 +11,11 @@ members:
     transform:
       inner:
         local_position:
-          x: 10.0
-          y: 10.0
+          x: 16.0
+          y: 16.0
         world_position:
-          x: 10.0
-          y: 10.0
+          x: 16.0
+          y: 16.0
         parent:
           target_serialized_id: ~
       active: true

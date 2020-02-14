@@ -436,3 +436,16 @@ pub fn right_click_popup<F: FnOnce()>(ui: &Ui<'_>, uid: &str, f: F) {
 
     ui.popup(&name, f);
 }
+
+pub fn help_marker<T: AsRef<str>>(ui: &Ui<'_>, message: T) {
+    ui.same_line(0.0);
+    ui.text_disabled("(?)");
+    if ui.is_item_hovered() {
+        ui.tooltip_text(message);
+        // ImGui::BeginTooltip();
+        // ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0);
+        // ImGui::TextUnformatted(desc);
+        // ImGui::PopTextWrapPos();
+        // ImGui::EndTooltip();
+    }
+}

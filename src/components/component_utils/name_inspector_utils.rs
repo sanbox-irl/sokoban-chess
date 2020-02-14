@@ -45,7 +45,7 @@ impl NameInspectorParameters {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum PrefabStatus {
     None,
     Prefab,

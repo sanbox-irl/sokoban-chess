@@ -1,4 +1,8 @@
-use super::{Component, ComponentList, Entity, Name, PrefabMap, SerializedEntity};
+use super::{
+    Component, ComponentList, Entity, Name, PrefabMap, PrefabStatus, SerializationDelta,
+    SerializedEntity,
+};
+use failure::Fallible;
 use imgui::Ui;
 
 pub trait ComponentBounds {
@@ -20,12 +24,6 @@ pub struct InspectorParameters<'a, 'b> {
     pub prefabs: &'b PrefabMap,
     pub uid: &'b str,
     pub is_open: bool,
-}
-
-pub enum SyncStatus {
-    Synced,
-    OutOfSync,
-    NA,
 }
 
 pub trait ComponentListBounds {
@@ -52,9 +50,9 @@ pub trait ComponentListBounds {
         &self,
         ui: &Ui<'_>,
         entity_id: &Entity,
-        is_prefab: bool,
+        prefab_status: PrefabStatus,
         serialized_marker: &ComponentList<super::SerializationMarker>,
-    ) -> failure::Fallible<()>;
+    ) -> Fallible<SerializationDelta>;
 
     fn create_serialized_entity(
         &self,
@@ -129,10 +127,10 @@ where
         &self,
         ui: &imgui::Ui<'_>,
         entity_id: &Entity,
-        is_prefab: bool,
+        prefab_status: PrefabStatus,
         serialized_markers: &ComponentList<super::SerializationMarker>,
-    ) -> failure::Fallible<()> {
-        self.serialization_option_raw(ui, entity_id, is_prefab, serialized_markers)
+    ) -> Fallible<SerializationDelta> {
+        self.serialization_option_raw(ui, entity_id, prefab_status, serialized_markers)
     }
 
     fn create_serialized_entity(

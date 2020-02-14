@@ -1,47 +1,4 @@
 ---
-84389a47-fa6e-4420-bf02-26e86cb6ffb8:
-  name: ~
-  player: ~
-  transform: ~
-  grid_object: ~
-  scene_switcher: ~
-  graph_node: ~
-  velocity: ~
-  sprite:
-    inner:
-      sprite_name: Button
-      running_data:
-        draw_order:
-          draw_layer: Instance
-          order: 0
-        facing_horizontal: Right
-        facing_vertical: Up
-        scale:
-          x: 1.0
-          y: 1.0
-        tint:
-          r: 1.0
-          g: 1.0
-          b: 1.0
-          a: 1.0
-        current_frame: 0
-        frame_time: 0.0
-        is_animating: false
-    active: true
-  sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker:
-    inner:
-      main_id: 0f15861f-909b-4632-9087-538538bee26b
-      sub_id: 0f15861f-909b-4632-9087-538538bee26b
-    active: true
-  id: 84389a47-fa6e-4420-bf02-26e86cb6ffb8
-  marker: ~
 49eb3578-9977-47ae-b080-b2eee1ea4286:
   name:
     inner:
@@ -74,3 +31,26 @@
   prefab_marker: ~
   id: 49eb3578-9977-47ae-b080-b2eee1ea4286
   marker: Camera
+84389a47-fa6e-4420-bf02-26e86cb6ffb8:
+  name: ~
+  player: ~
+  transform: ~
+  grid_object: ~
+  scene_switcher: ~
+  graph_node: ~
+  velocity: ~
+  sprite: ~
+  sound_source: ~
+  draw_rectangle: ~
+  bounding_box: ~
+  text_source: ~
+  tilemap: ~
+  follow: ~
+  conversant_npc: ~
+  prefab_marker:
+    inner:
+      main_id: 0f15861f-909b-4632-9087-538538bee26b
+      sub_id: 0f15861f-909b-4632-9087-538538bee26b
+    active: true
+  id: 84389a47-fa6e-4420-bf02-26e86cb6ffb8
+  marker: ~
