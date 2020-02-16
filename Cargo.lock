@@ -696,9 +696,9 @@ dependencies = [
 
 [[package]]
 name = "gfx-backend-vulkan"
-version = "0.4.0"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62538fedd66a78968a162e8e1a29d085ffbc97f8782634684b2f7da7aea59207"
+checksum = "ed9a9de46ec24543193d5dabad3a79e5ede990878bace548758846292466d916"
 dependencies = [
  "arrayvec 0.5.1",
  "ash",

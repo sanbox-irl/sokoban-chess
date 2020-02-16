@@ -37,10 +37,10 @@ pub fn entity_inspector(
 
         if let Some(entity_inspector_window) = entity_window.begin(ui) {
             // Update the serialization if it's there...
-            component_database
-                .serialization_data
-                .get_mut(entity)
-                .map(|sd| sd.inner_mut().imgui_serialization());
+            // component_database
+            //     .serialization_marker
+            //     .get_mut(entity)
+            //     .map(|sd| sd.inner_mut().imgui_serialization());
 
             // This unsafety is not actually unsafe at all -- Rust doesn't yet realize
             // that this method, though it takes `component_database`, doesn't involve
@@ -81,7 +81,7 @@ pub fn entity_inspector(
             // Serialization
             let mut serialize_it = false;
             component_database
-                .serialization_data
+                .serialization_marker
                 .component_inspector_raw(
                     entities,
                     &component_database.names,
@@ -98,7 +98,7 @@ pub fn entity_inspector(
                 serialization_util::entities::serialize_entity_full(
                     entity,
                     component_database
-                        .serialization_data
+                        .serialization_marker
                         .get(entity)
                         .as_ref()
                         .unwrap()
@@ -134,7 +134,7 @@ pub fn entity_inspector(
                         if let Some(new_transform) = component_database.transforms.get_mut(entity) {
                             scene_graph::add_to_scene_graph(
                                 new_transform,
-                                &component_database.serialization_data,
+                                &component_database.serialization_marker,
                             );
                         }
                     }
@@ -150,9 +150,12 @@ pub fn entity_inspector(
 
                 if let Some(serialization_submenu) = ui.begin_menu(
                     &ImString::new(serialization_menu_text),
-                    component_database.serialization_data.get(entity).is_some(),
+                    component_database
+                        .serialization_marker
+                        .get(entity)
+                        .is_some(),
                 ) {
-                    if let Some(comp) = component_database.serialization_data.get(entity) {
+                    if let Some(comp) = component_database.serialization_marker.get(entity) {
                         let id = comp.inner().id;
                         match entity_serialization_options(
                             comp.inner(),
@@ -233,48 +236,13 @@ pub fn entity_inspector(
                     }
 
                     if let Some(prefab_to_create) = new_prefab_to_create {
-                        // Create a serialized entity
-                        if let Some(serialized_entity) = SerializedEntity::new(
+                        prefab_system::load_entity_into_prefab(
                             entity,
                             prefab_to_create,
                             component_database,
                             singleton_database,
                             resources,
-                        ) {
-                            let prefab = Prefab::new(serialized_entity);
-
-                            if let Err(e) = serialization_util::prefabs::serialize_prefab(&prefab) {
-                                error!("Error Creating Prefab: {}", e);
-                            }
-
-                            match serialization_util::prefabs::cycle_prefab(prefab) {
-                                Ok(prefab) => {
-                                    resources.add_prefab(prefab);
-                                }
-                                Err(e) => {
-                                    error!("We couldn't cycle the Prefab! It wasn't saved! {}", e)
-                                }
-                            }
-
-                            // Add our Prefab Marker back to the Original entity we made into a prefab...
-                            component_database
-                                .prefab_markers
-                                .set_component(entity, PrefabMarker::new_main(prefab_to_create));
-
-                            // And if it's serialized, let's cycle our Serialization too!
-                            // We do this to remove the "Overrides" that would otherwise appear
-                            if let Some(sc) = component_database.serialization_data.get(entity) {
-                                serialization_util::entities::serialize_entity_full(
-                                    entity,
-                                    sc.inner().id,
-                                    component_database,
-                                    singleton_database,
-                                    resources,
-                                );
-                            }
-                        } else {
-                            error!("We couldn't find a prefab with the ID {}", prefab_to_create)
-                        }
+                        );
                     }
 
                     prefab_submenu.end(ui);
@@ -314,7 +282,7 @@ pub fn entity_serialization_options(
             ui,
             entity_id,
             prefab_status,
-            &component_database.serialization_data,
+            &component_database.serialization_marker,
         ) {
             Ok(serialization_delta) => {
                 if serialization_delta == SerializationDelta::Updated

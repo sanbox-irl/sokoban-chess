@@ -182,11 +182,6 @@ where
     /// a mutable reference to that.
     pub fn get_mut_or_default(&mut self, index: &Entity) -> &mut Component<T> {
         if self.get_mut(index).is_none() {
-            error!(
-                "No {} for {} with get_mut_or_default. Generating component...",
-                T::type_name(),
-                index,
-            );
             self.set_component(index, T::default());
         }
 
@@ -199,12 +194,6 @@ where
     /// `get`, so use that if you can help it.
     pub fn get_or_default(&mut self, index: &Entity) -> &Component<T> {
         if self.get(index).is_none() {
-            error!(
-                "No {} for {} with get_mut. Generating component...",
-                T::type_name(),
-                index
-            );
-
             self.set_component(index, T::default());
         }
 

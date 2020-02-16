@@ -1,10 +1,11 @@
 use super::{
     component_utils::{
-        EntityListInformation, NameEdit, NameInspectorParameters, NameInspectorResult, PrefabStatus,
+        EntityListInformation, NameEdit, NameInspectorParameters, NameInspectorResult,
+        NameRequestedAction, PrefabStatus,
     },
     imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
 };
-use imgui::im_str;
+use imgui::{im_str, MenuItem};
 use regex::Regex;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, typename::TypeName)]
@@ -27,7 +28,7 @@ impl Name {
         ui: &imgui::Ui<'_>,
         uid: &str,
     ) -> NameInspectorResult {
-        let mut res = NameInspectorResult::default();
+        let mut res = NameInspectorResult::new();
         let depth = nip.depth as f32;
 
         if depth > 0.0 {
@@ -75,7 +76,6 @@ impl Name {
                 PrefabStatus::PrefabInstance => Color::with_u8(188, 203, 222, 255),
             }
             .into(),
-            // the dice from FontAwesome
             &imgui::im_str!("{}", '\u{f6d1}'),
         );
         ui.same_line(0.0);
@@ -89,7 +89,8 @@ impl Name {
                 .resize_buffer(true)
                 .build()
             {
-                res.serialize_name = Some(current_name.to_string());
+                res.requested_action =
+                    Some(NameRequestedAction::ChangeName(current_name.to_string()));
             }
 
             let mut end_rename = false;
@@ -104,8 +105,10 @@ impl Name {
             }
 
             if end_rename {
+                info!("Hey we ended the rename!");
                 eli.edit_name = NameEdit::NoEdit;
-                res.serialize_name = Some(current_name.to_string());
+                res.requested_action =
+                    Some(NameRequestedAction::ChangeName(current_name.to_string()));
             }
         } else {
             ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
@@ -122,7 +125,7 @@ impl Name {
 
         // Inspect on Single Click
         if imgui_system::left_clicked_item(ui) && eli.edit_name == NameEdit::NoEdit {
-            res.inspect = true;
+            res.requested_action = Some(NameRequestedAction::ToggleInspect);
         }
 
         // Rename on Double Click
@@ -133,55 +136,93 @@ impl Name {
 
         // Clone and Delete will be here!
         imgui_system::right_click_popup(ui, uid, || {
-            if ui.button(&im_str!("Rename##{}", uid), [0.0, 0.0]) {
+            if MenuItem::new(&im_str!("Rename##{}", uid)).build(ui) {
                 rename = true;
                 ui.close_current_popup();
             }
 
-            ui.same_line(0.0);
-
-            if ui.button(&im_str!("Clone##{}", uid), [0.0, 0.0]) {
-                res.clone = true;
+            if MenuItem::new(&im_str!("Clone##{}", uid)).build(ui) {
+                res.requested_action = Some(NameRequestedAction::Clone);
                 ui.close_current_popup();
             }
 
-            ui.same_line(0.0);
-
-            if ui.button(&im_str!("Delete##{}", uid), [0.0, 0.0]) {
-                res.delete = true;
+            if MenuItem::new(&im_str!("Delete##{}", uid)).build(ui) {
+                res.requested_action = Some(NameRequestedAction::Delete);
             }
 
-            ui.same_line(0.0);
+            ui.separator();
 
-            if nip.is_serialized {
-                if ui.button(&im_str!("Unserialize##{}", uid), [0.0, 0.0]) {
-                    res.unserialize = true;
-                }
-            }
-            ui.same_line(0.0);
-
-            if nip.prefab_status == PrefabStatus::PrefabInstance {
-                if ui.button(&im_str!("Go To Prefab##{}", uid), [0.0, 0.0]) {
-                    res.go_to_prefab = true;
+            ui.menu(&im_str!("Serialization"), nip.is_serialized, || {
+                if imgui_system::help_menu_item(ui, &im_str!("Serialize Entity##{}", uid), "This is the exact same thing as Overwriting the Entity in the Component Inspect. It completely overwrites the comitted entity.") {
+                    res.requested_action = Some(NameRequestedAction::Serialize);
                     ui.close_current_popup();
                 }
-            }
+                if imgui_system::help_menu_item(ui, &im_str!("Stop Serializing Entity##{}", uid), "Stops serializing the entity from the scene -- ie, it won't be here when you reload the scene.") {
+                    res.requested_action = Some(NameRequestedAction::Unserialize);
+                    ui.close_current_popup();
+                }
+            });
 
-            ui.same_line(0.0);
-            if ui.button(&im_str!("Console Dump##{}", uid), [0.0, 0.0]) {
-                res.dump_into_console_log = true;
-                ui.close_current_popup();
-            }
+            ui.separator();
+
+            ui.menu(&im_str!("Prefab"), true, || {
+                if MenuItem::new(&im_str!("Promote to Prefab##{}", uid))
+                    .enabled(nip.prefab_status == PrefabStatus::None)
+                    .build(ui)
+                {
+                    res.requested_action = Some(NameRequestedAction::PromoteToPrefab);
+                    ui.close_current_popup();
+                }
+
+                if MenuItem::new(&im_str!("Go To Prefab##{}", uid))
+                    .enabled(nip.prefab_status != PrefabStatus::None)
+                    .build(ui)
+                {
+                    res.requested_action = Some(NameRequestedAction::GoToPrefab);
+                    ui.close_current_popup();
+                }
+            });
+
+            ui.separator();
+
+            ui.menu(&im_str!("Log to Console"), true, || {
+                if MenuItem::new(&im_str!("Log Entity##{}", uid)).build(ui) {
+                    res.requested_action = Some(NameRequestedAction::LogEntity);
+                    ui.close_current_popup();
+                }
+
+                if MenuItem::new(&im_str!("Log Serialized Entity##{}", uid))
+                    .enabled(nip.is_serialized)
+                    .build(ui)
+                {
+                    res.requested_action = Some(NameRequestedAction::LogSerializedEntity);
+                    ui.close_current_popup();
+                }
+
+                if MenuItem::new(&im_str!("Log Prefab##{}", uid))
+                    .enabled(nip.prefab_status != PrefabStatus::None)
+                    .build(ui)
+                {
+                    res.requested_action = Some(NameRequestedAction::LogPrefab);
+                    ui.close_current_popup();
+                }
+            });
         });
 
         if rename {
             eli.edit_name = NameEdit::First;
-            res.serialize_name = Some(name.to_string());
+            res.requested_action = Some(NameRequestedAction::ChangeName(name.to_string()));
         }
 
         res
     }
 
+    /// This function is comically dangerous for what it does. First, 'all_names' passed in will
+    /// almost certainly have to be a raw pointer, since our self will be in all_names, but we need
+    /// to mutate ourselves. We could have done this in two stages, but this seemed better for simplicity.
+    /// Additionally, the unsafety in this is simply to write directly into the internal byte buffer of the vec
+    /// So long as no patterns are matched by our regex which are of a *different* byte offset amount, we should
+    /// be okay.
     pub fn update_name(&mut self, our_id: Entity, all_names: &ComponentList<Name>) {
         lazy_static::lazy_static! {
             static ref REGEX_PATTERN: Regex = Regex::new(r"\(\d*\d\)$").unwrap();

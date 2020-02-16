@@ -24,6 +24,16 @@ impl SerializationMarker {
         }
     }
 
+    /// This is a cache of our Serialized Data. We'll try to get one, but
+    /// our serialization data might have been destroyed. If a value is retreived,
+    /// it is no more than 5 seconds old.
+    pub fn cached_serialized_entity(&mut self) -> Option<&SerializedEntity> {
+        if self.last_save_data_read.is_none() {
+            self.imgui_serialization();
+        }
+        self.last_save_data_read.as_ref().map(|s| &s.1)
+    }
+
     pub fn entity_inspector_results(&mut self, ip: InspectorParameters<'_, '_>) -> bool {
         let reload_se = self
             .last_save_data_read
@@ -55,13 +65,11 @@ impl SerializationMarker {
                 .ui
                 .button(&im_str!("Log Serialized Entity##{}", ip.uid), [0.0, 0.0])
             {
-                info!("---");
                 info!(
                     "Loaded in {}s ago",
                     (Instant::now() - *last_read).as_secs_f32()
                 );
-                info!("Serialized Entity: {:#?}", serialized_entity);
-                info!("---");
+                serialized_entity.log_to_console();
             }
         } else {
             if ip
@@ -79,7 +87,7 @@ impl SerializationMarker {
         serialize_entity
     }
 
-    pub fn imgui_serialization(&mut self) {
+    fn imgui_serialization(&mut self) {
         match serialization_util::entities::load_committed_entity(self) {
             Ok(maybe_serialized_entity) => {
                 self.last_save_data_read = maybe_serialized_entity.map(|se| (Instant::now(), se))

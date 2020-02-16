@@ -1,4 +1,5 @@
 use super::*;
+use imgui::*;
 
 pub fn display_name_core(
     name: &str,
@@ -19,7 +20,7 @@ pub fn typed_text_ui<T: typename::TypeName>() -> String {
         .to_string()
 }
 
-pub fn label_button(ui: &Ui<'_>, label: &imgui::ImStr, button: &imgui::ImStr) -> bool {
+pub fn label_button(ui: &Ui<'_>, label: &ImStr, button: &ImStr) -> bool {
     let button_size_y = ui.calc_text_size(button, true, 10000.0)[1] + 10.0;
 
     let ret = ui.button(
@@ -36,7 +37,7 @@ pub fn label_button(ui: &Ui<'_>, label: &imgui::ImStr, button: &imgui::ImStr) ->
     ret
 }
 
-pub fn pretty_option_debug<T: std::fmt::Debug>(optional_val: &Option<T>) -> imgui::ImString {
+pub fn pretty_option_debug<T: std::fmt::Debug>(optional_val: &Option<T>) -> ImString {
     match optional_val {
         Some(ov) => im_str!("{:?}", ov),
         None => im_str!("None").to_owned(),
@@ -44,10 +45,10 @@ pub fn pretty_option_debug<T: std::fmt::Debug>(optional_val: &Option<T>) -> imgu
 }
 
 pub fn pressed_escape(ui: &Ui<'_>) -> bool {
-    pressed_key(ui, imgui::Key::Escape)
+    pressed_key(ui, Key::Escape)
 }
 
-pub fn pressed_key(ui: &Ui<'_>, key: imgui::Key) -> bool {
+pub fn pressed_key(ui: &Ui<'_>, key: Key) -> bool {
     let key = ui.key_index(key);
     ui.is_key_pressed(key)
 }
@@ -62,10 +63,10 @@ pub fn typed_enum_selection<
 ) -> Option<T> {
     let enum_typed_name = typed_text_ui::<T>();
 
-    let popup_name = imgui::im_str!("{}##{}", enum_typed_name, unique_id);
+    let popup_name = im_str!("{}##{}", enum_typed_name, unique_id);
     let pressed = label_button(
         ui,
-        &imgui::ImString::new(enum_typed_name),
+        &ImString::new(enum_typed_name),
         &im_str!("{:?}##{}", &current_value, unique_id),
     );
 
@@ -79,7 +80,7 @@ pub fn typed_enum_selection<
         let mut close_popup = false;
 
         for this_variant in T::iter() {
-            if ui.button(&imgui::im_str!("{:?}", this_variant), [0.0, 0.0]) {
+            if ui.button(&im_str!("{:?}", this_variant), [0.0, 0.0]) {
                 variant = Some(this_variant);
                 close_popup = true;
             }
@@ -132,12 +133,12 @@ where
     let mut variant: Option<Option<T>> = None;
 
     // Button
-    let popup_name = imgui::im_str!("{}##{}", name, unique_id);
+    let popup_name = im_str!("{}##{}", name, unique_id);
 
     // @techdebt this is messy and has some allocaitons. we should clean this up.
     let pressed = label_button(
         ui,
-        &imgui::ImString::new(name),
+        &ImString::new(name),
         &im_str!("{}##{}", &pretty_option_debug(current_value), unique_id),
     );
 
@@ -150,7 +151,7 @@ where
         let mut close_popup = false;
 
         for this_variant in T::iter() {
-            if ui.button(&imgui::im_str!("{:?}", this_variant), [0.0, 0.0]) {
+            if ui.button(&im_str!("{:?}", this_variant), [0.0, 0.0]) {
                 variant = Some(Some(this_variant));
                 close_popup = true;
             }
@@ -179,19 +180,19 @@ pub fn select_entity_option(
 ) -> Option<Option<Entity>> {
     let popup = im_str!("{}## Popup {}", label, uid);
 
-    let name_str: imgui::ImString = match current_value {
+    let name_str: ImString = match current_value {
         Some(cv) => {
             if let Some(name) = name_list.get(cv) {
-                imgui::ImString::new(name.inner().name.clone())
+                ImString::new(name.inner().name.clone())
             } else {
                 im_str!("Entity ID {}", cv.index())
             }
         }
 
-        None => imgui::ImString::new("None".to_string()),
+        None => ImString::new("None".to_string()),
     };
 
-    if label_button(ui, &imgui::ImString::new(label), &name_str) {
+    if label_button(ui, &ImString::new(label), &name_str) {
         ui.open_popup(&popup);
     }
 
@@ -203,7 +204,7 @@ pub fn select_entity_option(
 
         // Somes
         for this_entity in entities {
-            let name_imstr = imgui::ImString::new(Name::get_name_quick(name_list, this_entity));
+            let name_imstr = ImString::new(Name::get_name_quick(name_list, this_entity));
 
             if ui.button(&name_imstr, [0.0, 0.0]) {
                 ret = Some(Some(this_entity.clone()));
@@ -246,7 +247,7 @@ pub fn select_entity(
 
         // Somes
         for this_entity in entities {
-            let name_imstr = imgui::ImString::new(Name::get_name_quick(name_list, this_entity));
+            let name_imstr = ImString::new(Name::get_name_quick(name_list, this_entity));
 
             if ui.button(&name_imstr, [0.0, 0.0]) {
                 ret = Some(this_entity.clone());
@@ -277,10 +278,10 @@ pub fn select_prefab_entity(
 ) -> Option<Option<uuid::Uuid>> {
     let popup = im_str!("{}## Popup {}", label, uid);
 
-    let name_str: imgui::ImString = match current_value {
+    let name_str: ImString = match current_value {
         Some(cv) => match serialized_prefabs.get(cv) {
             Some(prefab) => match &prefab.root_entity().name {
-                Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
+                Some(sc) => ImString::new(sc.inner.name.clone()),
                 None => im_str!("Prefab Uuid {}", prefab.root_id()),
             },
             None => {
@@ -295,7 +296,7 @@ pub fn select_prefab_entity(
         None => im_str!("None").to_owned(),
     };
 
-    if label_button(ui, &imgui::ImString::new(label), &name_str) {
+    if label_button(ui, &ImString::new(label), &name_str) {
         ui.open_popup(&popup);
     }
 
@@ -308,7 +309,7 @@ pub fn select_prefab_entity(
         // Somes
         for prefab in serialized_prefabs.values() {
             let name_imstr = match &prefab.root_entity().name {
-                Some(sc) => imgui::ImString::new(sc.inner.name.clone()),
+                Some(sc) => ImString::new(sc.inner.name.clone()),
                 None => im_str!("Prefab Uuid {}", prefab.root_id()),
             };
 
@@ -332,7 +333,7 @@ pub fn select_prefab_entity(
     ret
 }
 
-pub fn input_usize(ui: &Ui<'_>, label: &imgui::ImStr, value: &mut usize) -> bool {
+pub fn input_usize(ui: &Ui<'_>, label: &ImStr, value: &mut usize) -> bool {
     let mut size_val: i32 = *value as i32;
 
     if ui.input_int(label, &mut size_val).build() {
@@ -350,7 +351,7 @@ pub fn input_usize(ui: &Ui<'_>, label: &imgui::ImStr, value: &mut usize) -> bool
 pub fn input_isize(ui: &Ui<'_>, label: &str, uid: &str, value: &mut isize) -> bool {
     let mut val = *value as i32;
     if ui
-        .input_int(&imgui::im_str!("{}##{}", label, uid), &mut val)
+        .input_int(&im_str!("{}##{}", label, uid), &mut val)
         .build()
     {
         *value = val as isize;
@@ -437,15 +438,16 @@ pub fn right_click_popup<F: FnOnce()>(ui: &Ui<'_>, uid: &str, f: F) {
     ui.popup(&name, f);
 }
 
+pub fn help_menu_item<T: AsRef<str>>(ui: &Ui<'_>, label: &ImStr, tooltip: T) -> bool {
+    let do_it = MenuItem::new(label).build(ui);
+    imgui_system::help_marker(ui, tooltip);
+    do_it
+}
+
 pub fn help_marker<T: AsRef<str>>(ui: &Ui<'_>, message: T) {
     ui.same_line(0.0);
     ui.text_disabled("(?)");
     if ui.is_item_hovered() {
         ui.tooltip_text(message);
-        // ImGui::BeginTooltip();
-        // ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0);
-        // ImGui::TextUnformatted(desc);
-        // ImGui::PopTextWrapPos();
-        // ImGui::EndTooltip();
     }
 }

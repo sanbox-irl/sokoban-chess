@@ -1,28 +1,44 @@
 use super::Color;
 
+#[derive(Debug, PartialEq, Eq)]
+pub enum NameRequestedAction {
+    ChangeName(String),
+
+    Serialize,
+    Unserialize,
+    ToggleInspect,
+
+    Clone,
+    Delete,
+
+    PromoteToPrefab,
+    GoToPrefab,
+
+    LogEntity,
+    LogSerializedEntity,
+    LogPrefab,
+}
+
 pub struct NameInspectorResult {
-    pub serialize_name: Option<String>,
-    pub unserialize: bool,
-    pub inspect: bool,
     pub show_children: bool,
-    pub clone: bool,
-    pub delete: bool,
-    pub dump_into_console_log: bool,
-    pub go_to_prefab: bool,
+    pub requested_action: Option<NameRequestedAction>,
 }
 
 impl Default for NameInspectorResult {
     fn default() -> Self {
         Self {
             show_children: true,
-            serialize_name: None,
-            unserialize: false,
-            inspect: false,
-            clone: false,
-            delete: false,
-            dump_into_console_log: false,
-            go_to_prefab: false,
+            requested_action: None,
         }
+    }
+}
+
+impl NameInspectorResult {
+    pub fn new() -> Self {
+        let mut me: Self = Default::default();
+        me.show_children = true;
+
+        me
     }
 }
 

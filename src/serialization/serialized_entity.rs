@@ -1,7 +1,7 @@
 use super::{
-    component_serialization::*, physics_components::*, Component, ComponentBounds,
-    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker,
-    Name, NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher,
+    component_serialization::*, physics_components::*, ComponentBounds, ComponentDatabase,
+    ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name,
+    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher,
     SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
 };
 use uuid::Uuid;
@@ -14,6 +14,40 @@ pub struct SerializedComponent<T> {
 }
 
 pub type SerializedComponentWrapper<T> = Option<SerializedComponent<T>>;
+
+pub trait SerializedComponentExtenstions<T: Default> {
+    fn unwrap_or_else_create<F: FnOnce() -> SerializedComponent<T>>(
+        &mut self,
+        f: F,
+    ) -> &mut SerializedComponent<T>;
+
+    fn unwrap_or_create_default(&mut self) -> &mut SerializedComponent<T>;
+}
+
+impl<T: Default> SerializedComponentExtenstions<T> for SerializedComponentWrapper<T> {
+    fn unwrap_or_else_create<F: FnOnce() -> SerializedComponent<T>>(
+        &mut self,
+        f: F,
+    ) -> &mut SerializedComponent<T> {
+        if let Some(inner) = self {
+            inner
+        } else {
+            *self = Some(f());
+            self.as_mut().unwrap()
+        }
+    }
+    fn unwrap_or_create_default(&mut self) -> &mut SerializedComponent<T> {
+        if let Some(inner) = self {
+            inner
+        } else {
+            *self = Some(SerializedComponent {
+                inner: T::default(),
+                active: true,
+            });
+            self.as_mut().unwrap()
+        }
+    }
+}
 
 // This should mirror ComponentDatabse
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -83,7 +117,7 @@ impl SerializedEntity {
                 component_list.create_serialized_entity(
                     entity_id,
                     &mut serialized_entity,
-                    &component_database.serialization_data,
+                    &component_database.serialization_marker,
                 );
             },
         );
@@ -101,6 +135,12 @@ impl SerializedEntity {
         Some(serialized_entity)
     }
 
+    pub fn new_blank() -> Self {
+        SerializedEntity {
+            id: Uuid::new_v4(),
+            ..Default::default()
+        }
+    }
     pub fn foreach_component(
         &mut self,
         entity_bitmask: NonInspectableEntities,
@@ -227,23 +267,22 @@ impl SerializedEntity {
         );
     }
 
-    pub fn new_blank() -> Self {
-        SerializedEntity {
-            id: Uuid::new_v4(),
-            ..Default::default()
-        }
+    pub fn log_to_console(&self) {
+        println!("---");
+        println!("Serialized Entity: {:#?}", self);
+        println!("---");
     }
 
-    pub fn clone_component<T: ComponentBounds + Clone>(
-        comp: Option<&Component<T>>,
-    ) -> SerializedComponentWrapper<T> {
-        if let Some(comp) = comp {
-            Some(SerializedComponent {
-                active: comp.is_active,
-                inner: comp.clone_inner(),
-            })
-        } else {
-            None
-        }
-    }
+    // pub fn clone_component<T: ComponentBounds + Clone>(
+    //     comp: Option<&Component<T>>,
+    // ) -> SerializedComponentWrapper<T> {
+    //     if let Some(comp) = comp {
+    //         Some(SerializedComponent {
+    //             active: comp.is_active,
+    //             inner: comp.clone_inner(),
+    //         })
+    //     } else {
+    //         None
+    //     }
+    // }
 }

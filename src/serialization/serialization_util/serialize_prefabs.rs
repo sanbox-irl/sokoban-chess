@@ -60,7 +60,5 @@ pub fn load_all_prefabs() -> Fallible<PrefabMap> {
         ret.insert(prefab.root_id(), prefab);
     }
 
-    info!("Loaded: {:#?}", ret);
-
     Ok(ret)
 }

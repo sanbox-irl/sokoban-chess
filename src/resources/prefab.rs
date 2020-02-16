@@ -86,4 +86,10 @@ impl Prefab {
     pub fn invalidate(&mut self) {
         self.valid = false;
     }
+
+    pub fn log_to_console(&self) {
+        println!("---Console Log for {}---", self.root_id);
+        println!("{:#?}", self);
+        println!("------------------------");
+    }
 }

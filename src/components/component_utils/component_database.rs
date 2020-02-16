@@ -19,7 +19,7 @@ pub struct ComponentDatabase {
     pub follows: ComponentList<Follow>,
     pub conversant_npcs: ComponentList<ConversantNPC>,
     pub scene_switchers: ComponentList<SceneSwitcher>,
-    pub serialization_data: ComponentList<SerializationMarker>,
+    pub serialization_marker: ComponentList<SerializationMarker>,
     size: usize,
 }
 
@@ -63,7 +63,7 @@ impl ComponentDatabase {
         for af in component_database.follows.iter_mut() {
             af.inner_mut()
                 .target
-                .serialized_refs_to_entity_id(&component_database.serialization_data);
+                .serialized_refs_to_entity_id(&component_database.serialization_marker);
         }
 
         for conversant_npc in component_database.conversant_npcs.iter_mut() {
@@ -71,7 +71,7 @@ impl ComponentDatabase {
 
             conversant
                 .conversation_partner
-                .serialized_refs_to_entity_id(&component_database.serialization_data);
+                .serialized_refs_to_entity_id(&component_database.serialization_marker);
         }
 
         for graph_node_c in component_database.graph_nodes.iter_mut() {
@@ -79,7 +79,7 @@ impl ComponentDatabase {
 
             if let Some(children) = &mut graph_node.children {
                 for child in children.iter_mut() {
-                    child.serialized_refs_to_entity_id(&component_database.serialization_data);
+                    child.serialized_refs_to_entity_id(&component_database.serialization_marker);
                 }
             }
         }
@@ -110,7 +110,7 @@ impl ComponentDatabase {
 
         // @update_components exceptions
         if let Some(transformc_c) = self.transforms.get_mut(new_entity) {
-            scene_graph::add_to_scene_graph(transformc_c, &self.serialization_data)
+            scene_graph::add_to_scene_graph(transformc_c, &self.serialization_marker)
         }
     }
 
@@ -135,7 +135,7 @@ impl ComponentDatabase {
         }
 
         if non_inspectable_entities.contains(NonInspectableEntities::SERIALIZATION) {
-            f(&mut self.serialization_data);
+            f(&mut self.serialization_marker);
         }
     }
 
@@ -185,7 +185,7 @@ impl ComponentDatabase {
         }
 
         if non_inspectable_entities.contains(NonInspectableEntities::SERIALIZATION) {
-            f(&self.serialization_data);
+            f(&self.serialization_marker);
         }
     }
 
@@ -225,7 +225,7 @@ impl ComponentDatabase {
         prefabs: &PrefabMap,
     ) {
         // Make a serialization data thingee on it...
-        self.serialization_data.set_component(
+        self.serialization_marker.set_component(
             &entity,
             SerializationMarker::new(serialized_entity.id.clone()),
         );
@@ -319,7 +319,7 @@ impl ComponentDatabase {
                     {
                         if children.iter().all(|child| {
                             let id = child.target_serialized_id().unwrap();
-                            self.serialization_data.iter().any(|sd| sd.inner().id == id)
+                            self.serialization_marker.iter().any(|sd| sd.inner().id == id)
                         }) == false
                         {
                             error!(
@@ -443,7 +443,7 @@ impl Default for ComponentDatabase {
             follows: Default::default(),
             conversant_npcs: Default::default(),
             scene_switchers: Default::default(),
-            serialization_data: Default::default(),
+            serialization_marker: Default::default(),
             size: 0,
         }
     }

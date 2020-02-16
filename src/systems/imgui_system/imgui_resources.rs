@@ -302,84 +302,75 @@ pub fn prefab_entity_viewer(
 ) -> bool {
     let mut open = true;
 
-    let mut prefab_to_clone: Option<Uuid> = None;
-    let mut prefab_to_delete: Option<Uuid> = None;
-    let mut prefab_to_console_log: Option<Uuid> = None;
-    let mut prefab_to_inspect: Option<Uuid> = None;
+    let mut action_on_prefab: Option<(Uuid, NameRequestedAction)> = None;
 
-    let prefab_list = imgui::Window::new(&im_str!("Prfab List"))
+    let prefab_list = imgui::Window::new(&im_str!("Prefab List"))
         .size([200.0, 400.0], imgui::Condition::FirstUseEver)
         .menu_bar(true)
         .opened(&mut open);
 
     if let Some(window) = prefab_list.begin(&ui_handler.ui) {
-        for (id, prefab) in resources.prefabs_mut().unwrap().iter_mut() {
+        for (id, prefab) in resources.prefabs().iter() {
             let nip = NameInspectorParameters {
                 has_children: false,
                 depth: 0,
                 prefab_status: PrefabStatus::Prefab,
                 being_inspected: false,
-                // All this does is stop the "unserialize" option from appearing.
                 is_serialized: false,
             };
 
             // ENTITY ELEMENTS:
-            let (_, serialize_name) = display_prefab_id(
-                prefab.root_id(),
+            let (_, request_name_action) = display_prefab_id(
+                *id,
                 &nip,
                 prefab.root_entity().name.as_ref().map(|sc| &sc.inner),
                 ui_handler,
-                &mut prefab_to_clone,
-                &mut prefab_to_delete,
-                &mut prefab_to_console_log,
-                &mut prefab_to_inspect,
             );
 
-            if let Some(new_name) = serialize_name {
-                if let Some(serialized_name) = &mut prefab.root_entity_mut().name {
-                    serialized_name.inner.name = new_name;
-                } else {
-                    prefab.root_entity_mut().name = Some(SerializedComponent {
-                        active: true,
-                        inner: Name::new(new_name),
-                    })
+            if let Some(requested_name_action) = request_name_action {
+                action_on_prefab = Some((*id, requested_name_action));
+            }
+        }
+
+        if let Some((id, action_on_prefab)) = action_on_prefab {
+            match action_on_prefab {
+                NameRequestedAction::ChangeName(_)
+                | NameRequestedAction::Serialize
+                | NameRequestedAction::Unserialize
+                | NameRequestedAction::LogSerializedEntity => {
+                    error!("Unimplemented!");
                 }
-            }
-        }
+                NameRequestedAction::Clone => {
+                    let clone: Prefab = resources.prefabs().get(&id).unwrap().clone();
+                    resources.add_prefab(clone);
+                }
+                NameRequestedAction::Delete => {
+                    // Invalidate our live prefab:
+                    let mut prefab = resources.remove_prefab(&id).unwrap();
+                    prefab.invalidate();
 
-        if let Some(original) = prefab_to_clone {
-            let clone: Prefab = resources.prefabs().get(&original).unwrap().clone();
+                    if let Err(e) = serialization_util::prefabs::invalidate_prefab(&prefab) {
+                        error!(
+                            "Couldn't invalidate prefab {:?} because {}",
+                            prefab.root_entity().name,
+                            e
+                        );
+                    }
+                }
+                NameRequestedAction::LogEntity | NameRequestedAction::LogPrefab => {
+                    let prefab = resources.prefabs().get(&id).unwrap();
+                    prefab.log_to_console();
+                }
+                NameRequestedAction::ToggleInspect | NameRequestedAction::GoToPrefab => {
+                    if scene_system::set_next_scene(Scene::new_prefab(id)) == false {
+                        error!("Couldn't switch to Prefab {}", id);
+                        error!("Does a Prefab by that name exist?");
+                    }
+                }
 
-            resources
-                .prefabs_mut()
-                .unwrap()
-                .insert(clone.root_id(), clone);
-        }
-
-        if let Some(id) = prefab_to_delete {
-            // Invalidate our live prefab:
-            let prefab = resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
-            prefab.invalidate();
-
-            if let Err(e) = serialization_util::prefabs::invalidate_prefab(prefab) {
-                error!(
-                    "Couldn't invalidate prefab {:?} because {}",
-                    prefab.root_entity().name,
-                    e
-                );
-            }
-        }
-
-        if let Some(console_log) = prefab_to_console_log {
-            println!("---Console Log for {}---", console_log);
-            println!("{:#?}", resources.prefabs_mut().unwrap()[&console_log]);
-            println!("-------------------------");
-        }
-
-        if let Some(id) = prefab_to_inspect {
-            if scene_system::set_next_scene(Scene::new_prefab(id)) == false {
-                error!("Couldn't switch to Prefab {}", id);
-                error!("Does a Prefab by that name exist?");
+                NameRequestedAction::PromoteToPrefab => {
+                    unimplemented!();
+                }
             }
         }
 
@@ -394,11 +385,7 @@ fn display_prefab_id(
     name_inspector_params: &NameInspectorParameters,
     name: Option<&Name>,
     ui_handler: &mut UiHandler<'_>,
-    clone_me: &mut Option<Uuid>,
-    delete_me: &mut Option<Uuid>,
-    console_dump_me: &mut Option<Uuid>,
-    inspect_me: &mut Option<Uuid>,
-) -> (bool, Option<String>) {
+) -> (bool, Option<NameRequestedAction>) {
     // Find our ImGui entry list info
     let entity_list_info = ui_handler
         .entity_list_information
@@ -406,14 +393,8 @@ fn display_prefab_id(
         .or_default();
 
     let NameInspectorResult {
-        serialize_name,
-        unserialize: _,
-        inspect,
         show_children,
-        clone,
-        delete,
-        dump_into_console_log,
-        go_to_prefab,
+        requested_action,
     } = imgui_utility::display_name_core(
         name.map_or(&format!("Prefab {}", prefab), |name| &name.name),
         entity_list_info,
@@ -421,24 +402,5 @@ fn display_prefab_id(
         &ui_handler.ui,
         &prefab.to_string(),
     );
-
-    if clone {
-        *clone_me = Some(prefab);
-    }
-
-    if delete {
-        *delete_me = Some(prefab);
-    }
-
-    if dump_into_console_log {
-        *console_dump_me = Some(prefab);
-    }
-
-    // Store or Remove it...
-    if inspect || go_to_prefab {
-        *inspect_me = Some(prefab);
-    }
-
-    // Should we change the name?
-    (show_children, serialize_name)
+    (show_children, requested_action)
 }

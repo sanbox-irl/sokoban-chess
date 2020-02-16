@@ -198,7 +198,7 @@ impl Clockwork {
         // Load in the Scene Graph
         scene_graph::build_flat(
             &mut ecs.component_database.transforms,
-            &ecs.component_database.serialization_data,
+            &ecs.component_database.serialization_marker,
         );
 
         info!("..Scene Loaded!");

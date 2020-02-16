@@ -102,7 +102,7 @@ impl ResourcesDatabase {
                 self.sprites.insert(sprite_name, data);
             } else {
                 error!(
-                    "Sprite name {} was in SpriteSheet, but we did not have an enum for it. Continuing for now...",
+                    "A file named {} was in SpriteSheet, but we have no Enum to refer to it!",
                     sprite_sheet_data.name
                 );
             }
@@ -194,14 +194,24 @@ impl ResourcesDatabase {
         &self.prefabs
     }
 
+    /// Returns Some when Scene is in Draft Mode -- otherwise,
+    /// returns a None.
     pub fn prefabs_mut(&mut self) -> Option<&mut PrefabMap> {
         // compile_error!("We need to have the inspecting mode set here!");
         Some(&mut self.prefabs)
     }
 
-    /// The only prefab actions we're allowed to take outside Draft mode is adding new
-    /// prefabs members!
+    /// This action adds a prefab to cold storage. Note: it does not serialize the prefab.
+    /// You'll have to do that on your own. As always, the file is the definitive prefab list,
+    /// and this just exists as a cache.
     pub fn add_prefab(&mut self, prefab: Prefab) {
         self.prefabs.insert(prefab.root_id(), prefab);
+    }
+
+    /// This action removes a prefab from the prefab cache. Note: it does not serialize the prefab.
+    /// You'll have to do that on your own. As always, the file is the definitive prefab list,
+    /// and this just exists as a cache.
+    pub fn remove_prefab(&mut self, prefab_id: &uuid::Uuid) -> Option<Prefab> {
+        self.prefabs.remove(prefab_id)
     }
 }
