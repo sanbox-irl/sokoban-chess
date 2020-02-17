@@ -23,7 +23,7 @@ pub mod tween_components;
 mod velocity;
 
 pub use {
-    component::Component,
+    component::{Component, ComponentData},
     component_utils::{
         bounding_circle::BoundingCircle,
         component_database::{ComponentDatabase, NonInspectableEntities},

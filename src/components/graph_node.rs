@@ -1,6 +1,6 @@
 use super::{
-    component_utils::RawComponent, imgui_system, Component, ComponentBounds, ComponentList, Entity,
-    InspectorParameters, SerializableEntityReference, SerializationMarker, Transform,
+    component_utils::RawComponent, imgui_system, ComponentBounds, ComponentData, ComponentList,
+    Entity, InspectorParameters, SerializableEntityReference, SerializationMarker, Transform,
 };
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
@@ -83,11 +83,11 @@ impl GraphNode {
     pub fn add_child_directly(
         &mut self,
         my_entity_id: Option<Entity>,
-        transform: &mut Component<Transform>,
+        mut transform_c: ComponentData<'_, Transform>,
         serializations: &ComponentList<SerializationMarker>,
     ) {
-        let id = transform.entity_id();
-        transform.inner_mut().set_new_parent(
+        let id = transform_c.entity_id();
+        transform_c.inner_mut().set_new_parent(
             id,
             RawComponent {
                 entity: my_entity_id,
@@ -143,5 +143,17 @@ impl ComponentBounds for GraphNode {
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
         se.graph_node = None;
+    }
+
+    fn post_deserialization(
+        &mut self,
+        _: super::Entity,
+        serialization_markers: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        if let Some(children) = &mut self.children {
+            for child in children.iter_mut() {
+                child.serialized_refs_to_entity_id(&serialization_markers);
+            }
+        }
     }
 }

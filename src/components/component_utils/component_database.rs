@@ -69,6 +69,8 @@ impl ComponentDatabase {
                 },
             );
         }
+
+        
         Ok(component_database)
     }
 

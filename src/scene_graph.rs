@@ -1,6 +1,6 @@
 use super::{
-    Component, ComponentList, Entity, GraphNode, Name, NameInspectorParameters, PrefabMarker,
-    SerializationMarker, Transform, Vec2,
+    ComponentData, ComponentList, Entity, GraphNode, Name, NameInspectorParameters,
+    PrefabMarker, SerializationMarker, Transform, Vec2,
 };
 use lazy_static::lazy_static;
 use std::sync::Mutex;
@@ -11,29 +11,14 @@ lazy_static! {
     });
 }
 
-pub fn add_to_scene_graph(
-    transform_c: &mut Component<Transform>,
+pub fn add_to_scene_graph<'a>(
+    transform_c: impl Into<ComponentData<'a, Transform>>,
     serializations: &ComponentList<SerializationMarker>,
 ) {
     ROOT_NODES
         .lock()
         .unwrap()
-        .add_child_directly(None, transform_c, serializations);
-}
-
-pub fn build_flat(
-    transforms: &mut ComponentList<Transform>,
-    serializations: &ComponentList<SerializationMarker>,
-) {
-    let mut root_nodes = ROOT_NODES.lock().unwrap();
-    root_nodes.children.as_mut().unwrap().clear();
-
-    for transform_c in transforms.iter_mut() {
-        if transform_c.inner_mut().parent_exists() == false {
-            root_nodes.add_child_directly(None, transform_c, serializations);
-            transform_c.inner_mut().update_world_position(Vec2::ZERO);
-        }
-    }
+        .add_child_directly(None, transform_c.into(), serializations);
 }
 
 pub fn walk_graph(transforms: &mut ComponentList<Transform>, nodes: &ComponentList<GraphNode>) {

@@ -139,4 +139,11 @@ impl ComponentBounds for Transform {
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
         se.transform = None;
     }
+    fn post_deserialization(
+        &mut self,
+        entity: super::Entity,
+        serialization_markers: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        super::scene_graph::add_to_scene_graph((self, entity), serialization_markers);
+    }
 }

@@ -172,7 +172,7 @@ where
 
 impl<T> ComponentList<T>
 where
-    T: ComponentBounds + Default + typename::TypeName + 'static,
+    T: ComponentBounds + Default + Clone + typename::TypeName + 'static,
 {
     /// Simply a wrapper around creating a new component
     pub fn set_component(&mut self, entity_id: &Entity, new_component: T) {

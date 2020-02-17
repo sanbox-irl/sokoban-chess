@@ -61,7 +61,7 @@ impl ComponentBounds for Follow {
             clone
                 .target
                 .entity_id_to_serialized_refs(&serialization_markers);
-                
+
             super::SerializedComponent {
                 inner: clone,
                 active,
@@ -71,5 +71,14 @@ impl ComponentBounds for Follow {
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
         se.follow = None;
+    }
+
+    fn post_deserialization(
+        &mut self,
+        _: super::Entity,
+        serialization_markers: &super::ComponentList<super::SerializationMarker>,
+    ) {
+        self.target
+            .serialized_refs_to_entity_id(serialization_markers);
     }
 }

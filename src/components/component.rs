@@ -48,12 +48,6 @@ impl<T: ComponentBounds> Component<T> {
     }
 }
 
-impl<T: ComponentBounds> GenerationalIndexValue for Component<T> {
-    fn is_active(&self) -> bool {
-        self.is_active
-    }
-}
-
 impl<T: ComponentBounds + Clone> Component<T> {
     pub fn clone_inner(&self) -> T {
         self.inner.clone()
@@ -64,9 +58,48 @@ impl<T: ComponentBounds + Clone> Component<T> {
     }
 }
 
+impl<T: ComponentBounds> GenerationalIndexValue for Component<T> {
+    fn is_active(&self) -> bool {
+        self.is_active
+    }
+}
+
 use std::fmt::{self, Display};
 impl<T: Display + ComponentBounds> Display for Component<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "ID: {}, Inner: {}", self.entity_id, self.inner)
+    }
+}
+
+pub struct ComponentData<'a, T: ComponentBounds> {
+    entity_id: Entity,
+    inner_mut: &'a mut T,
+}
+
+impl<'a, T: ComponentBounds> ComponentData<'a, T> {
+    pub fn entity_id(&self) -> Entity {
+        self.entity_id
+    }
+
+    pub fn inner_mut(&mut self) -> &mut T {
+        self.inner_mut
+    }
+}
+
+impl<'a, T: ComponentBounds> From<&'a mut Component<T>> for ComponentData<'a, T> {
+    fn from(other: &'a mut Component<T>) -> Self {
+        ComponentData {
+            entity_id: other.entity_id(),
+            inner_mut: other.inner_mut(),
+        }
+    }
+}
+
+impl<'a, T: ComponentBounds> From<(&'a mut T, Entity)> for ComponentData<'a, T> {
+    fn from(other: (&'a mut T, Entity)) -> Self {
+        ComponentData {
+            entity_id: other.1,
+            inner_mut: other.0,
+        }
     }
 }

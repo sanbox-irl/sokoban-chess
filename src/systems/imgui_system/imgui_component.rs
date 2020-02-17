@@ -333,7 +333,7 @@ pub fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &m
 
 impl<T> ComponentList<T>
 where
-    T: ComponentBounds + typename::TypeName + 'static,
+    T: ComponentBounds + Clone + typename::TypeName + 'static,
 {
     pub fn component_inspector_raw<F>(
         &mut self,
