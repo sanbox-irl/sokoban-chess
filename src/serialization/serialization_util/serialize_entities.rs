@@ -46,7 +46,7 @@ pub fn process_serialized_command(
             match load_entity_by_id(&command.id) {
                 Ok(Some(serialized_entity)) => {
                     // Reload the Entity
-                    component_database.load_serialized_entity(
+                    let post = component_database.load_serialized_entity(
                         entity,
                         serialized_entity,
                         entity_allocator,
@@ -54,6 +54,14 @@ pub fn process_serialized_command(
                         &mut singleton_database.associated_entities,
                         resources.prefabs(),
                     );
+
+                    if let Some(post) = post {
+                        component_database.post_deserialization(post, |component_list, sl| {
+                            if let Some(inner) = component_list.get_mut(entity) {
+                                inner.post_deserialization(*entity, sl);
+                            }
+                        });
+                    }
                 }
 
                 Ok(None) => {

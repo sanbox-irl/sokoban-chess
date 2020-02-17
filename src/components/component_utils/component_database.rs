@@ -42,31 +42,33 @@ impl ComponentDatabase {
 
         let mut component_database = ComponentDatabase::default();
 
+        let mut post_deserialization_needed = None;
+
         for (_, s_entity) in saved_entities.into_iter() {
             let new_entity =
                 Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
 
-            component_database.load_serialized_entity(
+            if let Some(post) = component_database.load_serialized_entity(
                 &new_entity,
                 s_entity,
                 entity_allocator,
                 entities,
                 marker_map,
                 prefabs,
-            );
+            ) {
+                post_deserialization_needed = Some(post);
+            }
         }
 
         // Post Deserialization Work!
-        let s_pointer: *const _ = &component_database.serialization_markers;
-        let bitflag = {
-            let mut all_flags = NonInspectableEntities::all();
-            all_flags.remove(NonInspectableEntities::SERIALIZATION);
-            all_flags
-        };
-        component_database.foreach_component_list_mut(bitflag, |component_list| {
-            component_list.post_deserialization(unsafe { &*s_pointer });
-        });
-
+        if let Some(post_deserialization) = post_deserialization_needed {
+            component_database.post_deserialization(
+                post_deserialization,
+                |component_list, serialization_markers| {
+                    component_list.post_deserialization(serialization_markers);
+                },
+            );
+        }
         Ok(component_database)
     }
 
@@ -92,9 +94,8 @@ impl ComponentDatabase {
         });
 
         // @update_components exceptions
-        compile_error!("This is more manual than we want!");
         if let Some(transformc_c) = self.transforms.get_mut(new_entity) {
-            scene_graph::add_to_scene_graph(transformc_c)
+            scene_graph::add_to_scene_graph(transformc_c, &self.serialization_markers);
         }
     }
 
@@ -199,6 +200,7 @@ impl ComponentDatabase {
     /// We can load anything using this function. The key thing to note here,
     /// however, is that this adds a SerializationData marker to whatever is being
     /// loaded. Ie -- if you load something with this function, it is now serialized.
+    #[must_use]
     pub fn load_serialized_entity(
         &mut self,
         entity: &Entity,
@@ -207,7 +209,7 @@ impl ComponentDatabase {
         entities: &mut Vec<Entity>,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
         prefabs: &PrefabMap,
-    ) {
+    ) -> Option<PostDeserializationRequired> {
         // Make a serialization data thingee on it...
         self.serialization_markers.set_component(
             &entity,
@@ -227,15 +229,16 @@ impl ComponentDatabase {
                 marker_map,
             );
 
-            if success == false {
+            if success.is_none() {
                 if Ecs::remove_entity_raw(entity_allocator, entities, self, entity) == false {
                     error!("We couldn't remove the entity either! Watch out -- weird stuff might happen there.");
                 }
-                return;
+                return None;
             }
         }
 
-        self.load_serialized_entity_into_database(entity, serialized_entity, marker_map);
+        // If it had a prefab, now we'll be loading in the overrides...
+        Some(self.load_serialized_entity_into_database(entity, serialized_entity, marker_map))
     }
 
     /// This function loads a prefab directly. Note though, it will not make the resulting
@@ -243,6 +246,7 @@ impl ComponentDatabase {
     /// will load the prefab and keep it serialized.
     ///
     /// This function should be used by editor code to instantiate a prefab!
+    #[must_use]
     pub fn load_serialized_prefab(
         &mut self,
         entity_to_load_into: &Entity,
@@ -251,14 +255,19 @@ impl ComponentDatabase {
         entities: &mut Vec<Entity>,
         prefabs: &PrefabMap,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
-    ) -> bool {
+    ) -> Option<PostDeserializationRequired> {
         if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
             let root_entity: SerializedEntity = prefab.root_entity().clone();
             let root_entity_children: SerializedComponentWrapper<GraphNode> =
                 root_entity.graph_node.clone();
 
-            self.load_serialized_entity_into_database(entity_to_load_into, root_entity, marker_map);
+            let post_marker = self.load_serialized_entity_into_database(
+                entity_to_load_into,
+                root_entity,
+                marker_map,
+            );
+
             self.prefab_markers.set_component(
                 entity_to_load_into,
                 PrefabMarker::new_main(prefab.root_id()),
@@ -274,11 +283,11 @@ impl ComponentDatabase {
                                 let new_id =
                                     Ecs::create_entity_raw(self, entity_allocator, entities);
 
-                                self.load_serialized_entity_into_database(
+                                post_marker.fold_in(self.load_serialized_entity_into_database(
                                     &new_id,
                                     serialized_entity,
                                     marker_map,
-                                );
+                                ));
 
                                 self.prefab_markers.set_component(
                                     &new_id,
@@ -312,7 +321,7 @@ impl ComponentDatabase {
                     }
                 }
             }
-            true
+            Some(post_marker)
         } else {
             error!(
                 "Prefab of ID {} does not exist, but we tried to load it into entity {}. We cannot complete this operation.",
@@ -320,21 +329,19 @@ impl ComponentDatabase {
                 Name::get_name_quick(&self.names, entity_to_load_into)
             );
 
-            false
+            None
         }
     }
 
-    /// This directly loads a serialized entity into the Ecs. Be careful with this function,
-    /// as it does only exactly that. Remember that SerializedEntities do not have a SerializedData
-    /// component on them -- we make that for them in `load_serialized_entity`. Maybe we shouldn't do that...
-
-    /// Generally, prefer `load_serialized_entity` or `instantiate_prefab` over this.
-    pub fn load_serialized_entity_into_database(
+    /// This actually does the business of unwrapping a serialized entity and putting it inside
+    /// the Ecs.
+    #[must_use]
+    fn load_serialized_entity_into_database(
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
-    ) {
+    ) -> PostDeserializationRequired {
         let SerializedEntity {
             bounding_box,
             conversant_npc,
@@ -409,6 +416,24 @@ impl ComponentDatabase {
         if let Some(singleton_marker) = serialized_entity.marker {
             marker_map.insert(singleton_marker, *entity);
         }
+
+        PostDeserializationRequired
+    }
+
+    pub fn post_deserialization(
+        &mut self,
+        _: PostDeserializationRequired,
+        mut f: impl FnMut(&mut dyn ComponentListBounds, &ComponentList<SerializationMarker>),
+    ) {
+        let s_pointer: *const _ = &self.serialization_markers;
+        let bitflag = {
+            let mut all_flags = NonInspectableEntities::all();
+            all_flags.remove(NonInspectableEntities::SERIALIZATION);
+            all_flags
+        };
+        self.foreach_component_list_mut(bitflag, |component_list| {
+            f(component_list, unsafe { &*s_pointer });
+        });
     }
 }
 

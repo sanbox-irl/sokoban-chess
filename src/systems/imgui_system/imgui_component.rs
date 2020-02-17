@@ -119,7 +119,10 @@ pub fn entity_inspector(
 
                     if had_transform == false {
                         if let Some(new_transform) = component_database.transforms.get_mut(entity) {
-                            compile_error!("Handle this too!");
+                            scene_graph::add_to_scene_graph(
+                                new_transform,
+                                &component_database.serialization_markers,
+                            );
                         }
                     }
 

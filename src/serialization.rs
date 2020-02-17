@@ -15,3 +15,11 @@ pub enum SerializationDelta {
     Unchanged,
     Updated,
 }
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[must_use]
+pub struct PostDeserializationRequired;
+
+impl PostDeserializationRequired {
+    pub fn fold_in(&self, _: PostDeserializationRequired) {}
+}

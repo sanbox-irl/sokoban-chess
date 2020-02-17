@@ -15,7 +15,7 @@ pub trait ComponentBounds {
         serialization_marker: &super::ComponentList<super::SerializationMarker>,
     );
     fn uncommit_to_scene(&self, serialized_entity: &mut SerializedEntity);
-    fn post_deserialization(&mut self, _: &ComponentList<SerializationMarker>) {}
+    fn post_deserialization(&mut self, _: Entity, _: &ComponentList<SerializationMarker>) {}
 }
 
 pub struct InspectorParameters<'a, 'b> {
@@ -30,6 +30,7 @@ pub struct InspectorParameters<'a, 'b> {
 pub trait ComponentListBounds {
     fn expand_list(&mut self);
     fn unset(&mut self, index: &Entity) -> bool;
+    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds>;
     fn dump_to_log(&self, index: &Entity);
     fn clone_entity(&mut self, index: &Entity, new_entity: &Entity);
 
@@ -156,10 +157,16 @@ where
         }
     }
 
-    fn post_deserialization(&mut self, entity_names: &ComponentList<SerializationMarker>) {
+    fn post_deserialization(&mut self, entity_serde: &ComponentList<SerializationMarker>) {
         for this_one in self.iter_mut() {
-            this_one.inner_mut().post_deserialization(entity_names);
+            let id = this_one.entity_id();
+            this_one.inner_mut().post_deserialization(id, entity_serde);
         }
+    }
+
+    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds> {
+        self.get_mut(index)
+            .map(|component| component.inner_mut() as _)
     }
 }
 
