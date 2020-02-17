@@ -19,7 +19,7 @@ pub struct ComponentDatabase {
     pub follows: ComponentList<Follow>,
     pub conversant_npcs: ComponentList<ConversantNPC>,
     pub scene_switchers: ComponentList<SceneSwitcher>,
-    pub serialization_marker: ComponentList<SerializationMarker>,
+    pub serialization_markers: ComponentList<SerializationMarker>,
     size: usize,
 }
 
@@ -56,33 +56,16 @@ impl ComponentDatabase {
             );
         }
 
-        // Post-Deserialization Work...
-        // @update_components exceptions
-        // @techdebt This probably can turn into a trait on a ComponentBound
-        // and probably some unsafe to pass borrow checkrs on serialization_data.
-        for af in component_database.follows.iter_mut() {
-            af.inner_mut()
-                .target
-                .serialized_refs_to_entity_id(&component_database.serialization_marker);
-        }
-
-        for conversant_npc in component_database.conversant_npcs.iter_mut() {
-            let conversant = conversant_npc.inner_mut();
-
-            conversant
-                .conversation_partner
-                .serialized_refs_to_entity_id(&component_database.serialization_marker);
-        }
-
-        for graph_node_c in component_database.graph_nodes.iter_mut() {
-            let graph_node: &mut GraphNode = graph_node_c.inner_mut();
-
-            if let Some(children) = &mut graph_node.children {
-                for child in children.iter_mut() {
-                    child.serialized_refs_to_entity_id(&component_database.serialization_marker);
-                }
-            }
-        }
+        // Post Deserialization Work!
+        let s_pointer: *const _ = &component_database.serialization_markers;
+        let bitflag = {
+            let mut all_flags = NonInspectableEntities::all();
+            all_flags.remove(NonInspectableEntities::SERIALIZATION);
+            all_flags
+        };
+        component_database.foreach_component_list_mut(bitflag, |component_list| {
+            component_list.post_deserialization(unsafe { &*s_pointer });
+        });
 
         Ok(component_database)
     }
@@ -109,8 +92,9 @@ impl ComponentDatabase {
         });
 
         // @update_components exceptions
+        compile_error!("This is more manual than we want!");
         if let Some(transformc_c) = self.transforms.get_mut(new_entity) {
-            scene_graph::add_to_scene_graph(transformc_c, &self.serialization_marker)
+            scene_graph::add_to_scene_graph(transformc_c)
         }
     }
 
@@ -135,7 +119,7 @@ impl ComponentDatabase {
         }
 
         if non_inspectable_entities.contains(NonInspectableEntities::SERIALIZATION) {
-            f(&mut self.serialization_marker);
+            f(&mut self.serialization_markers);
         }
     }
 
@@ -145,7 +129,7 @@ impl ComponentDatabase {
     /// - SerializationMarker
     /// - GraphNode
     /// Use `foreach_component_list` to iterate over all.
-    pub fn foreach_component_list_inspectable_mut(
+    fn foreach_component_list_inspectable_mut(
         &mut self,
         f: &mut impl FnMut(&mut dyn ComponentListBounds),
     ) {
@@ -185,7 +169,7 @@ impl ComponentDatabase {
         }
 
         if non_inspectable_entities.contains(NonInspectableEntities::SERIALIZATION) {
-            f(&self.serialization_marker);
+            f(&self.serialization_markers);
         }
     }
 
@@ -195,7 +179,7 @@ impl ComponentDatabase {
     /// - SerializationMarker
     /// - GraphNode
     /// Use `foreach_component_list` to iterate over all.
-    pub fn foreach_component_list_inspectable(&self, f: &mut impl FnMut(&dyn ComponentListBounds)) {
+    fn foreach_component_list_inspectable(&self, f: &mut impl FnMut(&dyn ComponentListBounds)) {
         f(&self.transforms);
         f(&self.grid_objects);
         f(&self.players);
@@ -225,7 +209,7 @@ impl ComponentDatabase {
         prefabs: &PrefabMap,
     ) {
         // Make a serialization data thingee on it...
-        self.serialization_marker.set_component(
+        self.serialization_markers.set_component(
             &entity,
             SerializationMarker::new(serialized_entity.id.clone()),
         );
@@ -240,24 +224,18 @@ impl ComponentDatabase {
                 entity_allocator,
                 entities,
                 prefabs,
+                marker_map,
             );
 
-            if success {
-                // Overrides
-                self.load_serialized_entity_into_database(entity, serialized_entity);
-            } else {
-                // if Ecs::remove_entity_raw(entity_allocator, entities, self, entity) == false {
-                //     error!("We couldn't remove the entity either! Watch out -- weird stuff might happen there.");
-                // }
+            if success == false {
+                if Ecs::remove_entity_raw(entity_allocator, entities, self, entity) == false {
+                    error!("We couldn't remove the entity either! Watch out -- weird stuff might happen there.");
+                }
+                return;
             }
-        } else {
-            // Singleton Components
-            if let Some(singleton_marker) = serialized_entity.marker {
-                marker_map.insert(singleton_marker, *entity);
-            }
-
-            self.load_serialized_entity_into_database(entity, serialized_entity);
         }
+
+        self.load_serialized_entity_into_database(entity, serialized_entity, marker_map);
     }
 
     /// This function loads a prefab directly. Note though, it will not make the resulting
@@ -272,6 +250,7 @@ impl ComponentDatabase {
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
         prefabs: &PrefabMap,
+        marker_map: &mut std::collections::HashMap<Marker, Entity>,
     ) -> bool {
         if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
@@ -279,7 +258,7 @@ impl ComponentDatabase {
             let root_entity_children: SerializedComponentWrapper<GraphNode> =
                 root_entity.graph_node.clone();
 
-            self.load_serialized_entity_into_database(entity_to_load_into, root_entity);
+            self.load_serialized_entity_into_database(entity_to_load_into, root_entity, marker_map);
             self.prefab_markers.set_component(
                 entity_to_load_into,
                 PrefabMarker::new_main(prefab.root_id()),
@@ -298,6 +277,7 @@ impl ComponentDatabase {
                                 self.load_serialized_entity_into_database(
                                     &new_id,
                                     serialized_entity,
+                                    marker_map,
                                 );
 
                                 self.prefab_markers.set_component(
@@ -319,7 +299,9 @@ impl ComponentDatabase {
                     {
                         if children.iter().all(|child| {
                             let id = child.target_serialized_id().unwrap();
-                            self.serialization_marker.iter().any(|sd| sd.inner().id == id)
+                            self.serialization_markers
+                                .iter()
+                                .any(|sd| sd.inner().id == id)
                         }) == false
                         {
                             error!(
@@ -351,6 +333,7 @@ impl ComponentDatabase {
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,
+        marker_map: &mut std::collections::HashMap<Marker, Entity>,
     ) {
         let SerializedEntity {
             bounding_box,
@@ -421,6 +404,11 @@ impl ComponentDatabase {
             self.tilemaps
                 .set_component_with_active(entity, tilemap, serialized_component.active);
         }
+
+        // Singleton Components
+        if let Some(singleton_marker) = serialized_entity.marker {
+            marker_map.insert(singleton_marker, *entity);
+        }
     }
 }
 
@@ -443,7 +431,7 @@ impl Default for ComponentDatabase {
             follows: Default::default(),
             conversant_npcs: Default::default(),
             scene_switchers: Default::default(),
-            serialization_marker: Default::default(),
+            serialization_markers: Default::default(),
             size: 0,
         }
     }

@@ -29,6 +29,7 @@ pub fn instantiate_entity_from_prefab(
         &mut ecs.entity_allocator,
         &mut ecs.entities,
         prefab_map,
+        &mut ecs.singleton_database.associated_entities,
     );
 
     if success {
@@ -80,7 +81,7 @@ pub fn load_entity_into_prefab(
 
         // And if it's serialized, let's cycle our Serialization too!
         // We do this to remove the "Overrides" that would otherwise appear
-        if let Some(sc) = component_database.serialization_marker.get(entity) {
+        if let Some(sc) = component_database.serialization_markers.get(entity) {
             serialization_util::entities::serialize_entity_full(
                 entity,
                 sc.inner().id,

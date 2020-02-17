@@ -94,7 +94,7 @@ pub fn serialize_all_entities(
 
     // FIND THE OLD SERIALIZED ENTITY
     for entity in entities {
-        if let Some(serialization_thing) = component_database.serialization_marker.get(entity) {
+        if let Some(serialization_thing) = component_database.serialization_markers.get(entity) {
             if let Some(se) = SerializedEntity::new(
                 entity,
                 serialization_thing.inner().id,

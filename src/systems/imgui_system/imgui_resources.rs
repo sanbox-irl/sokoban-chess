@@ -337,7 +337,8 @@ pub fn prefab_entity_viewer(
                 NameRequestedAction::ChangeName(_)
                 | NameRequestedAction::Serialize
                 | NameRequestedAction::Unserialize
-                | NameRequestedAction::LogSerializedEntity => {
+                | NameRequestedAction::LogSerializedEntity
+                | NameRequestedAction::UnpackPrefab => {
                     error!("Unimplemented!");
                 }
                 NameRequestedAction::Clone => {

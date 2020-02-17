@@ -124,12 +124,11 @@ pub(super) unsafe fn draw_game_world<'a>(
         .map(|camera_entity| {
             transforms
                 .get(camera_entity)
-                .unwrap()
-                .inner()
-                .world_position()
+                .map(|tc| tc.inner().world_position())
+                .unwrap_or_else(|| camera.default_position)
         })
         .unwrap_or_else(|| camera.default_position);
-        
+
     for quad in quad_buffer {
         let mut push_constants = StandardPushConstants::with_camera_data(camera_position, camera);
         let texture_info: &StandardTexture = match &quad.texture_info {

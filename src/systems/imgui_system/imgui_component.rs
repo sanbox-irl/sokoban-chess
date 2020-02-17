@@ -24,7 +24,7 @@ pub fn entity_inspector(
 
         let name = {
             match component_database.names.get_mut(entity) {
-                Some(name) => im_str!("{} (Scene Entity)##{}", &name.inner().name, entity),
+                Some(name) => im_str!("{} (Scene Entity)###{}", &name.inner().name, entity),
                 None => im_str!("{} (Scene Entity)", entity),
             }
         };
@@ -36,36 +36,23 @@ pub fn entity_inspector(
             .opened(&mut is_open);
 
         if let Some(entity_inspector_window) = entity_window.begin(ui) {
-            // Update the serialization if it's there...
-            // component_database
-            //     .serialization_marker
-            //     .get_mut(entity)
-            //     .map(|sd| sd.inner_mut().imgui_serialization());
-
             // This unsafety is not actually unsafe at all -- Rust doesn't yet realize
             // that this method, though it takes `component_database`, doesn't involve
             // the field .names within component_database. If we use names, then this would
             // become a lot trickier.
             let names_raw_pointer: *const ComponentList<Name> = &component_database.names;
-            component_database.foreach_component_list_inspectable_mut(&mut |component_list| {
-                component_list.component_inspector(
-                    entities,
-                    unsafe { &*names_raw_pointer },
-                    entity,
-                    resources.prefabs(),
-                    ui,
-                    is_open,
-                );
-            });
-
-            // Prefab
-            component_database.prefab_markers.component_inspector(
-                entities,
-                &component_database.names,
-                entity,
-                resources.prefabs(),
-                ui,
-                is_open,
+            component_database.foreach_component_list_mut(
+                NonInspectableEntities::PREFAB,
+                |component_list| {
+                    component_list.component_inspector(
+                        entities,
+                        unsafe { &*names_raw_pointer },
+                        entity,
+                        resources.prefabs(),
+                        ui,
+                        is_open,
+                    );
+                },
             );
 
             let prefab_status = if scene_is_prefab {
@@ -81,7 +68,7 @@ pub fn entity_inspector(
             // Serialization
             let mut serialize_it = false;
             component_database
-                .serialization_marker
+                .serialization_markers
                 .component_inspector_raw(
                     entities,
                     &component_database.names,
@@ -98,7 +85,7 @@ pub fn entity_inspector(
                 serialization_util::entities::serialize_entity_full(
                     entity,
                     component_database
-                        .serialization_marker
+                        .serialization_markers
                         .get(entity)
                         .as_ref()
                         .unwrap()
@@ -132,10 +119,7 @@ pub fn entity_inspector(
 
                     if had_transform == false {
                         if let Some(new_transform) = component_database.transforms.get_mut(entity) {
-                            scene_graph::add_to_scene_graph(
-                                new_transform,
-                                &component_database.serialization_marker,
-                            );
+                            compile_error!("Handle this too!");
                         }
                     }
 
@@ -151,11 +135,11 @@ pub fn entity_inspector(
                 if let Some(serialization_submenu) = ui.begin_menu(
                     &ImString::new(serialization_menu_text),
                     component_database
-                        .serialization_marker
+                        .serialization_markers
                         .get(entity)
                         .is_some(),
                 ) {
-                    if let Some(comp) = component_database.serialization_marker.get(entity) {
+                    if let Some(comp) = component_database.serialization_markers.get(entity) {
                         let id = comp.inner().id;
                         match entity_serialization_options(
                             comp.inner(),
@@ -282,7 +266,7 @@ pub fn entity_serialization_options(
             ui,
             entity_id,
             prefab_status,
-            &component_database.serialization_marker,
+            &component_database.serialization_markers,
         ) {
             Ok(serialization_delta) => {
                 if serialization_delta == SerializationDelta::Updated

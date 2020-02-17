@@ -191,7 +191,7 @@ fn register_entity(
     grid: &mut Grid,
     entity: Entity,
     position: Vec2,
-    names: Option<&ComponentList<Name>>,
+    _names: Option<&ComponentList<Name>>,
 ) {
     if position.x >= GRID_DIMENSIONS_MIN_F32.0
         && position.x <= GRID_DIMENSIONS_MAX_F32.0
@@ -200,10 +200,7 @@ fn register_entity(
     {
         grid[world_to_grid_position(position)] = Some(entity);
     } else {
-        error!(
-            "Couldn't register {} to grid!",
-            Name::get_name(names, &entity)
-        );
+        error!("Couldn't register something (we're lazy) to grid!",);
     }
 }
 

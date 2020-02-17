@@ -1,7 +1,7 @@
 use super::{
     component_utils::{
-        EntityListInformation, NameEdit, NameInspectorParameters, NameInspectorResult,
-        NameRequestedAction, PrefabStatus,
+        EntityListInformation, NameInspectorParameters, NameInspectorResult, NameRequestedAction,
+        PrefabStatus,
     },
     imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
 };
@@ -81,37 +81,40 @@ impl Name {
         ui.same_line(0.0);
 
         // Actually Name:
-        if eli.edit_name != NameEdit::NoEdit {
-            let mut current_name = imgui::im_str!("{}", name);
+        let mut can_inspect = true;
+        match &mut eli.edit_name {
+            Some(editable_name) => {
+                can_inspect = false;
+                let mut current_name = imgui::im_str!("{}", editable_name);
 
-            if ui
-                .input_text(&imgui::im_str!("##New Name{}", uid), &mut current_name)
-                .resize_buffer(true)
-                .build()
-            {
-                res.requested_action =
-                    Some(NameRequestedAction::ChangeName(current_name.to_string()));
+                if ui
+                    .input_text(&imgui::im_str!("##New Name{}", uid), &mut current_name)
+                    .resize_buffer(true)
+                    .build()
+                {
+                    *editable_name = current_name.to_string();
+                }
+
+                let mut end_rename = false;
+
+                if ui.is_item_deactivated_after_edit() {
+                    end_rename = true;
+                }
+
+                ui.same_line(0.0);
+                if ui.button(&im_str!("Rename##{}", uid), [0.0, 0.0]) {
+                    end_rename = true;
+                }
+
+                if end_rename {
+                    res.requested_action = Some(NameRequestedAction::ChangeName(
+                        eli.edit_name.take().unwrap(),
+                    ));
+                }
             }
-
-            let mut end_rename = false;
-
-            if ui.is_item_deactivated_after_edit() {
-                end_rename = true;
+            None => {
+                ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
             }
-
-            ui.same_line(0.0);
-            if ui.button(&im_str!("Rename##{}", uid), [0.0, 0.0]) {
-                end_rename = true;
-            }
-
-            if end_rename {
-                info!("Hey we ended the rename!");
-                eli.edit_name = NameEdit::NoEdit;
-                res.requested_action =
-                    Some(NameRequestedAction::ChangeName(current_name.to_string()));
-            }
-        } else {
-            ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
         }
 
         // Manage the color...
@@ -124,7 +127,7 @@ impl Name {
         }
 
         // Inspect on Single Click
-        if imgui_system::left_clicked_item(ui) && eli.edit_name == NameEdit::NoEdit {
+        if imgui_system::left_clicked_item(ui) && can_inspect {
             res.requested_action = Some(NameRequestedAction::ToggleInspect);
         }
 
@@ -166,12 +169,22 @@ impl Name {
             ui.separator();
 
             ui.menu(&im_str!("Prefab"), true, || {
-                if MenuItem::new(&im_str!("Promote to Prefab##{}", uid))
-                    .enabled(nip.prefab_status == PrefabStatus::None)
-                    .build(ui)
-                {
-                    res.requested_action = Some(NameRequestedAction::PromoteToPrefab);
-                    ui.close_current_popup();
+                match nip.prefab_status {
+                    PrefabStatus::None => {
+                        if MenuItem::new(&im_str!("Promote to Prefab##{}", uid)).build(ui) {
+                            res.requested_action = Some(NameRequestedAction::PromoteToPrefab);
+                            ui.close_current_popup();
+                        }
+                    }
+                    prefab_kind => {
+                        if MenuItem::new(&im_str!("Unpack Prefab##{}", uid))
+                            .enabled(prefab_kind == PrefabStatus::PrefabInstance)
+                            .build(ui)
+                        {
+                            res.requested_action = Some(NameRequestedAction::UnpackPrefab);
+                            ui.close_current_popup();
+                        }
+                    }
                 }
 
                 if MenuItem::new(&im_str!("Go To Prefab##{}", uid))
@@ -210,8 +223,7 @@ impl Name {
         });
 
         if rename {
-            eli.edit_name = NameEdit::First;
-            res.requested_action = Some(NameRequestedAction::ChangeName(name.to_string()));
+            eli.edit_name = Some(name.to_string());
         }
 
         res
@@ -249,14 +261,6 @@ impl Name {
             {
                 break;
             }
-        }
-    }
-
-    pub fn get_name(names: Option<&ComponentList<Name>>, id: &Entity) -> String {
-        if let Some(names) = names {
-            Name::get_name_quick(names, id)
-        } else {
-            id.to_string()
         }
     }
 

@@ -117,7 +117,7 @@ impl SerializedEntity {
                 component_list.create_serialized_entity(
                     entity_id,
                     &mut serialized_entity,
-                    &component_database.serialization_marker,
+                    &component_database.serialization_markers,
                 );
             },
         );

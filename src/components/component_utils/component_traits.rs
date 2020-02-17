@@ -1,6 +1,6 @@
 use super::{
     Component, ComponentList, Entity, Name, PrefabMap, PrefabStatus, SerializationDelta,
-    SerializedEntity,
+    SerializationMarker, SerializedEntity,
 };
 use failure::Fallible;
 use imgui::Ui;
@@ -15,6 +15,7 @@ pub trait ComponentBounds {
         serialization_marker: &super::ComponentList<super::SerializationMarker>,
     );
     fn uncommit_to_scene(&self, serialized_entity: &mut SerializedEntity);
+    fn post_deserialization(&mut self, _: &ComponentList<SerializationMarker>) {}
 }
 
 pub struct InspectorParameters<'a, 'b> {
@@ -60,9 +61,10 @@ pub trait ComponentListBounds {
         serialized_entity: &mut super::SerializedEntity,
         serialization_markers: &ComponentList<super::SerializationMarker>,
     );
+
+    fn post_deserialization(&mut self, entity_names: &ComponentList<SerializationMarker>);
 }
 
-// impl ComponentListBounds for ComponentList<SerializationData> {}
 impl<T> ComponentListBounds for ComponentList<T>
 where
     T: ComponentBounds + std::fmt::Debug + typename::TypeName + Clone + Default + 'static,
@@ -151,6 +153,12 @@ where
                     serialization_markers,
                 );
             }
+        }
+    }
+
+    fn post_deserialization(&mut self, entity_names: &ComponentList<SerializationMarker>) {
+        for this_one in self.iter_mut() {
+            this_one.inner_mut().post_deserialization(entity_names);
         }
     }
 }

@@ -75,7 +75,7 @@ pub fn entity_list(
             &ecs.component_database.graph_nodes,
             &mut ecs.component_database.names,
             &ecs.component_database.prefab_markers,
-            &mut ecs.component_database.serialization_marker,
+            &mut ecs.component_database.serialization_markers,
             &mut |entity, names, serialization_data, prefabs, mut name_inspector_params| {
                 // Update Name Inspector Parameter:
                 name_inspector_params.is_serialized = serialization_data.contains(entity);
@@ -115,7 +115,7 @@ pub fn entity_list(
                     has_children: false,
                     is_serialized: ecs
                         .component_database
-                        .serialization_marker
+                        .serialization_markers
                         .get(entity)
                         .is_some(),
                 };
@@ -137,7 +137,7 @@ pub fn entity_list(
                 NameRequestedAction::Serialize => {
                     let serialization_id = ecs
                         .component_database
-                        .serialization_marker
+                        .serialization_markers
                         .get(&entity)
                         .map(|sc| sc.inner().id);
 
@@ -158,7 +158,7 @@ pub fn entity_list(
                 }
                 NameRequestedAction::Unserialize => {
                     let can_unserialize = if let Some(serialization_data) =
-                        ecs.component_database.serialization_marker.get(&entity)
+                        ecs.component_database.serialization_markers.get(&entity)
                     {
                         match serialization_util::entities::unserialize_entity(
                             &serialization_data.inner().id,
@@ -175,7 +175,7 @@ pub fn entity_list(
                     };
 
                     if can_unserialize {
-                        ecs.component_database.serialization_marker.unset(&entity);
+                        ecs.component_database.serialization_markers.unset(&entity);
                     } else {
                         error!("Couldn't find the entity to unserialize it!");
                     }
@@ -230,6 +230,42 @@ pub fn entity_list(
                     }
                 }
 
+                NameRequestedAction::UnpackPrefab => {
+                    let mut success = false;
+
+                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity)
+                    {
+                        if let Some(serialization_marker) =
+                            ecs.component_database.serialization_markers.get(&entity)
+                        {
+                            let serialized_entity =
+                                serialization_util::entities::load_committed_entity(
+                                    &serialization_marker.inner(),
+                                );
+
+                            if let Ok(Some(mut serialized_entity)) = serialized_entity {
+                                prefab_marker
+                                    .inner()
+                                    .uncommit_to_scene(&mut serialized_entity);
+
+                                success = serialization_util::entities::commit_entity_to_scene(
+                                    serialized_entity,
+                                )
+                                .is_ok();
+                            }
+                        }
+                    }
+
+                    if success {
+                        ecs.component_database.prefab_markers.unset(&entity);
+                    } else {
+                        error!(
+                            "We couldn't unpack entity {}! It should still be safely serialized as a prefab.", 
+                            Name::get_name_quick(&ecs.component_database.names, &entity)
+                        );
+                    }
+                }
+
                 NameRequestedAction::LogPrefab => {
                     if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity)
                     {
@@ -239,7 +275,7 @@ pub fn entity_list(
                             prefab.log_to_console();
                         } else {
                             info!(
-                                "{} had a PrefabMaker but no Prefab was found in the Cache!",
+                                "{} had a PrefabMarker but no Prefab was found in the Cache!",
                                 Name::get_name_quick(&ecs.component_database.names, &entity)
                             );
                         }
@@ -252,7 +288,7 @@ pub fn entity_list(
                 }
                 NameRequestedAction::LogSerializedEntity => {
                     if let Some(serialization_marker) =
-                        ecs.component_database.serialization_marker.get_mut(&entity)
+                        ecs.component_database.serialization_markers.get_mut(&entity)
                     {
                         if let Some(cached) =
                             serialization_marker.inner_mut().cached_serialized_entity()

@@ -12,6 +12,7 @@ pub enum NameRequestedAction {
     Delete,
 
     PromoteToPrefab,
+    UnpackPrefab,
     GoToPrefab,
 
     LogEntity,
@@ -78,7 +79,7 @@ impl Default for PrefabStatus {
 pub struct EntityListInformation {
     pub open: bool,
     pub color: Color,
-    pub edit_name: NameEdit,
+    pub edit_name: Option<String>,
 }
 
 impl Default for EntityListInformation {
@@ -86,14 +87,7 @@ impl Default for EntityListInformation {
         EntityListInformation {
             open: false,
             color: Color::WHITE,
-            edit_name: NameEdit::NoEdit,
+            edit_name: None,
         }
     }
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub enum NameEdit {
-    First,
-    Editing,
-    NoEdit,
 }

@@ -22,26 +22,3 @@
     active: true
   id: 84389a47-fa6e-4420-bf02-26e86cb6ffb8
   marker: ~
-49eb3578-9977-47ae-b080-b2eee1ea4286:
-  name: ~
-  player: ~
-  transform: ~
-  grid_object: ~
-  scene_switcher: ~
-  graph_node: ~
-  velocity: ~
-  sprite: ~
-  sound_source: ~
-  draw_rectangle: ~
-  bounding_box: ~
-  text_source: ~
-  tilemap: ~
-  follow: ~
-  conversant_npc: ~
-  prefab_marker:
-    inner:
-      main_id: b7e35ef7-1ad1-4ab7-a8ee-c2d573bd141c
-      sub_id: b7e35ef7-1ad1-4ab7-a8ee-c2d573bd141c
-    active: true
-  id: 49eb3578-9977-47ae-b080-b2eee1ea4286
-  marker: Camera

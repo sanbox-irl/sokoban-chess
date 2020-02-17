@@ -51,7 +51,7 @@ impl Clockwork {
                 &mut self.hardware_interfaces.input,
                 &mut self.hardware_interfaces.window.events_loop,
                 &self.hardware_interfaces.window.window,
-                |ev, window| imgui.take_input(window, ev),
+                &mut imgui,
             );
 
             if self.hardware_interfaces.input.end_requested {
@@ -194,12 +194,6 @@ impl Clockwork {
         // Initialize the ECS
         let mut ecs = Ecs::new(&resources.prefabs())?;
         ecs.game_start(resources, hardware_interfaces, &mut grid)?;
-
-        // Load in the Scene Graph
-        scene_graph::build_flat(
-            &mut ecs.component_database.transforms,
-            &ecs.component_database.serialization_marker,
-        );
 
         info!("..Scene Loaded!");
 
