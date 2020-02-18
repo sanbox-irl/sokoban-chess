@@ -1,6 +1,6 @@
 use super::{
-    Component, ComponentList, Entity, Name, PrefabMap, PrefabStatus, SerializationDelta,
-    SerializationMarker, SerializedEntity,
+    Component, ComponentList, Entity, Name, PrefabMap, PrefabStatus, SerializationDelta, SerializationMarker,
+    SerializedEntity,
 };
 use failure::Fallible;
 use imgui::Ui;
@@ -94,11 +94,9 @@ where
         }
     }
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>) {
-        if imgui::MenuItem::new(&imgui::ImString::new(
-            super::imgui_system::typed_text_ui::<T>(),
-        ))
-        .enabled(self.get(index).is_none())
-        .build(ui)
+        if imgui::MenuItem::new(&imgui::ImString::new(super::imgui_system::typed_text_ui::<T>()))
+            .enabled(self.get(index).is_none())
+            .build(ui)
         {
             self.set_component(index, T::default());
         }
@@ -165,8 +163,7 @@ where
     }
 
     fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds> {
-        self.get_mut(index)
-            .map(|component| component.inner_mut() as _)
+        self.get_mut(index).map(|component| component.inner_mut() as _)
     }
 }
 
@@ -180,12 +177,7 @@ where
     }
 
     /// Simply a wrapper around creating a new component
-    pub fn set_component_with_active(
-        &mut self,
-        entity_id: &Entity,
-        new_component: T,
-        active: bool,
-    ) {
+    pub fn set_component_with_active(&mut self, entity_id: &Entity, new_component: T, active: bool) {
         self.set(
             &entity_id,
             Component::with_active(&entity_id, new_component, active),

@@ -1,6 +1,7 @@
 use super::{
-    ComponentData, ComponentList, Entity, GraphNode, Name, NameInspectorParameters,
-    PrefabMarker, SerializationMarker, Transform, Vec2,
+    ComponentData, ComponentDatabase, ComponentList, Entity, GraphNode, Name, NameInspectorParameters,
+    PrefabMarker, ResourcesDatabase, SerializationMarker, SerializedEntity, SingletonDatabase, Transform,
+    Vec2,
 };
 use lazy_static::lazy_static;
 use std::sync::Mutex;
@@ -40,9 +41,7 @@ fn walk_node(
     last_world_position: Vec2,
 ) {
     let new_world_position = if let Some(transform) = transforms.get_mut(entity) {
-        transform
-            .inner_mut()
-            .update_world_position(last_world_position)
+        transform.inner_mut().update_world_position(last_world_position)
     } else {
         last_world_position
     };
@@ -62,16 +61,15 @@ type GraphInspectorLambda<'a> = &'a mut dyn FnMut(
     &Entity,
     &mut ComponentList<Name>,
     &mut ComponentList<SerializationMarker>,
+    Option<SerializedEntity>,
     &ComponentList<PrefabMarker>,
     NameInspectorParameters,
 ) -> bool;
 
 pub fn walk_graph_inspect(
-    transforms: &ComponentList<Transform>,
-    nodes: &ComponentList<GraphNode>,
-    names: &mut ComponentList<Name>,
-    prefabs: &ComponentList<PrefabMarker>,
-    serialization_data: &mut ComponentList<SerializationMarker>,
+    component_database: &mut super::ComponentDatabase,
+    singleton_database: &mut SingletonDatabase,
+    resources: &ResourcesDatabase,
     f: GraphInspectorLambda<'_>,
 ) {
     let root_nodes = ROOT_NODES.lock().unwrap();
@@ -79,16 +77,7 @@ pub fn walk_graph_inspect(
     if let Some(root_nodes) = &root_nodes.children {
         for secondary_node in root_nodes {
             if let Some(target) = &secondary_node.target {
-                walk_node_inspect(
-                    target,
-                    transforms,
-                    nodes,
-                    names,
-                    prefabs,
-                    serialization_data,
-                    0,
-                    f,
-                );
+                walk_node_inspect(target, component_database, singleton_database, resources, 0, f);
             }
         }
     }
@@ -96,16 +85,29 @@ pub fn walk_graph_inspect(
 
 fn walk_node_inspect(
     entity: &Entity,
-    transforms: &ComponentList<Transform>,
-    nodes: &ComponentList<GraphNode>,
-    names: &mut ComponentList<Name>,
-    prefabs: &ComponentList<PrefabMarker>,
-    serialization_data: &mut ComponentList<SerializationMarker>,
+    component_database: &mut ComponentDatabase,
+    singleton_database: &mut SingletonDatabase,
+    resources: &ResourcesDatabase,
     depth: usize,
     f: GraphInspectorLambda<'_>,
 ) {
+    // Unwrap our parts:
+    let current_se: Option<SerializedEntity> =
+        if let Some(se) = component_database.serialization_markers.get(entity) {
+            SerializedEntity::new(
+                entity,
+                se.inner().id,
+                component_database,
+                singleton_database,
+                resources,
+            )
+        } else {
+            None
+        };
+
     let mut show_children = true;
-    let has_children: bool = nodes
+    let has_children: bool = component_database
+        .graph_nodes
         .get(entity)
         .map(|n| {
             if let Some(children) = &n.inner().children {
@@ -116,16 +118,19 @@ fn walk_node_inspect(
         })
         .unwrap_or_default();
 
-    if transforms.get(entity).is_some() {
+    let has_transform = component_database.transforms.contains(entity);
+
+    if has_transform {
         show_children = f(
             entity,
-            names,
-            serialization_data,
-            prefabs,
+            &mut component_database.names,
+            &mut component_database.serialization_markers,
+            current_se,
+            &component_database.prefab_markers,
             NameInspectorParameters {
                 depth,
                 has_children,
-                is_serialized: Default::default(),
+                serialization_status: Default::default(),
                 prefab_status: Default::default(),
                 being_inspected: Default::default(),
             },
@@ -133,17 +138,18 @@ fn walk_node_inspect(
     }
 
     if show_children {
-        if let Some(this_node) = nodes.get(entity) {
+        // We're forced to break Rust borrowing rules here again, because we're a bad bitch.
+        let graph_nodes: *const ComponentList<GraphNode> = &component_database.graph_nodes;
+
+        if let Some(this_node) = unsafe { &*graph_nodes }.get(entity) {
             if let Some(children) = &this_node.inner().children {
                 for child in children {
                     if let Some(target) = &child.target {
                         walk_node_inspect(
                             target,
-                            transforms,
-                            nodes,
-                            names,
-                            prefabs,
-                            serialization_data,
+                            component_database,
+                            singleton_database,
+                            resources,
                             depth + 1,
                             f,
                         );

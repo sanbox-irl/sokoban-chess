@@ -1,6 +1,6 @@
 use super::{
-    serialization_util, tile_resources::*, tilemap::*, Color, ComponentBounds, DrawOrder,
-    EditingMode, FragmentedData, InspectorParameters, Tile, Vec2Int,
+    serialization_util, tile_resources::*, tilemap::*, Color, ComponentBounds, DrawOrder, EditingMode,
+    FragmentedData, InspectorParameters, Tile, Vec2Int,
 };
 use failure::Error;
 
@@ -16,8 +16,7 @@ pub struct TilemapSerialized {
 
 impl TilemapSerialized {
     pub fn from_tilemap(tilemap: Tilemap, id: &uuid::Uuid) -> Result<TilemapSerialized, Error> {
-        let fragmented_data =
-            serialization_util::tilemaps::serialize_tiles(&tilemap, &id.to_string())?;
+        let fragmented_data = serialization_util::tilemaps::serialize_tiles(&tilemap, &id.to_string())?;
 
         Ok(TilemapSerialized {
             tiles: fragmented_data,
@@ -48,7 +47,7 @@ impl ComponentBounds for TilemapSerialized {
         ip.ui
             .text("Tilemaps cannot currently be added as a Prefab because I'm lazy as shit!");
     }
-    
+
     fn is_serialized(&self, se: &super::SerializedEntity, active: bool) -> bool {
         se.tilemap
             .as_ref()

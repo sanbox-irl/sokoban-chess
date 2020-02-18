@@ -24,12 +24,8 @@ impl Ecs {
 
         // Deserialize Entities and Singletons
         let mut marker_map = std::collections::HashMap::new();
-        let component_database = ComponentDatabase::new(
-            &mut entity_allocator,
-            &mut entities,
-            &mut marker_map,
-            prefabs,
-        )?;
+        let component_database =
+            ComponentDatabase::new(&mut entity_allocator, &mut entities, &mut marker_map, prefabs)?;
 
         let singleton_database = SingletonDatabase::new(marker_map)?;
 
@@ -51,10 +47,7 @@ impl Ecs {
         self.singleton_database
             .initialize_with_runtime_resources(resources, hardware_interfaces);
 
-        tilemap_system::initialize_tilemaps(
-            &mut self.component_database.tilemaps,
-            &resources.tilesets,
-        );
+        tilemap_system::initialize_tilemaps(&mut self.component_database.tilemaps, &resources.tilesets);
 
         player_system::initialize_players(
             &mut self.component_database.players,
@@ -71,11 +64,7 @@ impl Ecs {
         Ok(())
     }
 
-    pub fn update(
-        &mut self,
-        grid: &mut grid_system::Grid,
-        actions: &ActionMap,
-    ) -> Result<(), Error> {
+    pub fn update(&mut self, grid: &mut grid_system::Grid, actions: &ActionMap) -> Result<(), Error> {
         // // Player Stuff
         player_system::player_update(
             &mut self.component_database.players,
@@ -173,8 +162,7 @@ impl Ecs {
 
     pub fn clone_entity(&mut self, original: &Entity) -> Entity {
         let new_entity = self.create_entity();
-        self.component_database
-            .clone_components(original, &new_entity);
+        self.component_database.clone_components(original, &new_entity);
 
         new_entity
     }

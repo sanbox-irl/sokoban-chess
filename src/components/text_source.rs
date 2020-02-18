@@ -37,8 +37,7 @@ impl ComponentBounds for TextSource {
         }
 
         //pub scale: Vec2
-        self.scale
-            .inspector(&ip.ui, &imgui::im_str!("Scale##{}", ip.uid));
+        self.scale.inspector(&ip.ui, &imgui::im_str!("Scale##{}", ip.uid));
 
         //  pub screen_mod: f32
         ip.ui
@@ -60,9 +59,7 @@ impl ComponentBounds for TextSource {
             self.horizontal_align = new_horizontal;
         }
 
-        if let Some(new_vertical) =
-            imgui_system::typed_enum_selection(&ip.ui, &self.vertical_align, ip.uid)
-        {
+        if let Some(new_vertical) = imgui_system::typed_enum_selection(&ip.ui, &self.vertical_align, ip.uid) {
             self.vertical_align = new_vertical;
         }
 

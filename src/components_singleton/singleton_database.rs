@@ -1,6 +1,6 @@
 use super::{
-    serialization_util, Camera, Entity, Marker, RenderingUtility, ResourcesDatabase,
-    SingletonBounds, SingletonComponent,
+    serialization_util, Camera, Entity, Marker, RenderingUtility, ResourcesDatabase, SingletonBounds,
+    SingletonComponent,
 };
 use std::collections::HashMap;
 
@@ -44,9 +44,7 @@ impl SingletonDatabase {
 
         edit_function(&mut serialized_singletons, live_component);
 
-        serialization_util::singleton_components::serialize_singleton_database(
-            &serialized_singletons,
-        )
+        serialization_util::singleton_components::serialize_singleton_database(&serialized_singletons)
     }
 
     pub fn initialize_with_runtime_resources(

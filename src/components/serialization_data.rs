@@ -1,13 +1,15 @@
-use super::{serialization_util, ComponentBounds, InspectorParameters, SerializedEntity};
+use super::{
+    component_utils::SyncStatus, serialization_util, ComponentBounds, InspectorParameters, SerializedEntity,
+};
 use imgui::*;
 use std::time::{Duration, Instant};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, typename::TypeName)]
+#[derive(Debug, PartialEq, typename::TypeName)]
 pub struct SerializationMarker {
     pub id: Uuid,
-    #[serde(skip)]
-    last_save_data_read: Option<(Instant, SerializedEntity)>,
+    last_save_time: Instant,
+    cached_serialized_entity: Option<SerializedEntity>,
 }
 
 impl Clone for SerializationMarker {
@@ -20,7 +22,8 @@ impl SerializationMarker {
     pub fn new(id: Uuid) -> Self {
         Self {
             id,
-            last_save_data_read: None,
+            last_save_time: Instant::now(),
+            cached_serialized_entity: None,
         }
     }
 
@@ -28,73 +31,76 @@ impl SerializationMarker {
     /// our serialization data might have been destroyed. If a value is retreived,
     /// it is no more than 5 seconds old.
     pub fn cached_serialized_entity(&mut self) -> Option<&SerializedEntity> {
-        if self.last_save_data_read.is_none() {
-            self.imgui_serialization();
-        }
-        self.last_save_data_read.as_ref().map(|s| &s.1)
+        self.update_cache();
+        self.cached_serialized_entity.as_ref()
     }
 
     pub fn entity_inspector_results(&mut self, ip: InspectorParameters<'_, '_>) -> bool {
-        let reload_se = self
-            .last_save_data_read
-            .as_ref()
-            .map_or(true, |(last_date, _)| {
-                let time_since: Duration = Instant::now() - *last_date;
-                time_since.as_secs() > 5
-            });
-
-        if reload_se {
-            self.imgui_serialization();
-        }
+        self.update_cache();
 
         let mut serialize_entity = false;
 
-        if let Some((last_read, serialized_entity)) = &mut self.last_save_data_read {
-            ip.ui.text(im_str!("Entity UUID {}", serialized_entity.id));
-
-            if ip
-                .ui
-                .button(&im_str!("Copy UUID to Clipboard##{}", ip.uid), [0.0, 0.0])
-            {
-                ip.ui
-                    .set_clipboard_text(&im_str!("{}", serialized_entity.id));
+        if let Some(serialized_entity) = &mut self.cached_serialized_entity {
+            if ip.ui.button(&im_str!("Copy UUID##{}", ip.uid), [0.0, 0.0]) {
+                ip.ui.set_clipboard_text(&im_str!("{}", serialized_entity.id));
             }
             ip.ui.same_line(0.0);
 
             if ip
                 .ui
-                .button(&im_str!("Log Serialized Entity##{}", ip.uid), [0.0, 0.0])
+                .button(&im_str!("Log Cached Serialized Entity##{}", ip.uid), [0.0, 0.0])
             {
-                info!(
+                println!(
                     "Loaded in {}s ago",
-                    (Instant::now() - *last_read).as_secs_f32()
+                    (Instant::now() - self.last_save_time).as_secs_f32()
                 );
                 serialized_entity.log_to_console();
             }
         } else {
-            if ip
-                .ui
-                .button(im_str!("Begin Serializing Entity"), [-1.0, 0.0])
-            {
+            if ip.ui.button(im_str!("Begin Serializing Entity"), [-1.0, 0.0]) {
                 serialize_entity = true;
             }
-        }
-
-        if ip.is_open == false {
-            self.last_save_data_read = None;
         }
 
         serialize_entity
     }
 
+    pub fn get_serialization_status(&mut self, serialized_entity: Option<&SerializedEntity>) -> SyncStatus {
+        if let Some(cached_se) = &self.cached_serialized_entity {
+            if let Some(serialized_entity) = serialized_entity {
+                if cached_se == serialized_entity {
+                    SyncStatus::Synced
+                } else {
+                    SyncStatus::OutofSync
+                }
+            } else {
+                // Da fuck is going on here?
+                SyncStatus::Headless
+            }
+        } else {
+            SyncStatus::Unsynced
+        }
+    }
+
     fn imgui_serialization(&mut self) {
         match serialization_util::entities::load_committed_entity(self) {
             Ok(maybe_serialized_entity) => {
-                self.last_save_data_read = maybe_serialized_entity.map(|se| (Instant::now(), se))
+                self.cached_serialized_entity = maybe_serialized_entity;
             }
             Err(e) => {
                 error!("Couldn't deserialize entity {}! {}", self.id, e);
             }
+        }
+    }
+
+    fn update_cache(&mut self) {
+        let reload_se = {
+            let time_since: Duration = Instant::now() - self.last_save_time;
+            time_since.as_secs() > 5
+        };
+
+        if reload_se {
+            self.imgui_serialization();
         }
     }
 }
@@ -103,7 +109,8 @@ impl Default for SerializationMarker {
     fn default() -> Self {
         Self {
             id: Uuid::new_v4(),
-            last_save_data_read: None,
+            cached_serialized_entity: None,
+            last_save_time: Instant::now(),
         }
     }
 }

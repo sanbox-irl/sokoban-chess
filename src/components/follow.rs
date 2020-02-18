@@ -18,9 +18,7 @@ impl ComponentBounds for Follow {
         self.target.inspect("Target", &ip);
 
         // Approach Type
-        if let Some(new_approach_type) =
-            imgui_system::typed_enum_selection(ip.ui, &self.approach, ip.uid)
-        {
+        if let Some(new_approach_type) = imgui_system::typed_enum_selection(ip.ui, &self.approach, ip.uid) {
             self.approach = new_approach_type;
         }
 
@@ -58,14 +56,9 @@ impl ComponentBounds for Follow {
     ) {
         se.follow = Some({
             let mut clone: Follow = self.clone();
-            clone
-                .target
-                .entity_id_to_serialized_refs(&serialization_markers);
+            clone.target.entity_id_to_serialized_refs(&serialization_markers);
 
-            super::SerializedComponent {
-                inner: clone,
-                active,
-            }
+            super::SerializedComponent { inner: clone, active }
         });
     }
 
@@ -78,7 +71,6 @@ impl ComponentBounds for Follow {
         _: super::Entity,
         serialization_markers: &super::ComponentList<super::SerializationMarker>,
     ) {
-        self.target
-            .serialized_refs_to_entity_id(serialization_markers);
+        self.target.serialized_refs_to_entity_id(serialization_markers);
     }
 }

@@ -45,8 +45,7 @@ impl ComponentDatabase {
         let mut post_deserialization_needed = None;
 
         for (_, s_entity) in saved_entities.into_iter() {
-            let new_entity =
-                Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
+            let new_entity = Ecs::create_entity_raw(&mut component_database, entity_allocator, entities);
 
             if let Some(post) = component_database.load_serialized_entity(
                 &new_entity,
@@ -70,16 +69,13 @@ impl ComponentDatabase {
             );
         }
 
-        
         Ok(component_database)
     }
 
     pub fn register_entity(&mut self, entity: Entity) {
         let index = entity.index();
         if index == self.size {
-            self.foreach_component_list_mut(NonInspectableEntities::all(), |list| {
-                list.expand_list()
-            });
+            self.foreach_component_list_mut(NonInspectableEntities::all(), |list| list.expand_list());
             self.size = index + 1;
         }
     }
@@ -132,10 +128,7 @@ impl ComponentDatabase {
     /// - SerializationMarker
     /// - GraphNode
     /// Use `foreach_component_list` to iterate over all.
-    fn foreach_component_list_inspectable_mut(
-        &mut self,
-        f: &mut impl FnMut(&mut dyn ComponentListBounds),
-    ) {
+    fn foreach_component_list_inspectable_mut(&mut self, f: &mut impl FnMut(&mut dyn ComponentListBounds)) {
         f(&mut self.transforms);
         f(&mut self.grid_objects);
         f(&mut self.players);
@@ -213,10 +206,8 @@ impl ComponentDatabase {
         prefabs: &PrefabMap,
     ) -> Option<PostDeserializationRequired> {
         // Make a serialization data thingee on it...
-        self.serialization_markers.set_component(
-            &entity,
-            SerializationMarker::new(serialized_entity.id.clone()),
-        );
+        self.serialization_markers
+            .set_component(&entity, SerializationMarker::new(serialized_entity.id.clone()));
 
         // If it's got a prefab, load the prefab. Otherwise,
         // load it like a normal serialized entity:
@@ -233,7 +224,9 @@ impl ComponentDatabase {
 
             if success.is_none() {
                 if Ecs::remove_entity_raw(entity_allocator, entities, self, entity) == false {
-                    error!("We couldn't remove the entity either! Watch out -- weird stuff might happen there.");
+                    error!(
+                        "We couldn't remove the entity either! Watch out -- weird stuff might happen there."
+                    );
                 }
                 return None;
             }
@@ -261,19 +254,13 @@ impl ComponentDatabase {
         if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
             let root_entity: SerializedEntity = prefab.root_entity().clone();
-            let root_entity_children: SerializedComponentWrapper<GraphNode> =
-                root_entity.graph_node.clone();
+            let root_entity_children: SerializedComponentWrapper<GraphNode> = root_entity.graph_node.clone();
 
-            let post_marker = self.load_serialized_entity_into_database(
-                entity_to_load_into,
-                root_entity,
-                marker_map,
-            );
+            let post_marker =
+                self.load_serialized_entity_into_database(entity_to_load_into, root_entity, marker_map);
 
-            self.prefab_markers.set_component(
-                entity_to_load_into,
-                PrefabMarker::new_main(prefab.root_id()),
-            );
+            self.prefab_markers
+                .set_component(entity_to_load_into, PrefabMarker::new_main(prefab.root_id()));
 
             if let Some(SerializedComponent { inner, .. }) = root_entity_children {
                 if let Some(children) = inner.children {
@@ -282,8 +269,7 @@ impl ComponentDatabase {
 
                         match prefab.members.get(&member_serialized_id).cloned() {
                             Some(serialized_entity) => {
-                                let new_id =
-                                    Ecs::create_entity_raw(self, entity_allocator, entities);
+                                let new_id = Ecs::create_entity_raw(self, entity_allocator, entities);
 
                                 post_marker.fold_in(self.load_serialized_entity_into_database(
                                     &new_id,
@@ -310,9 +296,7 @@ impl ComponentDatabase {
                     {
                         if children.iter().all(|child| {
                             let id = child.target_serialized_id().unwrap();
-                            self.serialization_markers
-                                .iter()
-                                .any(|sd| sd.inner().id == id)
+                            self.serialization_markers.iter().any(|sd| sd.inner().id == id)
                         }) == false
                         {
                             error!(

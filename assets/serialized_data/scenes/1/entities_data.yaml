@@ -2,7 +2,17 @@
 84389a47-fa6e-4420-bf02-26e86cb6ffb8:
   name: ~
   player: ~
-  transform: ~
+  transform:
+    inner:
+      local_position:
+        x: 10.0
+        y: 16.0
+      world_position:
+        x: 10.0
+        y: 16.0
+      parent:
+        target_serialized_id: ~
+    active: true
   grid_object: ~
   scene_switcher: ~
   graph_node: ~

@@ -24,10 +24,7 @@ pub fn serialize_sprite(sprite_data: &SpriteData) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn load_sprite(
-    sprite_name: SpriteName,
-    texture_page_handle: usize,
-) -> Result<SpriteData, Error> {
+pub fn load_sprite(sprite_name: SpriteName, texture_page_handle: usize) -> Result<SpriteData, Error> {
     let sprites: Vec<SpriteInGameData> = load_sprites()?;
     let sprite_sheet = load_spritesheets()?;
 

@@ -1,6 +1,6 @@
 use super::{
-    component_utils::SerializableEntityReference, Color, ComponentBounds, Entity,
-    InspectorParameters, SerializablePrefabReference,
+    component_utils::SerializableEntityReference, Color, ComponentBounds, Entity, InspectorParameters,
+    SerializablePrefabReference,
 };
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
@@ -22,8 +22,7 @@ pub struct ConversantNPC {
 impl ComponentBounds for ConversantNPC {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
         // pub ui_component_entity: SerializableEntityReference
-        self.conversation_partner
-            .inspect("Conversation Partner", &ip);
+        self.conversation_partner.inspect("Conversation Partner", &ip);
 
         // pub initial_ui_prefab: SerializablePrefabReference,
         self.initial_ui_prefab.inspect("Bang UI", &ip);
@@ -67,10 +66,7 @@ impl ComponentBounds for ConversantNPC {
                 .conversation_partner
                 .entity_id_to_serialized_refs(&serialization_marker);
 
-            super::SerializedComponent {
-                inner: clone,
-                active,
-            }
+            super::SerializedComponent { inner: clone, active }
         });
     }
 

@@ -1,15 +1,13 @@
 use super::{
-    cardinals::CardinalPrime, scene_system, Component, ComponentList, Ecs, Entity, GridObject,
-    GridType, Marker, Name, Transform, Vec2,
+    cardinals::CardinalPrime, scene_system, Component, ComponentList, Ecs, Entity, GridObject, GridType,
+    Marker, Name, Transform, Vec2,
 };
 use array2d::Array2D;
 
 pub const GRID_DIMENSIONS: (usize, usize) = (5, 10);
 pub const GRID_DIMENSIONS_MIN_F32: (f32, f32) = (8.0, 8.0);
-pub const GRID_DIMENSIONS_MAX_F32: (f32, f32) = (
-    GRID_DIMENSIONS.0 as f32 * 8.0,
-    GRID_DIMENSIONS.1 as f32 * 8.0,
-);
+pub const GRID_DIMENSIONS_MAX_F32: (f32, f32) =
+    (GRID_DIMENSIONS.0 as f32 * 8.0, GRID_DIMENSIONS.1 as f32 * 8.0);
 pub type Grid = Array2D<Option<Entity>>;
 
 pub fn update_grid_positions(ecs: &mut Ecs, grid: &mut Grid) {
@@ -26,9 +24,7 @@ pub fn update_grid_positions(ecs: &mut Ecs, grid: &mut Grid) {
                     grid_object.move_to_point_pos.y as usize,
                 );
 
-                if desired_position.0 >= GRID_DIMENSIONS.0
-                    || desired_position.1 >= GRID_DIMENSIONS.1
-                {
+                if desired_position.0 >= GRID_DIMENSIONS.0 || desired_position.1 >= GRID_DIMENSIONS.1 {
                     error!("Couldn't move! Attempting to move to far!")
                 } else {
                     move_entity(transform, grid, desired_position, current_position);
@@ -136,8 +132,7 @@ fn attempt_to_move(
         match grid_type {
             GridType::Flag => {
                 if my_object_type == GridType::Player {
-                    if let Some(scene_switcher) =
-                        ecs.component_database.scene_switchers.get(&entity_in_grid)
+                    if let Some(scene_switcher) = ecs.component_database.scene_switchers.get(&entity_in_grid)
                     {
                         if scene_system::set_next_scene(super::Scene::new(
                             scene_switcher.inner().target_scene.clone(),
@@ -174,10 +169,7 @@ fn attempt_to_move(
 
     if move_to_spot {
         move_entity(
-            ecs.component_database
-                .transforms
-                .get_mut(entity_id)
-                .unwrap(),
+            ecs.component_database.transforms.get_mut(entity_id).unwrap(),
             grid,
             new_position,
             current_position,
@@ -187,12 +179,7 @@ fn attempt_to_move(
     move_to_spot
 }
 
-fn register_entity(
-    grid: &mut Grid,
-    entity: Entity,
-    position: Vec2,
-    _names: Option<&ComponentList<Name>>,
-) {
+fn register_entity(grid: &mut Grid, entity: Entity, position: Vec2, _names: Option<&ComponentList<Name>>) {
     if position.x >= GRID_DIMENSIONS_MIN_F32.0
         && position.x <= GRID_DIMENSIONS_MAX_F32.0
         && position.y >= GRID_DIMENSIONS_MIN_F32.0
@@ -224,8 +211,7 @@ fn world_to_grid_position(pos: Vec2) -> (usize, usize) {
 }
 
 fn grid_to_world_position(pos: (usize, usize)) -> Vec2 {
-    Vec2::new(pos.0 as f32, pos.1 as f32).cwise_product(Vec2::with_single(8.0))
-        + Vec2::with_single(8.0)
+    Vec2::new(pos.0 as f32, pos.1 as f32).cwise_product(Vec2::with_single(8.0)) + Vec2::with_single(8.0)
 }
 
 fn move_position(pos: (usize, usize), direction: CardinalPrime) -> Option<(usize, usize)> {

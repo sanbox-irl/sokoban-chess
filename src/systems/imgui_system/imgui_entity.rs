@@ -1,10 +1,6 @@
 use super::*;
 
-pub fn entity_list(
-    ecs: &mut Ecs,
-    resources: &mut ResourcesDatabase,
-    ui_handler: &mut UiHandler<'_>,
-) {
+pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     let mut open = true;
 
     // Top menu bar!
@@ -33,11 +29,7 @@ pub fn entity_list(
                     };
 
                     if imgui::MenuItem::new(&name).build(ui) {
-                        prefab_system::instantiate_entity_from_prefab(
-                            ecs,
-                            *prefab_id,
-                            resources.prefabs(),
-                        );
+                        prefab_system::instantiate_entity_from_prefab(ecs, *prefab_id, resources.prefabs());
                     }
                 }
 
@@ -50,7 +42,7 @@ pub fn entity_list(
                 prefab_submenu.end(ui);
             }
 
-            if imgui::MenuItem::new(im_str!("Serialize Scene")).build(ui) {
+            if imgui::MenuItem::new(im_str!("Serialize Scene")).build(ui) || ui_handler.can_save_scene() {
                 match serialization_util::entities::serialize_all_entities(
                     &ecs.entities,
                     &ecs.component_database,
@@ -71,14 +63,24 @@ pub fn entity_list(
 
         // SCENE GRAPH
         scene_graph::walk_graph_inspect(
-            &ecs.component_database.transforms,
-            &ecs.component_database.graph_nodes,
-            &mut ecs.component_database.names,
-            &ecs.component_database.prefab_markers,
-            &mut ecs.component_database.serialization_markers,
-            &mut |entity, names, serialization_data, prefabs, mut name_inspector_params| {
+            &mut ecs.component_database,
+            &mut ecs.singleton_database,
+            resources,
+            &mut |entity,
+                  names,
+                  serialization_data,
+                  current_serialized_entity,
+                  prefabs,
+                  mut name_inspector_params| {
                 // Update Name Inspector Parameter:
-                name_inspector_params.is_serialized = serialization_data.contains(entity);
+                name_inspector_params.serialization_status = serialization_data
+                    .get_mut(entity)
+                    .map(|smc| {
+                        smc.inner_mut()
+                            .get_serialization_status(current_serialized_entity.as_ref())
+                    })
+                    .unwrap_or_default();
+
                 name_inspector_params.being_inspected = ui_handler.stored_ids.contains(entity);
                 name_inspector_params.prefab_status = prefabs
                     .get(entity)
@@ -101,11 +103,44 @@ pub fn entity_list(
         ui_handler.ui.separator();
 
         // ENTITY_GRAPH
-        for entity in ecs.entities.iter_mut() {
+        let component_database = &mut ecs.component_database;
+        let singleton_database = &mut ecs.singleton_database;
+        let entities = &ecs.entities;
+
+        for entity in entities.iter() {
             if ui_handler.scene_graph_entities.contains(entity) == false {
+                let serialization_status: SyncStatus = {
+                    let serialization_id = component_database
+                        .serialization_markers
+                        .get(entity)
+                        .map(|sc| sc.inner().id);
+
+                    if let Some(s_id) = serialization_id {
+                        let se = SerializedEntity::new(
+                            entity,
+                            s_id,
+                            component_database,
+                            singleton_database,
+                            resources,
+                        );
+
+                        Some(
+                            component_database
+                                .serialization_markers
+                                .get_mut(entity)
+                                .as_mut()
+                                .unwrap()
+                                .inner_mut()
+                                .get_serialization_status(se.as_ref()),
+                        )
+                    } else {
+                        None
+                    }
+                    .unwrap_or_default()
+                };
+
                 let nip = NameInspectorParameters {
-                    prefab_status: ecs
-                        .component_database
+                    prefab_status: component_database
                         .prefab_markers
                         .get(entity)
                         .map(|_| PrefabStatus::PrefabInstance)
@@ -113,15 +148,10 @@ pub fn entity_list(
                     being_inspected: ui_handler.stored_ids.contains(entity),
                     depth: 0,
                     has_children: false,
-                    is_serialized: ecs
-                        .component_database
-                        .serialization_markers
-                        .get(entity)
-                        .is_some(),
+                    serialization_status,
                 };
 
-                let (_, actions) =
-                    display_entity_id(entity, &nip, &mut ecs.component_database.names, ui_handler);
+                let (_, actions) = display_entity_id(entity, &nip, &mut component_database.names, ui_handler);
                 if let Some(action) = actions {
                     later_action_on_entity = Some((*entity, action));
                 }
@@ -160,9 +190,8 @@ pub fn entity_list(
                     let can_unserialize = if let Some(serialization_data) =
                         ecs.component_database.serialization_markers.get(&entity)
                     {
-                        match serialization_util::entities::unserialize_entity(
-                            &serialization_data.inner().id,
-                        ) {
+                        match serialization_util::entities::unserialize_entity(&serialization_data.inner().id)
+                        {
                             Ok(success) => success,
                             Err(e) => {
                                 error!("Couldn't unserialize! IO Errors: {}", e);
@@ -200,8 +229,7 @@ pub fn entity_list(
                     ui_handler.stored_ids.remove(&entity);
                 }
                 NameRequestedAction::GoToPrefab => {
-                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity)
-                    {
+                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity) {
                         let id = prefab_marker.inner().main_id();
                         if scene_system::set_next_scene(Scene::new_prefab(id)) == false {
                             error!("Couldn't switch to Prefab {}", id);
@@ -233,25 +261,20 @@ pub fn entity_list(
                 NameRequestedAction::UnpackPrefab => {
                     let mut success = false;
 
-                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity)
-                    {
+                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity) {
                         if let Some(serialization_marker) =
                             ecs.component_database.serialization_markers.get(&entity)
                         {
-                            let serialized_entity =
-                                serialization_util::entities::load_committed_entity(
-                                    &serialization_marker.inner(),
-                                );
+                            let serialized_entity = serialization_util::entities::load_committed_entity(
+                                &serialization_marker.inner(),
+                            );
 
                             if let Ok(Some(mut serialized_entity)) = serialized_entity {
-                                prefab_marker
-                                    .inner()
-                                    .uncommit_to_scene(&mut serialized_entity);
+                                prefab_marker.inner().uncommit_to_scene(&mut serialized_entity);
 
-                                success = serialization_util::entities::commit_entity_to_scene(
-                                    serialized_entity,
-                                )
-                                .is_ok();
+                                success =
+                                    serialization_util::entities::commit_entity_to_scene(serialized_entity)
+                                        .is_ok();
                             }
                         }
                     }
@@ -260,18 +283,15 @@ pub fn entity_list(
                         ecs.component_database.prefab_markers.unset(&entity);
                     } else {
                         error!(
-                            "We couldn't unpack entity {}! It should still be safely serialized as a prefab.", 
+                            "We couldn't unpack entity {}! It should still be safely serialized as a prefab.",
                             Name::get_name_quick(&ecs.component_database.names, &entity)
                         );
                     }
                 }
 
                 NameRequestedAction::LogPrefab => {
-                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity)
-                    {
-                        if let Some(prefab) =
-                            resources.prefabs().get(&prefab_marker.inner().main_id())
-                        {
+                    if let Some(prefab_marker) = ecs.component_database.prefab_markers.get(&entity) {
+                        if let Some(prefab) = resources.prefabs().get(&prefab_marker.inner().main_id()) {
                             prefab.log_to_console();
                         } else {
                             info!(
@@ -290,9 +310,7 @@ pub fn entity_list(
                     if let Some(serialization_marker) =
                         ecs.component_database.serialization_markers.get_mut(&entity)
                     {
-                        if let Some(cached) =
-                            serialization_marker.inner_mut().cached_serialized_entity()
-                        {
+                        if let Some(cached) = serialization_marker.inner_mut().cached_serialized_entity() {
                             cached.log_to_console();
                         } else {
                             error!("We didn't have a Cached Serialized Entity. Is there a problem with the caching?");

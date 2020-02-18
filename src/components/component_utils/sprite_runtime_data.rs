@@ -34,12 +34,7 @@ impl Default for SpriteRunningData {
 
 impl SpriteRunningData {
     pub fn inspect(&mut self, ui: &imgui::Ui<'_>, uid: &str) {
-        cardinals::inspect_facing(
-            ui,
-            uid,
-            &mut self.facing_horizontal,
-            &mut self.facing_vertical,
-        );
+        cardinals::inspect_facing(ui, uid, &mut self.facing_horizontal, &mut self.facing_vertical);
         self.tint.inspect(ui, "Tint", uid);
         self.draw_order.inspect(ui, uid);
         self.scale.inspector(ui, &imgui::im_str!("Scale##{}", uid));
@@ -48,9 +43,6 @@ impl SpriteRunningData {
         ui.input_float(&imgui::im_str!("Frame Time##{}", uid), &mut self.frame_time)
             .build();
 
-        ui.checkbox(
-            &imgui::im_str!("Is Animating##{}", uid),
-            &mut self.is_animating,
-        );
+        ui.checkbox(&imgui::im_str!("Is Animating##{}", uid), &mut self.is_animating);
     }
 }

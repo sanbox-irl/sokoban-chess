@@ -1,6 +1,6 @@
 use super::{
-    Color, ComponentBounds, DrawOrder, InspectorParameters, Rect, StandardQuad,
-    StandardQuadFactory, TextureDescription, Vec2,
+    Color, ComponentBounds, DrawOrder, InspectorParameters, Rect, StandardQuad, StandardQuadFactory,
+    TextureDescription, Vec2,
 };
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, typename::TypeName)]

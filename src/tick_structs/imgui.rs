@@ -1,6 +1,4 @@
-use super::{
-    game_config::Config, ClipboardSupport, Entity, EntityAllocator, EntityListInformation, Window,
-};
+use super::{game_config::Config, ClipboardSupport, Entity, EntityAllocator, EntityListInformation, Window};
 use failure::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
@@ -67,9 +65,13 @@ impl ImGui {
         let mut meta_data: ImGuiMetaData = serde_yaml::from_str(data).unwrap_or_default();
 
         // Fix the meta_data!
-        meta_data
-            .stored_ids
-            .retain(|&id| entity_allocator.is_live(id));
+        meta_data.stored_ids.retain(|&id| entity_allocator.is_live(id));
+
+        // Mac Setup
+        #[cfg(target_os = "macos")]
+        {
+            imgui.io_mut().config_mac_os_behaviors = true;
+        }
 
         Self {
             imgui,
@@ -86,13 +88,13 @@ impl ImGui {
     }
 
     pub fn take_input(&mut self, window: &WinitWindow, event: &Event<'_, ()>) {
-        self.platform
-            .handle_event(self.imgui.io_mut(), window, event);
+        self.platform.handle_event(self.imgui.io_mut(), window, event);
     }
 
     pub fn begin_frame<'a>(
         &'a mut self,
         window: &Window,
+        pressed_save: bool,
         delta_time: f32,
     ) -> Result<UiHandler<'a>, Error> {
         self.platform
@@ -104,12 +106,13 @@ impl ImGui {
 
         Ok(UiHandler {
             platform: &self.platform,
-            ui,
             flags: &mut self.meta_data.flags,
             stored_ids: &mut self.meta_data.stored_ids,
             scene_graph_entities: &mut self.meta_data.entity_vec,
             entity_list_information: &mut self.meta_data.entity_list_information,
             scene_changing_info: &mut self.meta_data.scene_changing_info,
+            request_save: pressed_save && (ui.io().key_ctrl || ui.io().key_super),
+            ui,
         })
     }
 
@@ -129,8 +132,7 @@ impl ImGui {
         style.colors[imgui::StyleColor::Text as usize] = [0.95, 0.96, 0.98, 1.00];
         style.colors[imgui::StyleColor::TextDisabled as usize] = [0.36, 0.42, 0.47, 1.00];
         style.colors[imgui::StyleColor::WindowBg as usize] = [0.11, 0.15, 0.17, 1.00];
-        style.colors[imgui::StyleColor::ChildBg as usize] =
-            [27.0 / 255.0, 32.0 / 255.0, 46.0 / 255.0, 1.00];
+        style.colors[imgui::StyleColor::ChildBg as usize] = [27.0 / 255.0, 32.0 / 255.0, 46.0 / 255.0, 1.00];
         style.colors[imgui::StyleColor::PopupBg as usize] = [0.08, 0.08, 0.08, 0.94];
         style.colors[imgui::StyleColor::Border as usize] = [0.08, 0.10, 0.12, 1.00];
         style.colors[imgui::StyleColor::BorderShadow as usize] = [0.00, 0.00, 0.00, 0.00];
@@ -190,9 +192,18 @@ pub struct UiHandler<'a> {
     pub scene_graph_entities: &'a mut Vec<Entity>,
     pub entity_list_information: &'a mut HashMap<String, EntityListInformation>,
     pub scene_changing_info: &'a mut SceneImGuiManager,
+    request_save: bool,
 }
 
 impl<'a> UiHandler<'a> {
+    pub fn can_save_scene(&self) -> bool {
+        if super::scene_system::current_scene_mode() == super::SceneMode::Draft {
+            self.request_save
+        } else {
+            false
+        }
+    }
+
     pub fn prepare_render(&self, window: &Window) {
         self.platform.prepare_render(&self.ui, &window.window);
     }

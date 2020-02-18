@@ -14,10 +14,7 @@ impl Vec2 {
     }
 
     pub fn with_single(scalar: f32) -> Self {
-        Vec2 {
-            x: scalar,
-            y: scalar,
-        }
+        Vec2 { x: scalar, y: scalar }
     }
 
     pub fn with_axis(scalar: f32, axis: Axis) -> Self {

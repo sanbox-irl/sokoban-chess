@@ -1,6 +1,6 @@
 use super::{
-    tilemap::Tilemap, Camera, ComponentList, DrawRectangle, Entity, RenderingUtility,
-    ResourcesDatabase, Sprite, TextSource, Transform, Vec2,
+    tilemap::Tilemap, Camera, ComponentList, DrawRectangle, Entity, RenderingUtility, ResourcesDatabase,
+    Sprite, TextSource, Transform, Vec2,
 };
 
 #[derive(Default)]

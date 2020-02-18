@@ -32,10 +32,7 @@ pub fn sprite_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandl
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let sprite_resource_window = imgui::Window::new(imgui::im_str!("Sprite Resource"))
-        .size(
-            Vec2::new(290.0, 400.0).into(),
-            imgui::Condition::FirstUseEver,
-        )
+        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
         .opened(&mut close);
 
     if let Some(window) = sprite_resource_window.begin(ui) {
@@ -129,10 +126,7 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let tileset_viewer_window = imgui::Window::new(imgui::im_str!("Tileset Resources"))
-        .size(
-            Vec2::new(290.0, 400.0).into(),
-            imgui::Condition::FirstUseEver,
-        )
+        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
         .opened(&mut close);
 
     if let Some(window) = tileset_viewer_window.begin(ui) {
@@ -163,12 +157,12 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             // Visual Data
             this_tileset.visual_data.inspector(ui, &unique_id);
 
-            let mut current_editing_tile =
-                if let EditingMode::Editing(Some(v), _) = this_tileset.editing_mode {
-                    v
-                } else {
-                    0
-                };
+            let mut current_editing_tile = if let EditingMode::Editing(Some(v), _) = this_tileset.editing_mode
+            {
+                v
+            } else {
+                0
+            };
 
             let tileset_size = (this_tileset.size as i32).max(0);
 
@@ -220,16 +214,13 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             }
 
             if current_editing_tile != 0 {
-                this_tileset.editing_mode =
-                    EditingMode::Editing(Some(current_editing_tile), vec![]);
+                this_tileset.editing_mode = EditingMode::Editing(Some(current_editing_tile), vec![]);
             }
 
             // Serialize, Deserialize
             let serialize_label = im_str!("Serialize##{}", unique_id);
             if ui.button(&serialize_label, [0.0, 0.0]) {
-                if let Err(e) =
-                    serialization_util::tilesets::serialize_tileset(this_tileset.clone())
-                {
+                if let Err(e) = serialization_util::tilesets::serialize_tileset(this_tileset.clone()) {
                     error!(
                         "Couldn't serialize the tile set! Warning! Your data may be lost! {}",
                         e
@@ -241,8 +232,7 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
             if ui.button(&im_str!("Revert##{}", unique_id), [0.0, 0.0]) {
                 this_tileset.revert = true;
 
-                if let Ok(Some(reverted_tset)) =
-                    serialization_util::tilesets::load_tileset(this_tileset.name)
+                if let Ok(Some(reverted_tset)) = serialization_util::tilesets::load_tileset(this_tileset.name)
                 {
                     *this_tileset = reverted_tset;
                 }
@@ -255,31 +245,20 @@ pub fn tileset_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHand
     close
 }
 
-pub fn game_config_editor(
-    config: &mut game_config::Config,
-    ui_handler: &mut UiHandler<'_>,
-) -> bool {
+pub fn game_config_editor(config: &mut game_config::Config, ui_handler: &mut UiHandler<'_>) -> bool {
     let mut close = true;
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let game_config_window = imgui::Window::new(imgui::im_str!("Game Config Editor"))
-        .size(
-            Vec2::new(290.0, 400.0).into(),
-            imgui::Condition::FirstUseEver,
-        )
+        .size(Vec2::new(290.0, 400.0).into(), imgui::Condition::FirstUseEver)
         .opened(&mut close);
 
     if let Some(window) = game_config_window.begin(ui) {
         let uid = "game_config";
 
-        config
-            .window_size
-            .inspector(ui, &im_str!("Window Size##{}", uid));
+        config.window_size.inspector(ui, &im_str!("Window Size##{}", uid));
 
-        ui.input_float(
-            &im_str!("ImGui Font Size##{}", uid),
-            &mut config.imgui_pixel_size,
-        )
-        .build();
+        ui.input_float(&im_str!("ImGui Font Size##{}", uid), &mut config.imgui_pixel_size)
+            .build();
 
         // Serialize
         if ui.button(&im_str!("Serialize##{}", uid), [-1.0, 0.0]) {
@@ -296,10 +275,7 @@ pub fn game_config_editor(
     close
 }
 
-pub fn prefab_entity_viewer(
-    resources: &mut ResourcesDatabase,
-    ui_handler: &mut UiHandler<'_>,
-) -> bool {
+pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) -> bool {
     let mut open = true;
 
     let mut action_on_prefab: Option<(Uuid, NameRequestedAction)> = None;
@@ -316,7 +292,7 @@ pub fn prefab_entity_viewer(
                 depth: 0,
                 prefab_status: PrefabStatus::Prefab,
                 being_inspected: false,
-                is_serialized: false,
+                serialization_status: SyncStatus::Synced,
             };
 
             // ENTITY ELEMENTS:

@@ -1,6 +1,6 @@
 use super::{
-    serialization_util, ComponentDatabase, Ecs, Entity, Prefab, PrefabMap, PrefabMarker,
-    ResourcesDatabase, SerializedEntity, SingletonDatabase,
+    serialization_util, ComponentDatabase, Ecs, Entity, Prefab, PrefabMap, PrefabMarker, ResourcesDatabase,
+    SerializedEntity, SingletonDatabase,
 };
 use failure::Fallible;
 use uuid::Uuid;
@@ -33,11 +33,12 @@ pub fn instantiate_entity_from_prefab(
     );
 
     if let Some(post) = success {
-        ecs.component_database.post_deserialization(post, |component_list, sl| {
-            if let Some(inner) = component_list.get_mut(&entity) {
-                inner.post_deserialization(entity, sl);
-            }
-        });
+        ecs.component_database
+            .post_deserialization(post, |component_list, sl| {
+                if let Some(inner) = component_list.get_mut(&entity) {
+                    inner.post_deserialization(entity, sl);
+                }
+            });
 
         // Set our Prefab Marker
         ecs.component_database

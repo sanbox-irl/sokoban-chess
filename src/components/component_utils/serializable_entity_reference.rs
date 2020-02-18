@@ -44,10 +44,7 @@ impl SerializableEntityReference {
         self.target_serialized_id
     }
 
-    pub fn entity_id_to_serialized_refs(
-        &mut self,
-        serialized_list: &ComponentList<SerializationMarker>,
-    ) {
+    pub fn entity_id_to_serialized_refs(&mut self, serialized_list: &ComponentList<SerializationMarker>) {
         if let Some(target) = &self.target {
             if let Some(sd) = serialized_list.get(target) {
                 self.target_serialized_id = Some(sd.inner().id.clone());

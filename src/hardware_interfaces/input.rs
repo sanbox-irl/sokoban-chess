@@ -43,12 +43,7 @@ impl Input {
             }
 
             ElementState::Released => {
-                if let Some(vk_pos) = self
-                    .kb_input
-                    .held_keys
-                    .iter()
-                    .position(|&item| item == code)
-                {
+                if let Some(vk_pos) = self.kb_input.held_keys.iter().position(|&item| item == code) {
                     self.kb_input.held_keys.remove(vk_pos);
                     self.kb_input.released_keys.push(code);
                 }

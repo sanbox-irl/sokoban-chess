@@ -9,8 +9,8 @@ mod window;
 pub use input::{Input, KeyboardInput, MouseButton, MouseInput};
 pub use renderer::{
     BufferBundle, DrawingError, ImguiPushConstants, LoadedImage, PipelineBundle, RendererComponent,
-    RendererCreationError, StandardPushConstants, StandardQuad, StandardQuadFactory,
-    StandardTexture, TextureDescription, Vertex, VertexIndexPairBufferBundle,
+    RendererCreationError, StandardPushConstants, StandardQuad, StandardQuadFactory, StandardTexture,
+    TextureDescription, Vertex, VertexIndexPairBufferBundle,
 };
 
 pub use hardware_interface::HardwareInterface;

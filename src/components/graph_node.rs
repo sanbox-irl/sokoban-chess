@@ -1,6 +1,6 @@
 use super::{
-    component_utils::RawComponent, imgui_system, ComponentBounds, ComponentData, ComponentList,
-    Entity, InspectorParameters, SerializableEntityReference, SerializationMarker, Transform,
+    component_utils::RawComponent, imgui_system, ComponentBounds, ComponentData, ComponentList, Entity,
+    InspectorParameters, SerializableEntityReference, SerializationMarker, Transform,
 };
 
 #[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
@@ -98,8 +98,7 @@ impl GraphNode {
         assert_ne!(my_entity_id, Some(id));
 
         // Make the reference to the new_child...
-        let new_child_reference =
-            SerializableEntityReference::from_entity_id(Some(id), serializations);
+        let new_child_reference = SerializableEntityReference::from_entity_id(Some(id), serializations);
 
         match &mut self.children {
             Some(children) => children.push(new_child_reference),
@@ -134,10 +133,7 @@ impl ComponentBounds for GraphNode {
                 }
             }
 
-            super::SerializedComponent {
-                inner: clone,
-                active,
-            }
+            super::SerializedComponent { inner: clone, active }
         });
     }
 

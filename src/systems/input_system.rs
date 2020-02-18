@@ -25,12 +25,7 @@ pub fn poll_events(
         *control_flow = ControlFlow::Wait;
 
         // Callback
-        imgui_event_handler(
-            &mut imgui.platform,
-            imgui.imgui.io_mut(),
-            winit_window,
-            &event,
-        );
+        imgui_event_handler(&mut imgui.platform, imgui.imgui.io_mut(), winit_window, &event);
 
         // Our own Input Handling
         match event {
@@ -50,12 +45,8 @@ pub fn poll_events(
                 event: WindowEvent::Resized(logical),
                 ..
             } => {
-                input_component.new_frame_size =
-                    Some(Vec2::new(logical.width as f32, logical.height as f32));
-                info!(
-                    "New Requested Frame Size: {:?}",
-                    input_component.new_frame_size
-                );
+                input_component.new_frame_size = Some(Vec2::new(logical.width as f32, logical.height as f32));
+                info!("New Requested Frame Size: {:?}", input_component.new_frame_size);
             }
 
             Event::DeviceEvent {
@@ -74,8 +65,7 @@ pub fn poll_events(
                 event: WindowEvent::CursorMoved { position, .. },
                 ..
             } => {
-                input_component.mouse_input.mouse_position =
-                    Vec2::new(position.x as f32, position.y as f32);
+                input_component.mouse_input.mouse_position = Vec2::new(position.x as f32, position.y as f32);
             }
 
             Event::WindowEvent {
@@ -127,16 +117,12 @@ pub fn poll_events(
             }
 
             Event::WindowEvent {
-                event:
-                    WindowEvent::MouseWheel {
-                        delta: scroll_delta,
-                        ..
-                    },
+                event: WindowEvent::MouseWheel {
+                    delta: scroll_delta, ..
+                },
                 ..
             } => match scroll_delta {
-                MouseScrollDelta::PixelDelta(LogicalPosition {
-                    y: vertical_move, ..
-                }) => {
+                MouseScrollDelta::PixelDelta(LogicalPosition { y: vertical_move, .. }) => {
                     input_component.mouse_input.mouse_vertical_scroll_delta = -vertical_move as f32;
                 }
 
@@ -145,7 +131,7 @@ pub fn poll_events(
                 }
             },
 
-            #[cfg(feature = "metal")]
+            #[cfg(target_os = "macos")]
             Event::WindowEvent {
                 event:
                     WindowEvent::KeyboardInput {
@@ -174,10 +160,7 @@ pub fn imgui_event_handler<T>(
     event: &Event<'_, T>,
 ) {
     match *event {
-        Event::WindowEvent {
-            window_id,
-            ref event,
-        } if window_id == window.id() => {
+        Event::WindowEvent { window_id, ref event } if window_id == window.id() => {
             imgui_window_event(platform, io, window, event);
         }
         // Track key release events outside our window. If we don't do this,

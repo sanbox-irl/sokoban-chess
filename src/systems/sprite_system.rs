@@ -1,6 +1,6 @@
 use super::{
-    number_util, sprite_resources::FrameData, Axis, ComponentList, ResourcesDatabase, Sprite,
-    StandardQuad, StandardTexture, TextureDescription, Vec2,
+    number_util, sprite_resources::FrameData, Axis, ComponentList, ResourcesDatabase, Sprite, StandardQuad,
+    StandardTexture, TextureDescription, Vec2,
 };
 
 pub fn update_sprites<'a>(
@@ -31,11 +31,8 @@ pub fn to_standard_quad(sprite: &Sprite, pos: Vec2, resources: &ResourcesDatabas
     if let Some(sprite_name) = &sprite.sprite_name {
         if let Some(sprite_data) = resources.sprites.get(sprite_name) {
             let current_frame: &FrameData = {
-                let current_frame = number_util::wrap_usize(
-                    sprite.running_data.current_frame,
-                    0,
-                    sprite_data.frames.len(),
-                );
+                let current_frame =
+                    number_util::wrap_usize(sprite.running_data.current_frame, 0, sprite_data.frames.len());
                 &sprite_data.frames[current_frame]
             };
 
@@ -52,8 +49,7 @@ pub fn to_standard_quad(sprite: &Sprite, pos: Vec2, resources: &ResourcesDatabas
                     .cwise_product(sprite.running_data.scale);
 
             standard_quad.image_size = {
-                let mut size: Vec2 =
-                    Vec2::from(sprite_data.size).cwise_product(sprite.running_data.scale);
+                let mut size: Vec2 = Vec2::from(sprite_data.size).cwise_product(sprite.running_data.scale);
                 if sprite.running_data.facing_horizontal != sprite_data.facing_horizontal {
                     standard_quad.pos.x += size.x;
                     size.reflected(Axis::X);
@@ -67,7 +63,9 @@ pub fn to_standard_quad(sprite: &Sprite, pos: Vec2, resources: &ResourcesDatabas
                 size
             };
         } else {
-            log_once::error_once!("We're attempting to get {} from the Resources Sprite Database, but it's not there.");
+            log_once::error_once!(
+                "We're attempting to get {} from the Resources Sprite Database, but it's not there."
+            );
         }
     }
 

@@ -49,7 +49,7 @@ pub struct NameInspectorParameters {
     pub depth: usize,
     pub prefab_status: PrefabStatus,
     pub being_inspected: bool,
-    pub is_serialized: bool,
+    pub serialization_status: SyncStatus,
 }
 
 impl NameInspectorParameters {
@@ -58,6 +58,31 @@ impl NameInspectorParameters {
             has_children,
             depth,
             ..Default::default()
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum SyncStatus {
+    Unsynced,
+    Headless,
+    OutofSync,
+    Synced,
+}
+
+impl Default for SyncStatus {
+    fn default() -> Self {
+        Self::Unsynced
+    }
+}
+
+impl SyncStatus {
+    pub fn is_synced_at_all(&self) -> bool {
+        match self {
+            SyncStatus::Unsynced => false,
+            SyncStatus::Headless => false,
+            SyncStatus::OutofSync => true,
+            SyncStatus::Synced => true,
         }
     }
 }

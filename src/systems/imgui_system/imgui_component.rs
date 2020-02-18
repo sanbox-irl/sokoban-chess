@@ -2,11 +2,7 @@ use super::*;
 use failure::Fallible;
 use imgui::{Condition, ImString, MenuItem, Window};
 
-pub fn entity_inspector(
-    ecs: &mut Ecs,
-    resources: &mut ResourcesDatabase,
-    ui_handler: &mut UiHandler<'_>,
-) {
+pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     let ui: &mut Ui<'_> = &mut ui_handler.ui;
     let mut remove_this_entity = None;
 
@@ -41,19 +37,16 @@ pub fn entity_inspector(
             // the field .names within component_database. If we use names, then this would
             // become a lot trickier.
             let names_raw_pointer: *const ComponentList<Name> = &component_database.names;
-            component_database.foreach_component_list_mut(
-                NonInspectableEntities::PREFAB,
-                |component_list| {
-                    component_list.component_inspector(
-                        entities,
-                        unsafe { &*names_raw_pointer },
-                        entity,
-                        resources.prefabs(),
-                        ui,
-                        is_open,
-                    );
-                },
-            );
+            component_database.foreach_component_list_mut(NonInspectableEntities::PREFAB, |component_list| {
+                component_list.component_inspector(
+                    entities,
+                    unsafe { &*names_raw_pointer },
+                    entity,
+                    resources.prefabs(),
+                    ui,
+                    is_open,
+                );
+            });
 
             let prefab_status = if scene_is_prefab {
                 PrefabStatus::Prefab
@@ -67,19 +60,17 @@ pub fn entity_inspector(
 
             // Serialization
             let mut serialize_it = false;
-            component_database
-                .serialization_markers
-                .component_inspector_raw(
-                    entities,
-                    &component_database.names,
-                    entity,
-                    resources.prefabs(),
-                    ui,
-                    is_open,
-                    |inner, ip| {
-                        serialize_it = inner.entity_inspector_results(ip);
-                    },
-                );
+            component_database.serialization_markers.component_inspector_raw(
+                entities,
+                &component_database.names,
+                entity,
+                resources.prefabs(),
+                ui,
+                is_open,
+                |inner, ip| {
+                    serialize_it = inner.entity_inspector_results(ip);
+                },
+            );
 
             if serialize_it {
                 serialization_util::entities::serialize_entity_full(
@@ -137,10 +128,7 @@ pub fn entity_inspector(
 
                 if let Some(serialization_submenu) = ui.begin_menu(
                     &ImString::new(serialization_menu_text),
-                    component_database
-                        .serialization_markers
-                        .get(entity)
-                        .is_some(),
+                    component_database.serialization_markers.get(entity).is_some(),
                 ) {
                     if let Some(comp) = component_database.serialization_markers.get(entity) {
                         let id = comp.inner().id;
@@ -165,8 +153,7 @@ pub fn entity_inspector(
                                 }
 
                                 if reload_prefab {
-                                    let prefab =
-                                        resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
+                                    let prefab = resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
 
                                     match serialization_util::entities::load_entity_by_id(&id) {
                                         Result::Ok(new_prefab) => {
@@ -191,10 +178,9 @@ pub fn entity_inspector(
                     serialization_submenu.end(ui);
                 }
 
-                if let Some(prefab_submenu) = ui.begin_menu(
-                    im_str!("Create Prefab"),
-                    prefab_status == PrefabStatus::None,
-                ) {
+                if let Some(prefab_submenu) =
+                    ui.begin_menu(im_str!("Create Prefab"), prefab_status == PrefabStatus::None)
+                {
                     let mut new_prefab_to_create: Option<uuid::Uuid> = None;
 
                     if MenuItem::new(im_str!("New Prefab")).build(ui) {
@@ -262,9 +248,7 @@ pub fn entity_serialization_options(
     let mut reload_prefab = false;
 
     component_database.foreach_component_list(
-        NonInspectableEntities::NAME
-            | NonInspectableEntities::PREFAB
-            | NonInspectableEntities::GRAPH_NODE,
+        NonInspectableEntities::NAME | NonInspectableEntities::PREFAB | NonInspectableEntities::GRAPH_NODE,
         |component_list| match component_list.serialization_option(
             ui,
             entity_id,
@@ -272,8 +256,7 @@ pub fn entity_serialization_options(
             &component_database.serialization_markers,
         ) {
             Ok(serialization_delta) => {
-                if serialization_delta == SerializationDelta::Updated
-                    && prefab_status == PrefabStatus::Prefab
+                if serialization_delta == SerializationDelta::Updated && prefab_status == PrefabStatus::Prefab
                 {
                     reload_prefab = true;
                 }
@@ -415,10 +398,9 @@ where
                     })
                     .build(ui)
                     {
-                        let serialized_entity =
-                            serialization_util::entities::load_committed_entity(
-                                &my_serialization_marker.inner(),
-                            )?;
+                        let serialized_entity = serialization_util::entities::load_committed_entity(
+                            &my_serialization_marker.inner(),
+                        )?;
 
                         if let Some(mut serialized_entity) = serialized_entity {
                             component.inner().commit_to_scene(
@@ -426,9 +408,7 @@ where
                                 component.is_active,
                                 serialized_markers,
                             );
-                            serialization_util::entities::commit_entity_to_scene(
-                                serialized_entity,
-                            )?;
+                            serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
                             serialization_delta = SerializationDelta::Updated;
                         } else {
                             error!(
@@ -446,17 +426,14 @@ where
                     })
                     .build(ui)
                     {
-                        let serialized_entity =
-                            serialization_util::entities::load_committed_entity(
-                                &my_serialization_marker.inner(),
-                            )?;
+                        let serialized_entity = serialization_util::entities::load_committed_entity(
+                            &my_serialization_marker.inner(),
+                        )?;
 
                         if let Some(mut serialized_entity) = serialized_entity {
                             component.inner().uncommit_to_scene(&mut serialized_entity);
 
-                            serialization_util::entities::commit_entity_to_scene(
-                                serialized_entity,
-                            )?;
+                            serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
                             serialization_delta = SerializationDelta::Updated;
                         } else {
                             error!(

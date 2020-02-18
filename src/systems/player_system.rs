@@ -1,6 +1,4 @@
-use super::{
-    cardinals::FacingHorizontal, ActionMap, Component, ComponentList, Player, Sprite, Velocity,
-};
+use super::{cardinals::FacingHorizontal, ActionMap, Component, ComponentList, Player, Sprite, Velocity};
 
 pub fn player_update(
     players: &mut ComponentList<Player>,
@@ -46,11 +44,7 @@ pub fn player_update(
             } as usize;
 
             // The Players
-            set_player_active(
-                true,
-                players.iter_mut().nth(active_player).unwrap(),
-                sprites,
-            );
+            set_player_active(true, players.iter_mut().nth(active_player).unwrap(), sprites);
             set_player_active(
                 false,
                 players.iter_mut().nth(old_active_player as usize).unwrap(),
@@ -64,10 +58,7 @@ pub fn player_update(
     }
 }
 
-pub fn initialize_players(
-    players: &mut ComponentList<Player>,
-    sprites: &mut ComponentList<Sprite>,
-) {
+pub fn initialize_players(players: &mut ComponentList<Player>, sprites: &mut ComponentList<Sprite>) {
     for player in players.iter_mut() {
         set_player_active(false, player, sprites);
     }

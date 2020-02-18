@@ -73,10 +73,9 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
         if let Some(menu_bar) = ui.begin_main_menu_bar() {
             // SCENE
 
-            if let Some(menu) = ui.begin_menu(
-                &im_str!("{}", &scene_system::CURRENT_SCENE.lock().unwrap()),
-                true,
-            ) {
+            if let Some(menu) =
+                ui.begin_menu(&im_str!("{}", &scene_system::CURRENT_SCENE.lock().unwrap()), true)
+            {
                 scene_change(
                     "Switch Scene",
                     ui,
@@ -203,12 +202,7 @@ fn main_menu_bar(toggle_main_menu_bar: bool, ui_handler: &mut UiHandler<'_>) {
     }
 }
 
-fn menu_option(
-    imstr: &imgui::ImStr,
-    flag: ImGuiFlags,
-    ui: &Ui<'_>,
-    flags_to_change: &mut ImGuiFlags,
-) {
+fn menu_option(imstr: &imgui::ImStr, flag: ImGuiFlags, ui: &Ui<'_>, flags_to_change: &mut ImGuiFlags) {
     if imgui::MenuItem::new(imstr)
         .selected(flags_to_change.contains(flag))
         .build(ui)
@@ -217,12 +211,7 @@ fn menu_option(
     }
 }
 
-fn scene_change<F: Fn(&str)>(
-    prompt: &str,
-    ui: &imgui::Ui<'_>,
-    scene_name: &mut String,
-    on_click: F,
-) {
+fn scene_change<F: Fn(&str)>(prompt: &str, ui: &imgui::Ui<'_>, scene_name: &mut String, on_click: F) {
     let im_prompt = imgui::ImString::new(prompt);
 
     if let Some(scene_submenu) = ui.begin_menu(&im_prompt, true) {

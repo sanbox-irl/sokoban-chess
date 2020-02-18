@@ -67,10 +67,7 @@ impl Scene {
 
     pub fn tilemap_path(&self, tilemap_path_end: &str) -> String {
         if self.is_prefab {
-            format!(
-                "{}/{}/{}",
-                PREFAB_DIRECTORY, TILEMAP_SUBPATH, tilemap_path_end
-            )
+            format!("{}/{}/{}", PREFAB_DIRECTORY, TILEMAP_SUBPATH, tilemap_path_end)
         } else {
             format!(
                 "{}/{}/{}/{}",

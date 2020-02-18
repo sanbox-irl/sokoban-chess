@@ -44,9 +44,7 @@ impl ComponentBounds for Sprite {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>) {
         let InspectorParameters { uid, ui, .. } = inspector_parameters;
 
-        if let Some(new_sprite) =
-            imgui_system::typed_enum_selection_option(ui, &self.sprite_name, uid)
-        {
+        if let Some(new_sprite) = imgui_system::typed_enum_selection_option(ui, &self.sprite_name, uid) {
             self.reset_animation();
             self.sprite_name = new_sprite;
         };

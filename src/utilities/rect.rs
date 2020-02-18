@@ -27,16 +27,10 @@ impl Rect {
 
     pub fn rect_inspector(&mut self, ui: &imgui::Ui<'_>, uid: &str) -> bool {
         let mut changed = false;
-        if self
-            .min
-            .inspector(ui, &imgui::im_str!("Min Offset##{}", uid))
-        {
+        if self.min.inspector(ui, &imgui::im_str!("Min Offset##{}", uid)) {
             changed = true;
         }
-        if self
-            .max
-            .inspector(ui, &imgui::im_str!("Max Offset##{}", uid))
-        {
+        if self.max.inspector(ui, &imgui::im_str!("Max Offset##{}", uid)) {
             changed = true
         }
         changed

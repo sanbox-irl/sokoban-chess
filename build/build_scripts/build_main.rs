@@ -32,9 +32,6 @@ fn initiate_logging() -> Result<(), Error> {
     // Clear the log
     fs::write(LOG_LOCATION, "")?;
 
-
-    
-
     log4rs::init_config(config)?;
 
     Ok(())

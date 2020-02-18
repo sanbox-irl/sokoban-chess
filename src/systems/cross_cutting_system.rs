@@ -1,6 +1,5 @@
 use super::{
-    physics_components::BoundingBox, ComponentList, DrawRectangle, Ecs, Rect, ResourcesDatabase,
-    Sprite,
+    physics_components::BoundingBox, ComponentList, DrawRectangle, Ecs, Rect, ResourcesDatabase, Sprite,
 };
 
 pub fn cross_cutting_system(ecs: &mut Ecs, resources: &ResourcesDatabase) {
@@ -29,12 +28,9 @@ fn bounding_box_and_sprite(
             if let Some(this_sprite) = sprites.get(&this_entity_id) {
                 if let Some(sprite_name) = &this_sprite.inner().sprite_name {
                     let sprite_data = resources.sprites.get(sprite_name).unwrap();
-                    let rel_location = sprite_data
-                        .origin
-                        .sprite_location_relative(sprite_data.size);
+                    let rel_location = sprite_data.origin.sprite_location_relative(sprite_data.size);
 
-                    this_bounding_box.rect =
-                        Rect::point_width(rel_location, sprite_data.size.into());
+                    this_bounding_box.rect = Rect::point_width(rel_location, sprite_data.size.into());
                 };
             } else {
                 this_bounding_box.bind_to_sprite = false;

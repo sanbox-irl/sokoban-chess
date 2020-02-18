@@ -141,7 +141,7 @@ fn build_text(
                             glyph_vert.pixel_coords.height() as f32,
                         );
 
-                         StandardQuad {
+                        StandardQuad {
                             pos,
                             image_size,
                             texture_info: TextureDescription::Standard(standard_tex),

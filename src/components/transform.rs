@@ -1,6 +1,6 @@
 use super::{
-    component_utils::RawComponent, ComponentBounds, ComponentList, Entity, GraphNode,
-    InspectorParameters, TransformParent, Vec2,
+    component_utils::RawComponent, ComponentBounds, ComponentList, Entity, GraphNode, InspectorParameters,
+    TransformParent, Vec2,
 };
 
 #[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize, typename::TypeName)]
@@ -43,10 +43,7 @@ impl Transform {
             if let Some(pos) = pos {
                 children.remove(pos);
             } else {
-                error!(
-                    "Entity {} had a parent, but it was not their parent.",
-                    my_id
-                );
+                error!("Entity {} had a parent, but it was not their parent.", my_id);
             }
         }
 
@@ -78,14 +75,8 @@ impl Transform {
         self.local_position = f(self.local_position);
     }
 
-    pub fn local_position_fast(
-        clist: &ComponentList<Transform>,
-        entity_id: &Entity,
-    ) -> Option<Vec2> {
-        clist
-            .get(entity_id)
-            .as_ref()
-            .map(|&t| t.inner().local_position)
+    pub fn local_position_fast(clist: &ComponentList<Transform>, entity_id: &Entity) -> Option<Vec2> {
+        clist.get(entity_id).as_ref().map(|&t| t.inner().local_position)
     }
 
     pub fn update_world_position(&mut self, parent_position: Vec2) -> Vec2 {
@@ -105,8 +96,7 @@ impl ComponentBounds for Transform {
             self.dirty = true;
         }
 
-        ip.ui
-            .checkbox(&im_str!("Dirty##{}", ip.uid), &mut self.dirty);
+        ip.ui.checkbox(&im_str!("Dirty##{}", ip.uid), &mut self.dirty);
 
         self.world_position
             .no_interact_inspector(ip.ui, &im_str!("World Position##{}", ip.uid));

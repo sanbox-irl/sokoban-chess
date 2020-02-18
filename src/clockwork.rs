@@ -43,7 +43,7 @@ impl Clockwork {
         renderer_system::initialize_imgui(&mut self.hardware_interfaces.renderer, &mut imgui)?;
 
         loop {
-            let scene_mode: SceneMode = scene_system::CURRENT_SCENE.lock().unwrap().mode();
+            let scene_mode = scene_system::current_scene_mode();
             self.time_keeper.start_frame();
 
             // GET INPUT PER FRAME
@@ -60,6 +60,10 @@ impl Clockwork {
 
             let mut ui_handler = imgui.begin_frame(
                 &self.hardware_interfaces.window,
+                self.hardware_interfaces
+                    .input
+                    .kb_input
+                    .is_pressed(winit::event::VirtualKeyCode::S),
                 self.time_keeper.delta_time,
             )?;
 
@@ -83,8 +87,7 @@ impl Clockwork {
             }
 
             // Make the Action Map:
-            self.action_map
-                .update(&self.hardware_interfaces.input.kb_input);
+            self.action_map.update(&self.hardware_interfaces.input.kb_input);
 
             // Update
             while self.time_keeper.accumulator >= self.time_keeper.delta_time {
@@ -160,8 +163,7 @@ impl Clockwork {
         };
 
         if should_change_scene {
-            let (ecs, grid) =
-                Clockwork::start_scene(&mut self.resources, &mut self.hardware_interfaces)?;
+            let (ecs, grid) = Clockwork::start_scene(&mut self.resources, &mut self.hardware_interfaces)?;
             self.ecs = ecs;
             self.grid = grid;
 

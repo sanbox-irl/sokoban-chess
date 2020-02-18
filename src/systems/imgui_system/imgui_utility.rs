@@ -13,11 +13,7 @@ pub fn display_name_core(
 
 pub fn typed_text_ui<T: typename::TypeName>() -> String {
     let type_name = T::type_name();
-    type_name
-        .split("::")
-        .last()
-        .unwrap_or(&type_name)
-        .to_string()
+    type_name.split("::").last().unwrap_or(&type_name).to_string()
 }
 
 pub fn label_button(ui: &Ui<'_>, label: &ImStr, button: &ImStr) -> bool {
@@ -350,10 +346,7 @@ pub fn input_usize(ui: &Ui<'_>, label: &ImStr, value: &mut usize) -> bool {
 
 pub fn input_isize(ui: &Ui<'_>, label: &str, uid: &str, value: &mut isize) -> bool {
     let mut val = *value as i32;
-    if ui
-        .input_int(&im_str!("{}##{}", label, uid), &mut val)
-        .build()
-    {
+    if ui.input_int(&im_str!("{}##{}", label, uid), &mut val).build() {
         *value = val as isize;
         true
     } else {

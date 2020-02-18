@@ -42,8 +42,7 @@ impl ResourcesDatabase {
         // LOAD SPRITES
         info!("....................Loading Sprites");
         let sprite_resource: Vec<u8> = ResourcesDatabase::load_spritesheets()?;
-        let image = image::load_from_memory_with_format(&sprite_resource, image::ImageFormat::PNG)?
-            .to_rgba();
+        let image = image::load_from_memory_with_format(&sprite_resource, image::ImageFormat::PNG)?.to_rgba();
         let handle = renderer_system::register_texture(renderer, &image)?;
 
         // LOAD PREFABS
@@ -83,9 +82,7 @@ impl ResourcesDatabase {
                     .iter()
                     .find(|ss| ss.sprite_name == sprite_name)
                     .cloned()
-                    .unwrap_or_else(|| {
-                        SpriteInGameData::create_default(&sprite_sheet_data, sprite_name)
-                    });
+                    .unwrap_or_else(|| SpriteInGameData::create_default(&sprite_sheet_data, sprite_name));
 
                 let data = SpriteData::from_sprite_resource(
                     sprite_sheet_data,

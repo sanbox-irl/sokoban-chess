@@ -3,7 +3,7 @@ use super::{
         EntityListInformation, NameInspectorParameters, NameInspectorResult, NameRequestedAction,
         PrefabStatus,
     },
-    imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters,
+    imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters, SyncStatus,
 };
 use imgui::{im_str, MenuItem};
 use regex::Regex;
@@ -14,8 +14,18 @@ pub struct Name {
     pub name: String,
 }
 
+lazy_static::lazy_static! {
+    pub static ref YELLOW_WARNING_COLOR: Color = Color::with_u8(253, 229, 109, 255);
+    pub static ref RED_WARNING_COLOR: Color = Color::with_u8(238, 93, 67, 255);
+    pub static ref BASE_GREY_COLOR: Color = Color::with_u8(202, 205, 210, 255);
+}
+
 impl Name {
     const INDENT_AMOUNT: f32 = 38.0;
+    const RIGHT_CHEVRON: char = '\u{f105}';
+    const DOWN_CHEVRON: char = '\u{f107}';
+    const ENTITY_ICON: char = '\u{f6d1}';
+    const WARNING_ICON: char = '\u{f071}';
 
     pub fn new(name: String) -> Self {
         Self { name }
@@ -46,9 +56,9 @@ impl Name {
             ui.text(&imgui::im_str!(
                 "{}",
                 if eli.open == false {
-                    '\u{f105}' // Right Chevron
+                    Name::RIGHT_CHEVRON
                 } else {
-                    '\u{f107}' // Down Chevron
+                    Name::DOWN_CHEVRON
                 }
             ));
 
@@ -76,15 +86,13 @@ impl Name {
                 PrefabStatus::PrefabInstance => Color::with_u8(188, 203, 222, 255),
             }
             .into(),
-            &imgui::im_str!("{}", '\u{f6d1}'),
+            &imgui::im_str!("{}", Name::ENTITY_ICON),
         );
         ui.same_line(0.0);
 
         // Actually Name:
-        let mut can_inspect = true;
         match &mut eli.edit_name {
             Some(editable_name) => {
-                can_inspect = false;
                 let mut current_name = imgui::im_str!("{}", editable_name);
 
                 if ui
@@ -107,123 +115,130 @@ impl Name {
                 }
 
                 if end_rename {
-                    res.requested_action = Some(NameRequestedAction::ChangeName(
-                        eli.edit_name.take().unwrap(),
-                    ));
+                    res.requested_action =
+                        Some(NameRequestedAction::ChangeName(eli.edit_name.take().unwrap()));
                 }
             }
             None => {
                 ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
-            }
-        }
 
-        // Manage the color...
-        eli.color = Color::with_u8(202, 205, 210, 255);
-        if ui.is_item_hovered() {
-            eli.color = Color::WHITE;
-        }
-        if nip.being_inspected {
-            eli.color = Color::with_u8(252, 195, 108, 255); // nice orange
-        }
-
-        // Inspect on Single Click
-        if imgui_system::left_clicked_item(ui) && can_inspect {
-            res.requested_action = Some(NameRequestedAction::ToggleInspect);
-        }
-
-        // Rename on Double Click
-        let mut rename = false;
-        if ui.is_item_hovered() && ui.is_mouse_double_clicked(imgui::MouseButton::Left) {
-            rename = true;
-        }
-
-        // Clone and Delete will be here!
-        imgui_system::right_click_popup(ui, uid, || {
-            if MenuItem::new(&im_str!("Rename##{}", uid)).build(ui) {
-                rename = true;
-                ui.close_current_popup();
-            }
-
-            if MenuItem::new(&im_str!("Clone##{}", uid)).build(ui) {
-                res.requested_action = Some(NameRequestedAction::Clone);
-                ui.close_current_popup();
-            }
-
-            if MenuItem::new(&im_str!("Delete##{}", uid)).build(ui) {
-                res.requested_action = Some(NameRequestedAction::Delete);
-            }
-
-            ui.separator();
-
-            ui.menu(&im_str!("Serialization"), nip.is_serialized, || {
-                if imgui_system::help_menu_item(ui, &im_str!("Serialize Entity##{}", uid), "This is the exact same thing as Overwriting the Entity in the Component Inspect. It completely overwrites the comitted entity.") {
-                    res.requested_action = Some(NameRequestedAction::Serialize);
-                    ui.close_current_popup();
+                // Inspect on Single Click
+                if imgui_system::left_clicked_item(ui) {
+                    res.requested_action = Some(NameRequestedAction::ToggleInspect);
                 }
-                if imgui_system::help_menu_item(ui, &im_str!("Stop Serializing Entity##{}", uid), "Stops serializing the entity from the scene -- ie, it won't be here when you reload the scene.") {
-                    res.requested_action = Some(NameRequestedAction::Unserialize);
-                    ui.close_current_popup();
-                }
-            });
 
-            ui.separator();
+                // Rename on Double Click
+                imgui_system::right_click_popup(ui, uid, || {
+                    if MenuItem::new(&im_str!("Rename##{}", uid)).build(ui) {
+                        eli.edit_name = Some(name.to_string());
+                        ui.close_current_popup();
+                    }
 
-            ui.menu(&im_str!("Prefab"), true, || {
-                match nip.prefab_status {
-                    PrefabStatus::None => {
-                        if MenuItem::new(&im_str!("Promote to Prefab##{}", uid)).build(ui) {
-                            res.requested_action = Some(NameRequestedAction::PromoteToPrefab);
+                    if MenuItem::new(&im_str!("Clone##{}", uid)).build(ui) {
+                        res.requested_action = Some(NameRequestedAction::Clone);
+                        ui.close_current_popup();
+                    }
+
+                    if MenuItem::new(&im_str!("Delete##{}", uid)).build(ui) {
+                        res.requested_action = Some(NameRequestedAction::Delete);
+                    }
+
+                    ui.separator();
+
+                    ui.menu(im_str!("Serialization"), nip.serialization_status.is_synced_at_all(), || {
+                        if imgui_system::help_menu_item(ui, &im_str!("Serialize Entity##{}", uid), "This is the exact same thing as Overwriting the Entity in the Component Inspect. It completely overwrites the comitted entity.") {
+                            if nip.serialization_status == SyncStatus::OutofSync {
+                                res.requested_action = Some(NameRequestedAction::Serialize);
+                                ui.close_current_popup();
+                            }
+                        }
+                        if imgui_system::help_menu_item(ui, &im_str!("Stop Serializing Entity##{}", uid), "Stops serializing the entity from the scene -- ie, it won't be here when you reload the scene.") {
+                            res.requested_action = Some(NameRequestedAction::Unserialize);
                             ui.close_current_popup();
                         }
-                    }
-                    prefab_kind => {
-                        if MenuItem::new(&im_str!("Unpack Prefab##{}", uid))
-                            .enabled(prefab_kind == PrefabStatus::PrefabInstance)
+                    });
+
+                    ui.separator();
+
+                    ui.menu(&im_str!("Prefab"), true, || {
+                        match nip.prefab_status {
+                            PrefabStatus::None => {
+                                if MenuItem::new(&im_str!("Promote to Prefab##{}", uid)).build(ui) {
+                                    res.requested_action = Some(NameRequestedAction::PromoteToPrefab);
+                                    ui.close_current_popup();
+                                }
+                            }
+                            prefab_kind => {
+                                if MenuItem::new(&im_str!("Unpack Prefab##{}", uid))
+                                    .enabled(prefab_kind == PrefabStatus::PrefabInstance)
+                                    .build(ui)
+                                {
+                                    res.requested_action = Some(NameRequestedAction::UnpackPrefab);
+                                    ui.close_current_popup();
+                                }
+                            }
+                        }
+
+                        if MenuItem::new(&im_str!("Go To Prefab##{}", uid))
+                            .enabled(nip.prefab_status != PrefabStatus::None)
                             .build(ui)
                         {
-                            res.requested_action = Some(NameRequestedAction::UnpackPrefab);
+                            res.requested_action = Some(NameRequestedAction::GoToPrefab);
                             ui.close_current_popup();
                         }
-                    }
+                    });
+
+                    ui.separator();
+
+                    ui.menu(&im_str!("Log to Console"), true, || {
+                        if MenuItem::new(&im_str!("Log Entity##{}", uid)).build(ui) {
+                            res.requested_action = Some(NameRequestedAction::LogEntity);
+                            ui.close_current_popup();
+                        }
+
+                        if MenuItem::new(&im_str!("Log Serialized Entity##{}", uid))
+                            .enabled(nip.serialization_status.is_synced_at_all())
+                            .build(ui)
+                        {
+                            res.requested_action = Some(NameRequestedAction::LogSerializedEntity);
+                            ui.close_current_popup();
+                        }
+
+                        if MenuItem::new(&im_str!("Log Prefab##{}", uid))
+                            .enabled(nip.prefab_status != PrefabStatus::None)
+                            .build(ui)
+                        {
+                            res.requested_action = Some(NameRequestedAction::LogPrefab);
+                            ui.close_current_popup();
+                        }
+                    });
+                });
+
+                // Manage the color...
+                eli.color = *BASE_GREY_COLOR;
+                if ui.is_item_hovered() {
+                    eli.color = Color::WHITE;
+                }
+                if nip.being_inspected {
+                    eli.color = *YELLOW_WARNING_COLOR;
                 }
 
-                if MenuItem::new(&im_str!("Go To Prefab##{}", uid))
-                    .enabled(nip.prefab_status != PrefabStatus::None)
-                    .build(ui)
-                {
-                    res.requested_action = Some(NameRequestedAction::GoToPrefab);
-                    ui.close_current_popup();
+                if matches!(
+                    nip.serialization_status,
+                    SyncStatus::OutofSync | SyncStatus::Headless
+                ) {
+                    ui.same_line(0.0);
+                    ui.text_colored(
+                        if nip.serialization_status == SyncStatus::OutofSync {
+                            *YELLOW_WARNING_COLOR
+                        } else {
+                            *RED_WARNING_COLOR
+                        }
+                        .into(),
+                        im_str!("{}", Name::WARNING_ICON),
+                    );
                 }
-            });
-
-            ui.separator();
-
-            ui.menu(&im_str!("Log to Console"), true, || {
-                if MenuItem::new(&im_str!("Log Entity##{}", uid)).build(ui) {
-                    res.requested_action = Some(NameRequestedAction::LogEntity);
-                    ui.close_current_popup();
-                }
-
-                if MenuItem::new(&im_str!("Log Serialized Entity##{}", uid))
-                    .enabled(nip.is_serialized)
-                    .build(ui)
-                {
-                    res.requested_action = Some(NameRequestedAction::LogSerializedEntity);
-                    ui.close_current_popup();
-                }
-
-                if MenuItem::new(&im_str!("Log Prefab##{}", uid))
-                    .enabled(nip.prefab_status != PrefabStatus::None)
-                    .build(ui)
-                {
-                    res.requested_action = Some(NameRequestedAction::LogPrefab);
-                    ui.close_current_popup();
-                }
-            });
-        });
-
-        if rename {
-            eli.edit_name = Some(name.to_string());
+            }
         }
 
         res

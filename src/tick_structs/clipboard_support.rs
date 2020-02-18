@@ -5,9 +5,7 @@ pub struct ClipboardSupport(ClipboardContext);
 
 impl ClipboardSupport {
     pub fn new() -> Option<ClipboardSupport> {
-        ClipboardContext::new()
-            .ok()
-            .map(|ctx| ClipboardSupport(ctx))
+        ClipboardContext::new().ok().map(|ctx| ClipboardSupport(ctx))
     }
 }
 

@@ -7,8 +7,8 @@ use gfx_hal::{
 
 use super::{
     sprite_system, BasicTextures, DrawingError, GameWorldDrawCommands, LoadedImage, PipelineBundle,
-    RenderingUtility, StandardPushConstants, StandardQuadFactory, StandardTexture,
-    TextureDescription, VertexIndexPairBufferBundle,
+    RenderingUtility, StandardPushConstants, StandardQuadFactory, StandardTexture, TextureDescription,
+    VertexIndexPairBufferBundle,
 };
 
 #[cfg(feature = "dx12")]
@@ -41,10 +41,7 @@ pub(super) unsafe fn draw_game_world<'a>(
 
     // Bind pipeline and Verts
     encoder.bind_graphics_pipeline(&quad_pipeline.graphics_pipeline);
-    encoder.bind_vertex_buffers(
-        0,
-        Some((standard_render_bundle.vertex_buffer.buffer.deref(), 0)),
-    );
+    encoder.bind_vertex_buffers(0, Some((standard_render_bundle.vertex_buffer.buffer.deref(), 0)));
     encoder.bind_index_buffer(IndexBufferView {
         buffer: &standard_render_bundle.index_buffer.buffer,
         offset: 0,

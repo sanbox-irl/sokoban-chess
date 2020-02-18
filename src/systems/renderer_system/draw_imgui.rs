@@ -18,7 +18,7 @@ use gfx_backend_vulkan as back;
 
 use super::{
     BufferBundle, DrawingError, ImGui, ImGuiDrawCommands, ImguiPushConstants, LoadedImage, PipelineBundle,
-    VertexIndexPairBufferBundle, RC, Vec2
+    Vec2, VertexIndexPairBufferBundle, RC,
 };
 
 pub fn initialize_imgui(renderer: &mut RC, imgui: &mut ImGui) -> Result<(), Error> {

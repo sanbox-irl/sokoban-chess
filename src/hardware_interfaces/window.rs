@@ -35,9 +35,6 @@ impl Window {
 
     pub fn get_window_size(&self) -> Vec2 {
         let window_client_area = self.window.inner_size();
-        Vec2::new(
-            window_client_area.width as f32,
-            window_client_area.height as f32,
-        )
+        Vec2::new(window_client_area.width as f32, window_client_area.height as f32)
     }
 }
