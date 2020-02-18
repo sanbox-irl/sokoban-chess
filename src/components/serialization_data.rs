@@ -10,6 +10,7 @@ pub struct SerializationMarker {
     pub id: Uuid,
     last_save_time: Instant,
     cached_serialized_entity: Option<SerializedEntity>,
+    force_recache: bool,
 }
 
 impl Clone for SerializationMarker {
@@ -24,6 +25,7 @@ impl SerializationMarker {
             id,
             last_save_time: Instant::now(),
             cached_serialized_entity: None,
+            force_recache: true,
         }
     }
 
@@ -66,6 +68,8 @@ impl SerializationMarker {
     }
 
     pub fn get_serialization_status(&mut self, serialized_entity: Option<&SerializedEntity>) -> SyncStatus {
+        self.update_cache();
+
         if let Some(cached_se) = &self.cached_serialized_entity {
             if let Some(serialized_entity) = serialized_entity {
                 if cached_se == serialized_entity {
@@ -78,7 +82,7 @@ impl SerializationMarker {
                 SyncStatus::Headless
             }
         } else {
-            SyncStatus::Unsynced
+            SyncStatus::OutofSync
         }
     }
 
@@ -99,7 +103,8 @@ impl SerializationMarker {
             time_since.as_secs() > 5
         };
 
-        if reload_se {
+        if reload_se || self.force_recache {
+            self.force_recache = false;
             self.imgui_serialization();
         }
     }
@@ -110,6 +115,7 @@ impl Default for SerializationMarker {
         Self {
             id: Uuid::new_v4(),
             cached_serialized_entity: None,
+            force_recache: true,
             last_save_time: Instant::now(),
         }
     }

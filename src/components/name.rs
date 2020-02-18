@@ -223,20 +223,26 @@ impl Name {
                     eli.color = *YELLOW_WARNING_COLOR;
                 }
 
-                if matches!(
-                    nip.serialization_status,
-                    SyncStatus::OutofSync | SyncStatus::Headless
-                ) {
-                    ui.same_line(0.0);
-                    ui.text_colored(
-                        if nip.serialization_status == SyncStatus::OutofSync {
-                            *YELLOW_WARNING_COLOR
-                        } else {
-                            *RED_WARNING_COLOR
+                match nip.serialization_status {
+                    SyncStatus::Headless => {
+                        ui.same_line(0.0);
+                        ui.text_colored((*RED_WARNING_COLOR).into(), im_str!("{}", Name::WARNING_ICON));
+                        if ui.is_item_hovered() {
+                            ui.tooltip_text(
+                                "This entity is Headless! We cannot find its original serialization, even though\nit is serialized. Is your data safe? Consider a Git Revert."
+                            );
                         }
-                        .into(),
-                        im_str!("{}", Name::WARNING_ICON),
-                    );
+                    }
+                    SyncStatus::OutofSync => {
+                        ui.same_line(0.0);
+                        ui.text_colored((*YELLOW_WARNING_COLOR).into(), im_str!("{}", Name::WARNING_ICON));
+                        if ui.is_item_hovered() {
+                            ui.tooltip_text(
+                                "This entity is Out of Sync with our cached serialization. Save the entity, or lose\nyour changes on exiting Draft Mode or changing Scenes."
+                            );
+                        }
+                    }
+                    _ => {}
                 }
             }
         }

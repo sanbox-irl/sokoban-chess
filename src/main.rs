@@ -6,8 +6,6 @@ extern crate log;
 extern crate failure;
 #[macro_use]
 extern crate serde;
-#[macro_use]
-extern crate matches;
 
 mod action_map;
 mod clockwork;
