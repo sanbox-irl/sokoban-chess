@@ -42,10 +42,9 @@ pub trait ComponentListBounds {
         entity_names: &ComponentList<Name>,
         entity: &Entity,
         prefab_hashmap: &PrefabMap,
+        serialized_entity: Option<&SerializedEntity>,
         ui: &mut imgui::Ui<'_>,
         is_open: bool,
-        // prefab_sync: SyncStatus,
-        // serialization_sync: SyncStatus,
     );
 
     fn serialization_option(
@@ -108,16 +107,16 @@ where
         entity_names: &ComponentList<Name>,
         entity: &Entity,
         prefab_hashmap: &PrefabMap,
+        serialized_entity: Option<&SerializedEntity>,
         ui: &mut Ui<'_>,
         is_open: bool,
-        // prefab_sync: SyncStatus,
-        // serialization_sync: SyncStatus,
     ) {
         self.component_inspector_raw(
             entities,
             entity_names,
             entity,
             prefab_hashmap,
+            serialized_entity,
             ui,
             is_open,
             |inner, ip| inner.entity_inspector(ip),

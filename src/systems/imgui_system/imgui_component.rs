@@ -324,7 +324,7 @@ where
         entity_names: &ComponentList<Name>,
         entity: &Entity,
         prefab_hashmap: &PrefabMap,
-        // serialized_entity: Option<&SerializedEntity>,
+        serialized_entity: Option<&SerializedEntity>,
         ui: &mut Ui<'_>,
         is_open: bool,
         mut f: F,
