@@ -186,8 +186,6 @@ fn register_entity(grid: &mut Grid, entity: Entity, position: Vec2, _names: Opti
         && position.y <= GRID_DIMENSIONS_MAX_F32.1
     {
         grid[world_to_grid_position(position)] = Some(entity);
-    } else {
-        error!("Couldn't register something (we're lazy) to grid!",);
     }
 }
 

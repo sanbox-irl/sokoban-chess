@@ -70,6 +70,12 @@ pub enum SyncStatus {
     Synced,
 }
 
+impl std::fmt::Display for SyncStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl Default for SyncStatus {
     fn default() -> Self {
         Self::Unsynced
@@ -103,7 +109,7 @@ impl Default for PrefabStatus {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct EntityListInformation {
     pub open: bool,
-    pub color: Color,
+    pub color: [f32; 4],
     pub edit_name: Option<String>,
 }
 
@@ -111,7 +117,7 @@ impl Default for EntityListInformation {
     fn default() -> Self {
         EntityListInformation {
             open: false,
-            color: Color::WHITE,
+            color: Color::WHITE.into(),
             edit_name: None,
         }
     }

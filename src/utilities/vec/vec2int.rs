@@ -191,7 +191,7 @@ impl Vec2Int {
 
 use imgui;
 impl Vec2Int {
-    pub fn vec2int_inspector(&mut self, ui: &mut imgui::Ui<'_>, label: &imgui::ImStr) -> bool {
+    pub fn vec2int_inspector(&mut self, ui: &imgui::Ui<'_>, label: &imgui::ImStr) -> bool {
         let mut vec2_deconstructed = self.clone().into();
 
         if ui.input_int2(label, &mut vec2_deconstructed).build() {

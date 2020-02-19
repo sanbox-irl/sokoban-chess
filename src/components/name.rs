@@ -8,24 +8,14 @@ use super::{
 use imgui::{im_str, MenuItem};
 use regex::Regex;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, Hash, typename::TypeName)]
 #[serde(default)]
 pub struct Name {
     pub name: String,
 }
 
-lazy_static::lazy_static! {
-    pub static ref YELLOW_WARNING_COLOR: Color = Color::with_u8(253, 229, 109, 255);
-    pub static ref RED_WARNING_COLOR: Color = Color::with_u8(238, 93, 67, 255);
-    pub static ref BASE_GREY_COLOR: Color = Color::with_u8(202, 205, 210, 255);
-}
-
 impl Name {
     const INDENT_AMOUNT: f32 = 38.0;
-    const RIGHT_CHEVRON: char = '\u{f105}';
-    const DOWN_CHEVRON: char = '\u{f107}';
-    const ENTITY_ICON: char = '\u{f6d1}';
-    const WARNING_ICON: char = '\u{f071}';
 
     pub fn new(name: String) -> Self {
         Self { name }
@@ -56,9 +46,9 @@ impl Name {
             ui.text(&imgui::im_str!(
                 "{}",
                 if eli.open == false {
-                    Name::RIGHT_CHEVRON
+                    imgui_system::RIGHT_CHEVRON
                 } else {
-                    Name::DOWN_CHEVRON
+                    imgui_system::DOWN_CHEVRON
                 }
             ));
 
@@ -81,12 +71,10 @@ impl Name {
         // Object Symbol:
         ui.text_colored(
             match nip.prefab_status {
-                PrefabStatus::None => Color::with_u8(225, 225, 225, 255),
-                PrefabStatus::Prefab => Color::with_u8(188, 203, 222, 255),
-                PrefabStatus::PrefabInstance => Color::with_u8(188, 203, 222, 255),
-            }
-            .into(),
-            &imgui::im_str!("{}", Name::ENTITY_ICON),
+                PrefabStatus::None => imgui_system::base_grey_color(),
+                PrefabStatus::Prefab | PrefabStatus::PrefabInstance => imgui_system::prefab_blue_color(),
+            },
+            &imgui::im_str!("{}", imgui_system::ENTITY_ICON),
         );
         ui.same_line(0.0);
 
@@ -120,7 +108,7 @@ impl Name {
                 }
             }
             None => {
-                ui.text_colored(eli.color.into(), &imgui::im_str!("{}", name));
+                ui.text_colored(eli.color, &imgui::im_str!("{}", name));
 
                 // Inspect on Single Click
                 if imgui_system::left_clicked_item(ui) {
@@ -215,18 +203,21 @@ impl Name {
                 });
 
                 // Manage the color...
-                eli.color = *BASE_GREY_COLOR;
+                eli.color = imgui_system::base_grey_color();
                 if ui.is_item_hovered() {
-                    eli.color = Color::WHITE;
+                    eli.color = Color::WHITE.into();
                 }
                 if nip.being_inspected {
-                    eli.color = *YELLOW_WARNING_COLOR;
+                    eli.color = imgui_system::yellow_warning_color();
                 }
 
                 match nip.serialization_status {
                     SyncStatus::Headless => {
                         ui.same_line(0.0);
-                        ui.text_colored((*RED_WARNING_COLOR).into(), im_str!("{}", Name::WARNING_ICON));
+                        ui.text_colored(
+                            imgui_system::red_warning_color(),
+                            im_str!("{}", imgui_system::WARNING_ICON),
+                        );
                         if ui.is_item_hovered() {
                             ui.tooltip_text(
                                 "This entity is Headless! We cannot find its original serialization, even though\nit is serialized. Is your data safe? Consider a Git Revert."
@@ -235,7 +226,10 @@ impl Name {
                     }
                     SyncStatus::OutofSync => {
                         ui.same_line(0.0);
-                        ui.text_colored((*YELLOW_WARNING_COLOR).into(), im_str!("{}", Name::WARNING_ICON));
+                        ui.text_colored(
+                            imgui_system::yellow_warning_color(),
+                            im_str!("{}", imgui_system::WARNING_ICON),
+                        );
                         if ui.is_item_hovered() {
                             ui.tooltip_text(
                                 "This entity is Out of Sync with our cached serialization. Save the entity, or lose\nyour changes on exiting Draft Mode or changing Scenes."

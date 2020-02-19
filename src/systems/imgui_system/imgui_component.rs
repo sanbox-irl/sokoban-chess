@@ -3,7 +3,7 @@ use failure::Fallible;
 use imgui::{Condition, ImString, MenuItem, Window};
 
 pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
-    let ui: &mut Ui<'_> = &mut ui_handler.ui;
+    let ui: &Ui<'_> = &ui_handler.ui;
     let mut remove_this_entity = None;
 
     let Ecs {
@@ -16,20 +16,32 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
     let scene_is_prefab = scene_system::CURRENT_SCENE.lock().unwrap().is_prefab();
 
     for entity in ui_handler.stored_ids.iter() {
-        let mut is_open = true;
+        let mut window_is_open = true;
 
-        let name = {
+        let window_name = {
             match component_database.names.get_mut(entity) {
                 Some(name) => im_str!("{} (Scene Entity)###{}", &name.inner().name, entity),
                 None => im_str!("{} (Scene Entity)", entity),
             }
         };
 
-        let entity_window = Window::new(&name)
+        let serialized_entity = if let Some(se) = component_database.serialization_markers.get(entity) {
+            SerializedEntity::new(
+                entity,
+                se.inner().id,
+                component_database,
+                singleton_database,
+                resources,
+            )
+        } else {
+            None
+        };
+
+        let entity_window = Window::new(&window_name)
             .size([600.0, 800.0], Condition::FirstUseEver)
             .position([1200.0, 100.0], Condition::FirstUseEver)
             .menu_bar(true)
-            .opened(&mut is_open);
+            .opened(&mut window_is_open);
 
         if let Some(entity_inspector_window) = entity_window.begin(ui) {
             // This unsafety is not actually unsafe at all -- Rust doesn't yet realize
@@ -37,16 +49,15 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             // the field .names within component_database. If we use names, then this would
             // become a lot trickier.
             let names_raw_pointer: *const _ = &component_database.names;
-            let serialization_raw_pointer: *mut _ = &mut component_database.serialization_markers;
             component_database.foreach_component_list_mut(NonInspectableEntities::PREFAB, |component_list| {
                 component_list.component_inspector(
                     entity,
+                    serialized_entity.as_ref(),
                     entities,
                     unsafe { &*names_raw_pointer },
-                    unsafe { &mut *serialization_raw_pointer },
                     resources.prefabs(),
                     ui,
-                    is_open,
+                    window_is_open,
                 );
             });
 
@@ -69,7 +80,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                 &component_database.names,
                 resources.prefabs(),
                 ui,
-                is_open,
+                window_is_open,
                 |inner, ip| {
                     serialize_it = inner.entity_inspector_results(ip);
                 },
@@ -229,7 +240,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             entity_inspector_window.end(ui);
         }
 
-        if is_open == false {
+        if window_is_open == false {
             remove_this_entity = Some(*entity);
         }
     }
@@ -241,7 +252,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
 
 pub fn entity_serialization_options(
     serialized_marker: &SerializationMarker,
-    ui: &mut Ui<'_>,
+    ui: &Ui<'_>,
     entity_id: &Entity,
     prefab_status: PrefabStatus,
     component_database: &ComponentDatabase,
@@ -315,9 +326,18 @@ pub fn entity_serialization_options(
 //     ui.spacing();
 // }
 
+fn component_name(
+    name: &str,
+    ui: &Ui<'_>,
+    is_active: bool,
+    serialization_sync_status: SyncStatus,
+) -> ComponentInfo {
+    ComponentInfo::new(true, true)
+}
+
 impl<T> ComponentList<T>
 where
-    T: ComponentBounds + Clone + typename::TypeName + 'static,
+    T: ComponentBounds + Clone + typename::TypeName + std::fmt::Debug + 'static,
 {
     pub fn component_inspector_raw(
         &mut self,
@@ -326,10 +346,13 @@ where
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         prefab_hashmap: &PrefabMap,
-        ui: &mut Ui<'_>,
+        ui: &Ui<'_>,
         is_open: bool,
         mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
     ) {
+        let mut delete_this_component = false;
+        let scene_mode = scene_system::current_scene_mode();
+
         if let Some(comp) = self.get_mut(entity) {
             // get our serialization_statuses:
             let serialization_sync_status: SyncStatus = serialized_entity
@@ -341,46 +364,61 @@ where
                     }
                 })
                 .unwrap_or_else(|| {
-                    if scene_system::current_scene_mode() == SceneMode::Draft {
+                    if scene_mode == SceneMode::Draft {
                         SyncStatus::Headless
                     } else {
                         SyncStatus::Unsynced
                     }
                 });
 
-            let delete_component = {
-                let mut delete = false;
-                let name = super::imgui_system::typed_text_ui::<T>();
+            let name = super::imgui_system::typed_text_ui::<T>();
 
-                ui.tree_node(&imgui::ImString::new(&name))
-                    .default_open(true)
-                    .frame_padding(false)
-                    .build(|| {
-                        // COMPONENT INFO
-                        let mut comp_info = comp.construct_component_info();
-                        // component_name_and_status(&name, ui, &mut comp_info);
-                        // comp.take_component_info(&comp_info);
-
-                        // DELETE ENTITY
-                        if comp_info.is_deleted {
-                            delete = true;
-                        } else {
-                            let inspector_parameters = InspectorParameters {
-                                is_open,
-                                uid: &format!("{}{}", comp.entity_id(), &T::type_name()),
-                                ui,
-                                entities,
-                                entity_names,
-                                prefabs: prefab_hashmap,
-                            };
-                            f(comp.inner_mut(), inspector_parameters);
-                        }
-                    });
-
-                delete
+            let color = match serialization_sync_status {
+                SyncStatus::Unsynced => {
+                    if scene_mode == SceneMode::Draft {
+                        imgui_utility::red_warning_color()
+                    } else {
+                        Color::WHITE.into()
+                    }
+                }
+                SyncStatus::Headless => imgui_utility::red_warning_color(),
+                SyncStatus::OutofSync => imgui_utility::yellow_warning_color(),
+                SyncStatus::Synced => Color::WHITE.into(),
             };
 
-            if delete_component {
+            let default_color = ui.style_color(imgui::StyleColor::Text);
+            let text_color_token = ui.push_style_color(imgui::StyleColor::Text, color);
+            ui.tree_node(&imgui::ImString::new(&name))
+                .default_open(true)
+                .frame_padding(false)
+                .build(|| {
+                    let normal_text_color = ui.push_style_color(imgui::StyleColor::Text, default_color);
+
+                    // COMPONENT INFO
+                    let mut comp_info = comp.construct_component_info();
+                    // component_name_and_status(&name, ui, &mut comp_info);
+                    // comp.take_component_info(&comp_info);
+
+                    // DELETE ENTITY
+                    if comp_info.is_deleted {
+                        delete_this_component = true;
+                    } else {
+                        let inspector_parameters = InspectorParameters {
+                            is_open,
+                            uid: &format!("{}{}", comp.entity_id(), &T::type_name()),
+                            ui,
+                            entities,
+                            entity_names,
+                            prefabs: prefab_hashmap,
+                        };
+                        f(comp.inner_mut(), inspector_parameters);
+                    }
+
+                    normal_text_color.pop(ui);
+                });
+            text_color_token.pop(ui);
+
+            if delete_this_component {
                 self.unset(entity);
             }
         }

@@ -42,7 +42,7 @@ impl TilemapSerialized {
     }
 }
 
-impl ComponentBounds for TilemapSerialized {
+impl ComponentBounds<TilemapSerialized> for TilemapSerialized {
     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
         ip.ui
             .text("Tilemaps cannot currently be added as a Prefab because I'm lazy as shit!");

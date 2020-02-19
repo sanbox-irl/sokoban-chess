@@ -1,6 +1,27 @@
 use super::*;
 use imgui::*;
 
+pub const RIGHT_CHEVRON: char = '\u{f105}';
+pub const DOWN_CHEVRON: char = '\u{f107}';
+pub const ENTITY_ICON: char = '\u{f6d1}';
+pub const WARNING_ICON: char = '\u{f071}';
+
+pub fn yellow_warning_color() -> [f32; 4] {
+    Color::with_u8(253, 229, 109, 255).into()
+}
+
+pub fn red_warning_color() -> [f32; 4] {
+    Color::with_u8(238, 93, 67, 255).into()
+}
+
+pub fn base_grey_color() -> [f32; 4] {
+    Color::with_u8(202, 205, 210, 255).into()
+}
+
+pub fn prefab_blue_color() -> [f32; 4] {
+    Color::with_u8(188, 203, 222, 255).into()
+}
+
 pub fn display_name_core(
     name: &str,
     entity_list_info: &mut EntityListInformation,

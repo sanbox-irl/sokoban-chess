@@ -3,7 +3,7 @@ use super::{
     TransformParent, Vec2,
 };
 
-#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Transform {
     local_position: Vec2,
@@ -120,10 +120,17 @@ impl ComponentBounds for Transform {
         active: bool,
         _: &super::ComponentList<super::SerializationMarker>,
     ) {
-        se.transform = Some(super::SerializedComponent {
-            inner: self.clone(),
-            active,
-        });
+        let clone = {
+            let mut clone = self.clone();
+            if self.parent.is_root() {
+                clone.parent = TransformParent::default();
+                clone.dirty = false;
+            }
+            clone
+        };
+
+        // Copy it all over:
+        se.transform = Some(super::SerializedComponent { inner: clone, active });
     }
 
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
@@ -135,5 +142,15 @@ impl ComponentBounds for Transform {
         serialization_markers: &super::ComponentList<super::SerializationMarker>,
     ) {
         super::scene_graph::add_to_scene_graph((self, entity), serialization_markers);
+    }
+}
+
+impl PartialEq for Transform {
+    fn eq(&self, other: &Transform) -> bool {
+        if self.parent == other.parent {
+            self.local_position == other.local_position
+        } else {
+            false
+        }
     }
 }

@@ -9,7 +9,7 @@ use uuid::Uuid;
 pub struct SerializationMarker {
     pub id: Uuid,
     last_save_time: Instant,
-    cached_serialized_entity: Option<SerializedEntity>,
+    serialized_entity_on_disk: Option<SerializedEntity>,
     force_recache: bool,
 }
 
@@ -21,12 +21,9 @@ impl Clone for SerializationMarker {
 
 impl SerializationMarker {
     pub fn new(id: Uuid) -> Self {
-        Self {
-            id,
-            last_save_time: Instant::now(),
-            cached_serialized_entity: None,
-            force_recache: true,
-        }
+        let mut me = Self::default();
+        me.id = id;
+        me
     }
 
     /// This is a cache of our Serialized Data. We'll try to get one, but
@@ -34,7 +31,7 @@ impl SerializationMarker {
     /// it is no more than 5 seconds old.
     pub fn cached_serialized_entity(&mut self) -> Option<&SerializedEntity> {
         self.update_cache();
-        self.cached_serialized_entity.as_ref()
+        self.serialized_entity_on_disk.as_ref()
     }
 
     pub fn entity_inspector_results(&mut self, ip: InspectorParameters<'_, '_>) -> bool {
@@ -42,7 +39,7 @@ impl SerializationMarker {
 
         let mut serialize_entity = false;
 
-        if let Some(serialized_entity) = &mut self.cached_serialized_entity {
+        if let Some(serialized_entity) = &mut self.serialized_entity_on_disk {
             if ip.ui.button(&im_str!("Copy UUID##{}", ip.uid), [0.0, 0.0]) {
                 ip.ui.set_clipboard_text(&im_str!("{}", serialized_entity.id));
             }
@@ -67,12 +64,15 @@ impl SerializationMarker {
         serialize_entity
     }
 
-    pub fn get_serialization_status(&mut self, serialized_entity: Option<&SerializedEntity>) -> SyncStatus {
+    pub fn get_serialization_status(
+        &mut self,
+        current_serialized_entity: Option<&SerializedEntity>,
+    ) -> SyncStatus {
         self.update_cache();
 
-        if let Some(cached_se) = &self.cached_serialized_entity {
-            if let Some(serialized_entity) = serialized_entity {
-                if cached_se == serialized_entity {
+        if let Some(se_on_disk) = &self.serialized_entity_on_disk {
+            if let Some(serialized_entity) = current_serialized_entity {
+                if se_on_disk == serialized_entity {
                     SyncStatus::Synced
                 } else {
                     SyncStatus::OutofSync
@@ -89,7 +89,7 @@ impl SerializationMarker {
     fn imgui_serialization(&mut self) {
         match serialization_util::entities::load_committed_entity(self) {
             Ok(maybe_serialized_entity) => {
-                self.cached_serialized_entity = maybe_serialized_entity;
+                self.serialized_entity_on_disk = maybe_serialized_entity;
             }
             Err(e) => {
                 error!("Couldn't deserialize entity {}! {}", self.id, e);
@@ -114,7 +114,7 @@ impl Default for SerializationMarker {
     fn default() -> Self {
         Self {
             id: Uuid::new_v4(),
-            cached_serialized_entity: None,
+            serialized_entity_on_disk: None,
             force_recache: true,
             last_save_time: Instant::now(),
         }

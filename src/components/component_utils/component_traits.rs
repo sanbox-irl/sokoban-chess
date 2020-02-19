@@ -5,7 +5,7 @@ use super::{
 use failure::Fallible;
 use imgui::Ui;
 
-pub trait ComponentBounds {
+pub trait ComponentBounds<T> {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
     fn is_serialized(&self, serialized_entity: &SerializedEntity, active: bool) -> bool;
     fn commit_to_scene(
@@ -19,7 +19,7 @@ pub trait ComponentBounds {
 }
 
 pub struct InspectorParameters<'a, 'b> {
-    pub ui: &'b mut imgui::Ui<'a>,
+    pub ui: &'b imgui::Ui<'a>,
     pub entities: &'b [Entity],
     pub entity_names: &'b ComponentList<Name>,
     pub prefabs: &'b PrefabMap,
@@ -30,7 +30,7 @@ pub struct InspectorParameters<'a, 'b> {
 pub trait ComponentListBounds {
     fn expand_list(&mut self);
     fn unset(&mut self, index: &Entity) -> bool;
-    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds>;
+    fn get_mut<T>(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds<T>>;
     fn dump_to_log(&self, index: &Entity);
     fn clone_entity(&mut self, index: &Entity, new_entity: &Entity);
 
@@ -39,11 +39,11 @@ pub trait ComponentListBounds {
     fn component_inspector(
         &mut self,
         entity: &Entity,
+        current_serialized_entity: Option<&SerializedEntity>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
-        s_markers: &mut ComponentList<SerializationMarker>,
         prefab_hashmap: &PrefabMap,
-        ui: &mut imgui::Ui<'_>,
+        ui: &imgui::Ui<'_>,
         is_open: bool,
     );
 
@@ -67,7 +67,7 @@ pub trait ComponentListBounds {
 
 impl<T> ComponentListBounds for ComponentList<T>
 where
-    T: ComponentBounds + std::fmt::Debug + typename::TypeName + Clone + Default + 'static,
+    T: ComponentBounds<T> + std::fmt::Debug + typename::TypeName + Clone + Default + 'static,
 {
     fn expand_list(&mut self) {
         self.expand_list();
@@ -104,24 +104,16 @@ where
     fn component_inspector(
         &mut self,
         entity: &Entity,
+        current_serialized_entity: Option<&SerializedEntity>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
-        s_marker: &mut ComponentList<SerializationMarker>,
         prefab_hashmap: &PrefabMap,
-        ui: &mut Ui<'_>,
+        ui: &Ui<'_>,
         is_open: bool,
     ) {
-        let serialized_entity: Option<&SerializedEntity> = {
-            if let Some(inner) = s_marker.get_mut(entity) {
-                inner.inner_mut().cached_serialized_entity()
-            } else {
-                None
-            }
-        };
-
         self.component_inspector_raw(
             entity,
-            serialized_entity,
+            current_serialized_entity,
             entities,
             entity_names,
             prefab_hashmap,
@@ -169,14 +161,14 @@ where
         }
     }
 
-    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds> {
+    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds<T>> {
         self.get_mut(index).map(|component| component.inner_mut() as _)
     }
 }
 
 impl<T> ComponentList<T>
 where
-    T: ComponentBounds + Default + Clone + typename::TypeName + 'static,
+    T: ComponentBounds<T> + Default + Clone + typename::TypeName + 'static,
 {
     /// Simply a wrapper around creating a new component
     pub fn set_component(&mut self, entity_id: &Entity, new_component: T) {
