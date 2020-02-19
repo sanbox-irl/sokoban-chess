@@ -36,12 +36,14 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             // that this method, though it takes `component_database`, doesn't involve
             // the field .names within component_database. If we use names, then this would
             // become a lot trickier.
-            let names_raw_pointer: *const ComponentList<Name> = &component_database.names;
+            let names_raw_pointer: *const _ = &component_database.names;
+            let serialization_raw_pointer: *mut _ = &mut component_database.serialization_markers;
             component_database.foreach_component_list_mut(NonInspectableEntities::PREFAB, |component_list| {
                 component_list.component_inspector(
+                    entity,
                     entities,
                     unsafe { &*names_raw_pointer },
-                    entity,
+                    unsafe { &mut *serialization_raw_pointer },
                     resources.prefabs(),
                     ui,
                     is_open,
@@ -61,9 +63,10 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             // Serialization
             let mut serialize_it = false;
             component_database.serialization_markers.component_inspector_raw(
+                entity,
+                None,
                 entities,
                 &component_database.names,
-                entity,
                 resources.prefabs(),
                 ui,
                 is_open,
@@ -295,43 +298,56 @@ pub fn entity_serialization_options(
     Ok((sc, reload_prefab))
 }
 
-// @techdebt this is weirdly public, maybe we put it in the
-// utilities. It's shared between Components and Prefabs!
-pub fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &mut ComponentInfo) {
-    // NAME
-    let two_thirds_size = ui.window_size()[0] * (2.0 / 3.0);
-    ui.same_line(two_thirds_size);
-    ui.checkbox(&im_str!("##Active{}", name), &mut component_info.is_active);
-    ui.same_line(two_thirds_size + 25.0);
+// fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &mut ComponentInfo) {
+//     // NAME
+//     let two_thirds_size = ui.window_size()[0] * (2.0 / 3.0);
+//     ui.same_line(two_thirds_size);
+//     ui.checkbox(&im_str!("##Active{}", name), &mut component_info.is_active);
+//     ui.same_line(two_thirds_size + 25.0);
 
-    let label = &im_str!("Delete##{}", name);
-    let base_size: Vec2 = ui.calc_text_size(label, true, 0.0).into();
-    let size = base_size + Vec2::new(13.0, 6.5);
-    if ui.button(label, size.into()) {
-        component_info.is_deleted = true;
-    }
+//     let label = &im_str!("Delete##{}", name);
+//     let base_size: Vec2 = ui.calc_text_size(label, true, 0.0).into();
+//     let size = base_size + Vec2::new(13.0, 6.5);
+//     if ui.button(label, size.into()) {
+//         component_info.is_deleted = true;
+//     }
 
-    ui.spacing();
-}
+//     ui.spacing();
+// }
 
 impl<T> ComponentList<T>
 where
     T: ComponentBounds + Clone + typename::TypeName + 'static,
 {
-    pub fn component_inspector_raw<F>(
+    pub fn component_inspector_raw(
         &mut self,
+        entity: &Entity,
+        serialized_entity: Option<&SerializedEntity>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
-        entity: &Entity,
         prefab_hashmap: &PrefabMap,
-        serialized_entity: Option<&SerializedEntity>,
         ui: &mut Ui<'_>,
         is_open: bool,
-        mut f: F,
-    ) where
-        F: FnMut(&mut T, InspectorParameters<'_, '_>),
-    {
+        mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
+    ) {
         if let Some(comp) = self.get_mut(entity) {
+            // get our serialization_statuses:
+            let serialization_sync_status: SyncStatus = serialized_entity
+                .map(|se| {
+                    if comp.inner().is_serialized(se, comp.is_active()) {
+                        SyncStatus::Synced
+                    } else {
+                        SyncStatus::OutofSync
+                    }
+                })
+                .unwrap_or_else(|| {
+                    if scene_system::current_scene_mode() == SceneMode::Draft {
+                        SyncStatus::Headless
+                    } else {
+                        SyncStatus::Unsynced
+                    }
+                });
+
             let delete_component = {
                 let mut delete = false;
                 let name = super::imgui_system::typed_text_ui::<T>();
@@ -342,8 +358,8 @@ where
                     .build(|| {
                         // COMPONENT INFO
                         let mut comp_info = comp.construct_component_info();
-                        super::imgui_system::component_name_and_status(&name, ui, &mut comp_info);
-                        comp.take_component_info(&comp_info);
+                        // component_name_and_status(&name, ui, &mut comp_info);
+                        // comp.take_component_info(&comp_info);
 
                         // DELETE ENTITY
                         if comp_info.is_deleted {
@@ -363,6 +379,7 @@ where
 
                 delete
             };
+
             if delete_component {
                 self.unset(entity);
             }

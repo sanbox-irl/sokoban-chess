@@ -38,11 +38,11 @@ pub trait ComponentListBounds {
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>);
     fn component_inspector(
         &mut self,
+        entity: &Entity,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
-        entity: &Entity,
+        s_markers: &mut ComponentList<SerializationMarker>,
         prefab_hashmap: &PrefabMap,
-        serialized_entity: Option<&SerializedEntity>,
         ui: &mut imgui::Ui<'_>,
         is_open: bool,
     );
@@ -103,20 +103,28 @@ where
 
     fn component_inspector(
         &mut self,
+        entity: &Entity,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
-        entity: &Entity,
+        s_marker: &mut ComponentList<SerializationMarker>,
         prefab_hashmap: &PrefabMap,
-        serialized_entity: Option<&SerializedEntity>,
         ui: &mut Ui<'_>,
         is_open: bool,
     ) {
+        let serialized_entity: Option<&SerializedEntity> = {
+            if let Some(inner) = s_marker.get_mut(entity) {
+                inner.inner_mut().cached_serialized_entity()
+            } else {
+                None
+            }
+        };
+
         self.component_inspector_raw(
+            entity,
+            serialized_entity,
             entities,
             entity_names,
-            entity,
             prefab_hashmap,
-            serialized_entity,
             ui,
             is_open,
             |inner, ip| inner.entity_inspector(ip),
