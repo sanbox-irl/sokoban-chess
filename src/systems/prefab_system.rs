@@ -1,7 +1,8 @@
 use super::{
-    serialization_util, ComponentDatabase, Ecs, Entity, Prefab, PrefabMap, PrefabMarker, ResourcesDatabase,
-    SerializedEntity, SingletonDatabase,
+    serialization_util, Component, ComponentDatabase, Ecs, Entity, Prefab, PrefabMap, PrefabMarker,
+    ResourcesDatabase, SerializedComponent, SerializedEntity, SingletonDatabase,
 };
+use anyhow::{Context, Result};
 use failure::Fallible;
 use uuid::Uuid;
 
@@ -98,4 +99,60 @@ pub fn load_entity_into_prefab(
             );
         }
     }
+}
+
+/// This gets the parent prefab of a given inheritor.
+/// To make this simpler, imagine Player's parent Prefab is
+/// Actor. If Player's entity was passed into this method,
+/// a Serialized Actor would come out.
+///
+/// Returns a **flag** indicating if a prefab was found,
+/// which will have been loaded into the SerializedEntity provided.
+pub fn get_serialized_parent_prefab_from_inheritor(
+    maybe_prefab_marker: Option<&Component<PrefabMarker>>,
+    resources: &ResourcesDatabase,
+    serialized_entity: &mut SerializedEntity,
+) -> bool {
+    if let Some(prefab_component) = maybe_prefab_marker {
+        let prefab = match resources.prefabs().get(&prefab_component.inner().main_id()) {
+            Some(i) => i,
+            None => return false,
+        };
+
+        let mut serialized_prefab = match prefab.members.get(&prefab_component.inner().sub_id()) {
+            Some(sp) => sp.clone(),
+            None => return false,
+        };
+
+        serialized_prefab.prefab_marker = Some(SerializedComponent {
+            active: true,
+            inner: prefab_component.inner().clone(),
+        });
+
+        *serialized_entity = serialized_prefab;
+        true
+    } else {
+        false
+    }
+}
+
+/// This uses the *experimental* idea of some dynamic typings in YAML. This is relatively
+/// prone to crash in current form, but I'm a lazy slut!
+pub fn load_override_into_prefab(
+    prefab_serialized_entity: SerializedEntity,
+    se_override: SerializedEntity,
+) -> Result<SerializedEntity> {
+    let mut prefab_serialized_yaml = serde_yaml::to_value(prefab_serialized_entity).unwrap();
+    let se_override_yaml = serde_yaml::to_value(se_override).unwrap();
+
+    let prefab_serialized_value_as_map = prefab_serialized_yaml.as_mapping_mut().unwrap();
+
+    for (key, value) in se_override_yaml.as_mapping().unwrap().iter() {
+        if *value != serde_yaml::Value::Null {
+            prefab_serialized_value_as_map.insert(key.clone(), value.clone());
+        }
+    }
+
+    serde_yaml::from_value(prefab_serialized_yaml)
+        .with_context(|| format!("We could not transform a composed YAML SE back to SE",))
 }

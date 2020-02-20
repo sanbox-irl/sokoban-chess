@@ -1,8 +1,8 @@
 use super::{
-    component_serialization::*, physics_components::*, ComponentBounds, ComponentDatabase, ConversantNPC,
-    DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name, NonInspectableEntities, Player,
-    PrefabMarker, ResourcesDatabase, SceneSwitcher, SingletonDatabase, SoundSource, Sprite, TextSource,
-    Transform, Velocity,
+    component_serialization::*, physics_components::*, prefab_system, ComponentBounds, ComponentDatabase,
+    ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name,
+    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher, SingletonDatabase,
+    SoundSource, Sprite, TextSource, Transform, Velocity,
 };
 use uuid::Uuid;
 
@@ -82,33 +82,60 @@ impl SerializedEntity {
         singleton_database: &SingletonDatabase,
         resources: &ResourcesDatabase,
     ) -> Option<Self> {
-        let mut serialized_entity = SerializedEntity::default();
+        let mut prefab = None;
 
+        let mut serialized_entity = SerializedEntity::with_prefab_components(
+            entity_id,
+            serialization_id,
+            component_database,
+            singleton_database,
+            resources,
+            Some(&mut prefab),
+        )?;
+
+        if let Some(prefab) = prefab {
+            serialized_entity
+                .foreach_component_dedup(|component, active| component.is_serialized(&prefab, *active));
+        }
+
+        Some(serialized_entity)
+    }
+
+    /// This creates a serialized entity, but it will not dedup the prefab components out. If the entity
+    /// is a prefab inheritor, then this will not be the same as what is written to disk, but **will be**
+    /// the same as what is currently *live* (as far as SE == live entities goes, that is)
+    pub fn with_prefab_components(
+        entity_id: &Entity,
+        serialization_id: Uuid,
+        component_database: &ComponentDatabase,
+        singleton_database: &SingletonDatabase,
+        resources: &ResourcesDatabase,
+        give_prefab: Option<&mut Option<SerializedEntity>>,
+    ) -> Option<SerializedEntity> {
         // If it's a prefab, add in all the PREFAB components
-        let prefab = if let Some(prefab_component) = component_database.prefab_markers.get(entity_id) {
-            let prefab = resources.prefabs().get(&prefab_component.inner().main_id())?;
+        let mut serialized_entity = Default::default();
 
-            let mut serialized_prefab = prefab.members.get(&prefab_component.inner().sub_id())?.clone();
+        let loaded_prefab = prefab_system::get_serialized_parent_prefab_from_inheritor(
+            component_database.prefab_markers.get(entity_id),
+            resources,
+            &mut serialized_entity,
+        );
 
-            serialized_prefab.prefab_marker = Some(SerializedComponent {
-                active: true,
-                inner: prefab_component.inner().clone(),
-            });
+        if loaded_prefab {
+            // If the caller want the original prefab too, they can have it.
+            if let Some(give_prefab) = give_prefab {
+                *give_prefab = Some(serialized_entity.clone());
+            }
+        }
 
-            serialized_entity = serialized_prefab.clone();
-            Some(serialized_prefab)
-        } else {
-            None
-        };
-
-        // Save over the ID at this stage (we'll be copying over the prefab ID)
+        // Save over the ID at this stage (we probably had the prefab ID in there)
         serialized_entity.id = serialization_id;
 
         // Now add in all the normal components:
         component_database.foreach_component_list(
             NonInspectableEntities::NAME | NonInspectableEntities::GRAPH_NODE,
             |component_list| {
-                component_list.create_serialized_entity(
+                component_list.load_component_into_serialized_entity(
                     entity_id,
                     &mut serialized_entity,
                     &component_database.serialization_markers,
@@ -116,14 +143,6 @@ impl SerializedEntity {
             },
         );
         serialized_entity.marker = singleton_database.save_singleton_markers(entity_id);
-
-        // Now, load the prefab again, and for every field where the prefab matches with
-        // the the serialized entity, strip that field away from the serialized entity.
-        // Therefore, when we load, we will *only* have the prefab to load from.
-        if let Some(prefab) = prefab {
-            serialized_entity
-                .foreach_component_dedup(|component, active| component.is_serialized(&prefab, *active));
-        }
 
         Some(serialized_entity)
     }
@@ -262,17 +281,4 @@ impl SerializedEntity {
         println!("Serialized Entity: {:#?}", self);
         println!("---");
     }
-
-    // pub fn clone_component<T: ComponentBounds + Clone>(
-    //     comp: Option<&Component<T>>,
-    // ) -> SerializedComponentWrapper<T> {
-    //     if let Some(comp) = comp {
-    //         Some(SerializedComponent {
-    //             active: comp.is_active,
-    //             inner: comp.clone_inner(),
-    //         })
-    //     } else {
-    //         None
-    //     }
-    // }
 }

@@ -1,11 +1,11 @@
 use super::{
     Component, ComponentList, Entity, Name, PrefabMap, PrefabStatus, SerializationDelta, SerializationMarker,
-    SerializedEntity,
+    SerializedEntity, SyncStatus,
 };
 use failure::Fallible;
 use imgui::Ui;
 
-pub trait ComponentBounds<T> {
+pub trait ComponentBounds {
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
     fn is_serialized(&self, serialized_entity: &SerializedEntity, active: bool) -> bool;
     fn commit_to_scene(
@@ -30,7 +30,7 @@ pub struct InspectorParameters<'a, 'b> {
 pub trait ComponentListBounds {
     fn expand_list(&mut self);
     fn unset(&mut self, index: &Entity) -> bool;
-    fn get_mut<T>(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds<T>>;
+    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds>;
     fn dump_to_log(&self, index: &Entity);
     fn clone_entity(&mut self, index: &Entity, new_entity: &Entity);
 
@@ -55,7 +55,7 @@ pub trait ComponentListBounds {
         serialized_marker: &ComponentList<super::SerializationMarker>,
     ) -> Fallible<SerializationDelta>;
 
-    fn create_serialized_entity(
+    fn load_component_into_serialized_entity(
         &self,
         entity: &Entity,
         serialized_entity: &mut super::SerializedEntity,
@@ -67,7 +67,7 @@ pub trait ComponentListBounds {
 
 impl<T> ComponentListBounds for ComponentList<T>
 where
-    T: ComponentBounds<T> + std::fmt::Debug + typename::TypeName + Clone + Default + 'static,
+    T: ComponentBounds + std::fmt::Debug + typename::TypeName + Clone + Default + 'static,
 {
     fn expand_list(&mut self) {
         self.expand_list();
@@ -111,16 +111,37 @@ where
         ui: &Ui<'_>,
         is_open: bool,
     ) {
-        self.component_inspector_raw(
-            entity,
-            current_serialized_entity,
-            entities,
-            entity_names,
-            prefab_hashmap,
-            ui,
-            is_open,
-            |inner, ip| inner.entity_inspector(ip),
-        );
+        if let Some(comp) = self.get_mut(entity) {
+            // get our serialization_statuses:
+            let sync_status: SyncStatus = current_serialized_entity
+                .map(|se| {
+                    if comp.inner().is_serialized(se, comp.is_active) {
+                        SyncStatus::Synced
+                    } else {
+                        SyncStatus::OutofSync
+                    }
+                })
+                .unwrap_or_else(|| {
+                    if super::scene_system::current_scene_mode() == super::SceneMode::Draft {
+                        SyncStatus::Headless
+                    } else {
+                        SyncStatus::Unsynced
+                    }
+                });
+
+            if super::imgui_system::component_inspector_raw(
+                comp,
+                sync_status,
+                entities,
+                entity_names,
+                prefab_hashmap,
+                ui,
+                is_open,
+                |inner, ip| inner.entity_inspector(ip),
+            ) {
+                self.unset(entity);
+            }
+        }
     }
 
     fn serialization_option(
@@ -133,7 +154,7 @@ where
         self.serialization_option_raw(ui, entity_id, prefab_status, serialized_markers)
     }
 
-    fn create_serialized_entity(
+    fn load_component_into_serialized_entity(
         &self,
         entity: &Entity,
         serialized_entity: &mut super::SerializedEntity,
@@ -161,14 +182,14 @@ where
         }
     }
 
-    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds<T>> {
+    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds> {
         self.get_mut(index).map(|component| component.inner_mut() as _)
     }
 }
 
 impl<T> ComponentList<T>
 where
-    T: ComponentBounds<T> + Default + Clone + typename::TypeName + 'static,
+    T: ComponentBounds + Default + Clone + typename::TypeName + 'static,
 {
     /// Simply a wrapper around creating a new component
     pub fn set_component(&mut self, entity_id: &Entity, new_component: T) {

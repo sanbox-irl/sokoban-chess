@@ -91,6 +91,21 @@ impl SyncStatus {
             SyncStatus::Synced => true,
         }
     }
+
+    pub fn imgui_color(&self, scene_mode: super::SceneMode) -> [f32; 4] {
+        match self {
+            SyncStatus::Unsynced => {
+                if scene_mode == super::SceneMode::Draft {
+                    super::imgui_system::red_warning_color()
+                } else {
+                    Color::WHITE.into()
+                }
+            }
+            SyncStatus::Headless => super::imgui_system::red_warning_color(),
+            SyncStatus::OutofSync => super::imgui_system::yellow_warning_color(),
+            SyncStatus::Synced => Color::WHITE.into(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]

@@ -25,14 +25,32 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             }
         };
 
-        let serialized_entity = if let Some(se) = component_database.serialization_markers.get(entity) {
-            SerializedEntity::new(
-                entity,
-                se.inner().id,
-                component_database,
-                singleton_database,
+        let serialized_entity = if let Some(se) = component_database.serialization_markers.get_mut(entity) {
+            let mut base_entity = SerializedEntity::default();
+
+            prefab_system::get_serialized_parent_prefab_from_inheritor(
+                component_database.prefab_markers.get(entity),
                 resources,
-            )
+                &mut base_entity,
+            );
+
+            let cached_se: SerializedEntity = se
+                .inner_mut()
+                .cached_serialized_entity()
+                .cloned()
+                .unwrap_or_default();
+
+            match prefab_system::load_override_into_prefab(base_entity, cached_se) {
+                Ok(se) => Some(se),
+                Err(e) => {
+                    error!(
+                        "We failed to override our prefab for {} because {}",
+                        Name::get_name_quick(&component_database.names, entity),
+                        e
+                    );
+                    None
+                }
+            }
         } else {
             None
         };
@@ -73,18 +91,20 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
 
             // Serialization
             let mut serialize_it = false;
-            component_database.serialization_markers.component_inspector_raw(
-                entity,
-                None,
-                entities,
-                &component_database.names,
-                resources.prefabs(),
-                ui,
-                window_is_open,
-                |inner, ip| {
-                    serialize_it = inner.entity_inspector_results(ip);
-                },
-            );
+            if let Some(s_marker) = component_database.serialization_markers.get_mut(entity) {
+                component_inspector_raw(
+                    s_marker,
+                    SyncStatus::Synced,
+                    entities,
+                    &component_database.names,
+                    resources.prefabs(),
+                    ui,
+                    window_is_open,
+                    |inner, ip| {
+                        serialize_it = inner.entity_inspector_results(ip);
+                    },
+                );
+            }
 
             if serialize_it {
                 serialization_util::entities::serialize_entity_full(
@@ -309,121 +329,114 @@ pub fn entity_serialization_options(
     Ok((sc, reload_prefab))
 }
 
-// fn component_name_and_status(name: &str, ui: &mut Ui<'_>, component_info: &mut ComponentInfo) {
-//     // NAME
-//     let two_thirds_size = ui.window_size()[0] * (2.0 / 3.0);
-//     ui.same_line(two_thirds_size);
-//     ui.checkbox(&im_str!("##Active{}", name), &mut component_info.is_active);
-//     ui.same_line(two_thirds_size + 25.0);
-
-//     let label = &im_str!("Delete##{}", name);
-//     let base_size: Vec2 = ui.calc_text_size(label, true, 0.0).into();
-//     let size = base_size + Vec2::new(13.0, 6.5);
-//     if ui.button(label, size.into()) {
-//         component_info.is_deleted = true;
-//     }
-
-//     ui.spacing();
-// }
-
-fn component_name(
-    name: &str,
-    ui: &Ui<'_>,
-    is_active: bool,
+pub fn component_inspector_raw<T>(
+    comp: &mut Component<T>,
     serialization_sync_status: SyncStatus,
-) -> ComponentInfo {
-    ComponentInfo::new(true, true)
+    entities: &[Entity],
+    entity_names: &ComponentList<Name>,
+    prefab_hashmap: &PrefabMap,
+    ui: &Ui<'_>,
+    is_open: bool,
+    mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
+) -> bool
+where
+    T: ComponentBounds + Clone + typename::TypeName + std::fmt::Debug + 'static,
+{
+    let mut delete_this_component = false;
+    let scene_mode = scene_system::current_scene_mode();
+
+    let name = super::imgui_system::typed_text_ui::<T>();
+    let uid = &format!("{}{}", comp.entity_id(), &T::type_name());
+
+    let alpha_controller = if comp.is_active == false {
+        Some(ui.push_style_var(imgui::StyleVar::Alpha(0.6)))
+    } else {
+        None
+    };
+
+    let default_color = ui.style_color(imgui::StyleColor::Text);
+    let text_color_token = ui.push_style_color(
+        imgui::StyleColor::Text,
+        serialization_sync_status.imgui_color(scene_mode),
+    );
+    ui.tree_node(&imgui::ImString::new(&name))
+        .default_open(true)
+        .frame_padding(false)
+        .build(|| {
+            let full_alpha_guard = ui.push_style_var(imgui::StyleVar::Alpha(1.0));
+
+            imgui_system::right_click_popup(ui, uid, || {
+                let normal_text_color = ui.push_style_color(imgui::StyleColor::Text, default_color);
+
+                MenuItem::new(&im_str!("Is Active##{}", uid)).build_with_ref(ui, &mut comp.is_active);
+                MenuItem::new(&im_str!("Delete##{}", uid)).build_with_ref(ui, &mut delete_this_component);
+                ui.separator();
+                MenuItem::new(&im_str!("Hey Bob")).build(ui);
+
+                normal_text_color.pop(ui);
+            });
+
+            // Handle the Warning!
+            match serialization_sync_status {
+                SyncStatus::Unsynced => {
+                    if scene_mode == SceneMode::Draft {
+                        imgui_utility::help_marker_generic(
+                            ui,
+                            imgui_utility::WARNING_ICON,
+                            format!("{} is not committed to the Scene!", name),
+                        )
+                    }
+                }
+                SyncStatus::Headless => imgui_utility::help_marker_generic(
+                    ui,
+                    imgui_utility::WARNING_ICON,
+                    format!(
+                        "{} is Headless! We thought we had a serialization, but we don't!",
+                        name
+                    ),
+                ),
+                SyncStatus::OutofSync => imgui_utility::help_marker_generic(
+                    ui,
+                    imgui_utility::WARNING_ICON,
+                    format!("{} is out of Sync with its Serialization!", name),
+                ),
+                SyncStatus::Synced => {}
+            };
+            full_alpha_guard.pop(ui);
+
+            if comp.is_active == false {
+                return;
+            }
+
+            let normal_text_color = ui.push_style_color(imgui::StyleColor::Text, default_color);
+
+            // DELETE ENTITY
+            if delete_this_component != true {
+                let inspector_parameters = InspectorParameters {
+                    is_open,
+                    uid,
+                    ui,
+                    entities,
+                    entity_names,
+                    prefabs: prefab_hashmap,
+                };
+                f(comp.inner_mut(), inspector_parameters);
+            }
+
+            normal_text_color.pop(ui);
+        });
+    text_color_token.pop(ui);
+    if let Some(alpha_token) = alpha_controller {
+        alpha_token.pop(ui);
+    }
+
+    delete_this_component
 }
 
 impl<T> ComponentList<T>
 where
     T: ComponentBounds + Clone + typename::TypeName + std::fmt::Debug + 'static,
 {
-    pub fn component_inspector_raw(
-        &mut self,
-        entity: &Entity,
-        serialized_entity: Option<&SerializedEntity>,
-        entities: &[Entity],
-        entity_names: &ComponentList<Name>,
-        prefab_hashmap: &PrefabMap,
-        ui: &Ui<'_>,
-        is_open: bool,
-        mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
-    ) {
-        let mut delete_this_component = false;
-        let scene_mode = scene_system::current_scene_mode();
-
-        if let Some(comp) = self.get_mut(entity) {
-            // get our serialization_statuses:
-            let serialization_sync_status: SyncStatus = serialized_entity
-                .map(|se| {
-                    if comp.inner().is_serialized(se, comp.is_active()) {
-                        SyncStatus::Synced
-                    } else {
-                        SyncStatus::OutofSync
-                    }
-                })
-                .unwrap_or_else(|| {
-                    if scene_mode == SceneMode::Draft {
-                        SyncStatus::Headless
-                    } else {
-                        SyncStatus::Unsynced
-                    }
-                });
-
-            let name = super::imgui_system::typed_text_ui::<T>();
-
-            let color = match serialization_sync_status {
-                SyncStatus::Unsynced => {
-                    if scene_mode == SceneMode::Draft {
-                        imgui_utility::red_warning_color()
-                    } else {
-                        Color::WHITE.into()
-                    }
-                }
-                SyncStatus::Headless => imgui_utility::red_warning_color(),
-                SyncStatus::OutofSync => imgui_utility::yellow_warning_color(),
-                SyncStatus::Synced => Color::WHITE.into(),
-            };
-
-            let default_color = ui.style_color(imgui::StyleColor::Text);
-            let text_color_token = ui.push_style_color(imgui::StyleColor::Text, color);
-            ui.tree_node(&imgui::ImString::new(&name))
-                .default_open(true)
-                .frame_padding(false)
-                .build(|| {
-                    let normal_text_color = ui.push_style_color(imgui::StyleColor::Text, default_color);
-
-                    // COMPONENT INFO
-                    let mut comp_info = comp.construct_component_info();
-                    // component_name_and_status(&name, ui, &mut comp_info);
-                    // comp.take_component_info(&comp_info);
-
-                    // DELETE ENTITY
-                    if comp_info.is_deleted {
-                        delete_this_component = true;
-                    } else {
-                        let inspector_parameters = InspectorParameters {
-                            is_open,
-                            uid: &format!("{}{}", comp.entity_id(), &T::type_name()),
-                            ui,
-                            entities,
-                            entity_names,
-                            prefabs: prefab_hashmap,
-                        };
-                        f(comp.inner_mut(), inspector_parameters);
-                    }
-
-                    normal_text_color.pop(ui);
-                });
-            text_color_token.pop(ui);
-
-            if delete_this_component {
-                self.unset(entity);
-            }
-        }
-    }
-
     pub fn serialization_option_raw(
         &self,
         ui: &imgui::Ui<'_>,

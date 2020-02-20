@@ -1,7 +1,7 @@
 use super::{ComponentBounds, ComponentInfo, Entity, GenerationalIndexValue};
 
 #[derive(Debug, Clone, Serialize, Deserialize, typename::TypeName)]
-pub struct Component<SerializedT, T: ComponentBounds<SerializedT>> {
+pub struct Component<T: ComponentBounds> {
     pub is_active: bool,
     entity_id: Entity,
     inner: T,

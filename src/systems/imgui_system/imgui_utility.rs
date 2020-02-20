@@ -445,7 +445,7 @@ pub fn left_clicked_item(ui: &Ui<'_>) -> bool {
 
 pub fn right_click_popup<F: FnOnce()>(ui: &Ui<'_>, uid: &str, f: F) {
     let name = im_str!("{}", uid);
-    if ui.is_item_hovered() && ui.is_mouse_released(imgui::MouseButton::Right) {
+    if ui.is_item_hovered() && ui.is_mouse_clicked(imgui::MouseButton::Right) {
         ui.open_popup(&name);
     }
 
@@ -461,6 +461,14 @@ pub fn help_menu_item<T: AsRef<str>>(ui: &Ui<'_>, label: &ImStr, tooltip: T) -> 
 pub fn help_marker<T: AsRef<str>>(ui: &Ui<'_>, message: T) {
     ui.same_line(0.0);
     ui.text_disabled("(?)");
+    if ui.is_item_hovered() {
+        ui.tooltip_text(message);
+    }
+}
+
+pub fn help_marker_generic<T: AsRef<str>>(ui: &Ui<'_>, item: char, message: T) {
+    ui.same_line(0.0);
+    ui.text(&im_str!("{}", item));
     if ui.is_item_hovered() {
         ui.tooltip_text(message);
     }

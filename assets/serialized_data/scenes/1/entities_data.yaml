@@ -1,8 +1,21 @@
 ---
-de8f9f42-15a2-4a50-b88b-d154b916157d:
-  name: ~
+0c2af0a5-7d99-4182-8aed-57bab959d996:
+  name:
+    inner:
+      name: Tester
+    active: true
   player: ~
-  transform: ~
+  transform:
+    inner:
+      local_position:
+        x: 0.0
+        y: 0.0
+      world_position:
+        x: 0.0
+        y: 0.0
+      parent:
+        target_serialized_id: ~
+    active: true
   grid_object: ~
   scene_switcher: ~
   graph_node: ~
@@ -15,10 +28,6 @@ de8f9f42-15a2-4a50-b88b-d154b916157d:
   tilemap: ~
   follow: ~
   conversant_npc: ~
-  prefab_marker:
-    inner:
-      main_id: 0f15861f-909b-4632-9087-538538bee26b
-      sub_id: 0f15861f-909b-4632-9087-538538bee26b
-    active: true
-  id: de8f9f42-15a2-4a50-b88b-d154b916157d
+  prefab_marker: ~
+  id: 0c2af0a5-7d99-4182-8aed-57bab959d996
   marker: ~
