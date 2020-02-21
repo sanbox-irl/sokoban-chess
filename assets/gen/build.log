@@ -1,3 +1,2 @@
-2020-02-21T08:37:37.680215-08:00 INFO build_script_build_main::shader_builder - No shaders were recompiled.
-2020-02-21T08:37:37.683732-08:00 INFO build_script_build_main::sprite_packer - YellowBot has been changed.
-2020-02-21T08:37:37.688508-08:00 INFO build_script_build_main::sprite_packer - Repacking sprites...
+2020-02-21T12:27:28.101188-08:00 INFO build_script_build_main::shader_builder - No shaders were recompiled.
+2020-02-21T12:27:28.105518-08:00 INFO build_script_build_main::sprite_packer - Sprites were not repacked.

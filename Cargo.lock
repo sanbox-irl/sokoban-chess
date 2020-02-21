@@ -177,6 +177,61 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit-bots"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "array2d",
+ "arrayvec 0.4.12",
+ "bincode",
+ "bit-bots-derive",
+ "bitflags",
+ "clipboard",
+ "clockwork_build_shared",
+ "failure",
+ "gfx-backend-dx12",
+ "gfx-backend-metal",
+ "gfx-backend-vulkan",
+ "gfx-hal",
+ "glob",
+ "glyph_brush",
+ "image",
+ "imgui",
+ "imgui-winit-support",
+ "lazy_static",
+ "log",
+ "log-once",
+ "log4rs",
+ "maplit",
+ "matches",
+ "memoffset",
+ "num-derive 0.3.0",
+ "num-traits",
+ "once_cell",
+ "pretty_env_logger",
+ "regex",
+ "rodio",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "shaderc",
+ "sheep",
+ "strum",
+ "strum_macros",
+ "typename",
+ "uuid",
+ "winit",
+]
+
+[[package]]
+name = "bit-bots-derive"
+version = "0.1.0"
+dependencies = [
+ "quote 1.0.2",
+ "syn 1.0.14",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1332,6 +1387,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "once_cell"
+version = "1.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c601810575c99596d4afc46f78a678c80105117c379eb3650cf99b8a21ce5b"
+
+[[package]]
 name = "ordered-float"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1950,51 +2011,6 @@ dependencies = [
  "nix",
  "wayland-client",
  "wayland-protocols",
-]
-
-[[package]]
-name = "sokoban-chess"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "array2d",
- "arrayvec 0.4.12",
- "bincode",
- "bitflags",
- "clipboard",
- "clockwork_build_shared",
- "failure",
- "gfx-backend-dx12",
- "gfx-backend-metal",
- "gfx-backend-vulkan",
- "gfx-hal",
- "glob",
- "glyph_brush",
- "image",
- "imgui",
- "imgui-winit-support",
- "lazy_static",
- "log",
- "log-once",
- "log4rs",
- "maplit",
- "matches",
- "memoffset",
- "num-derive 0.3.0",
- "num-traits",
- "pretty_env_logger",
- "regex",
- "rodio",
- "serde",
- "serde_json",
- "serde_yaml",
- "shaderc",
- "sheep",
- "strum",
- "strum_macros",
- "typename",
- "uuid",
- "winit",
 ]
 
 [[package]]

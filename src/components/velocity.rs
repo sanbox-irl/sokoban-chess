@@ -18,6 +18,10 @@ impl ComponentBounds for Velocity {
         }
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "velocity"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .velocity

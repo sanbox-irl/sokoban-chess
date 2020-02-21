@@ -102,6 +102,10 @@ impl ComponentBounds for Transform {
             .no_interact_inspector(ip.ui, &im_str!("World Position##{}", ip.uid));
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "transform"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .transform

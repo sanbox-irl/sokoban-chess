@@ -22,6 +22,10 @@ impl ComponentBounds for SoundSource {
         ui.checkbox(&im_str!("Muted##{}", uid), &mut self.muted);
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "sound_source"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .sound_source

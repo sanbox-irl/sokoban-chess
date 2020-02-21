@@ -38,6 +38,10 @@ impl ComponentBounds for PrefabMarker {
         }
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "prefab_marker"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .prefab_marker

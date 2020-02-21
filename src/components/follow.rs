@@ -41,6 +41,10 @@ impl ComponentBounds for Follow {
             .inspector(ip.ui, &imgui::im_str!("Offset##{}", ip.uid));
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "follow"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .follow

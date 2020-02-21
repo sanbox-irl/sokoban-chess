@@ -61,6 +61,10 @@ impl ComponentBounds for Sprite {
         }
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "sprite"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .sprite

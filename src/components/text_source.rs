@@ -73,6 +73,10 @@ impl ComponentBounds for TextSource {
             .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "text_source"
+    }
+
     fn commit_to_scene(
         &self,
         se: &mut super::SerializedEntity,

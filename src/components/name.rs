@@ -299,6 +299,10 @@ impl ComponentBounds for Name {
         unimplemented!();
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "name"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .name

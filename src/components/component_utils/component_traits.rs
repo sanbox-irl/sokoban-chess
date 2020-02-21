@@ -6,6 +6,7 @@ use failure::Fallible;
 use imgui::Ui;
 
 pub trait ComponentBounds {
+    fn serialization_name(&self) -> &'static str;
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
     fn is_serialized(&self, serialized_entity: &SerializedEntity, active: bool) -> bool;
     fn commit_to_scene(
@@ -16,6 +17,10 @@ pub trait ComponentBounds {
     );
     fn uncommit_to_scene(&self, serialized_entity: &mut SerializedEntity);
     fn post_deserialization(&mut self, _: Entity, _: &ComponentList<SerializationMarker>) {}
+}
+
+pub trait SerializableComponent {
+    const SERIALIZATION_NAME: once_cell::sync::Lazy<serde_yaml::Value>;
 }
 
 pub struct InspectorParameters<'a, 'b> {
@@ -46,7 +51,7 @@ pub trait ComponentListBounds {
         prefab_hashmap: &PrefabMap,
         ui: &imgui::Ui<'_>,
         is_open: bool,
-    );
+    ) -> Option<ComponentInspectorAction>;
 
     fn serialization_option(
         &self,
@@ -112,12 +117,12 @@ where
         prefab_hashmap: &PrefabMap,
         ui: &Ui<'_>,
         is_open: bool,
-    ) {
+    ) -> Option<ComponentInspectorAction> {
         if let Some(comp) = self.get_mut(entity) {
             // get our serialization_statuses:
             let serialized_sync_status: SyncStatus = current_serialized_entity
                 .map(|se| {
-                    if comp.inner().is_serialized(se, comp.is_active) {
+                    if comp.is_serialized(se) {
                         SyncStatus::Synced
                     } else {
                         SyncStatus::OutofSync
@@ -133,7 +138,7 @@ where
 
             let prefab_sync_status: SyncStatus = current_prefab_parent
                 .map(|se| {
-                    if comp.inner().is_serialized(se, comp.is_active) {
+                    if comp.is_serialized(se) {
                         SyncStatus::Synced
                     } else {
                         SyncStatus::OutofSync
@@ -147,7 +152,7 @@ where
                     }
                 });
 
-            if let Some(action) = super::imgui_system::component_inspector_raw(
+            super::imgui_system::component_inspector_raw(
                 comp,
                 serialized_sync_status,
                 prefab_sync_status,
@@ -157,18 +162,27 @@ where
                 ui,
                 is_open,
                 |inner, ip| inner.entity_inspector(ip),
-            ) {
+            )
+            .map(|action| {
                 match action {
                     ComponentInspectorAction::Delete => {
                         self.unset(entity);
                     }
-                    ComponentInspectorAction::Serialize => {}
-                    ComponentInspectorAction::StopSerializing => {}
                     ComponentInspectorAction::RevertSerialization => {}
-                    ComponentInspectorAction::ApplyOverrideToParentPrefab => {}
                     ComponentInspectorAction::RevertToParentPrefab => {}
+
+                    ComponentInspectorAction::Serialize
+                    | ComponentInspectorAction::StopSerializing
+                    | ComponentInspectorAction::ApplyOverrideToParentPrefab => {
+                        // these are going to handled outside this function.
+                        // we should probably transform this into another enum for that!
+                    }
                 }
-            }
+
+                action
+            })
+        } else {
+            None
         }
     }
 
@@ -253,19 +267,5 @@ where
         }
 
         self.get(index).unwrap()
-    }
-}
-
-pub struct ComponentInfo {
-    pub is_active: bool,
-    pub is_deleted: bool,
-}
-
-impl ComponentInfo {
-    pub fn new(is_active: bool, is_deleted: bool) -> Self {
-        Self {
-            is_active,
-            is_deleted,
-        }
     }
 }

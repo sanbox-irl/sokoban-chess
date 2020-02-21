@@ -61,6 +61,10 @@ impl ComponentBounds for GridObject {
             .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "grid_object"
+    }
+
     fn commit_to_scene(
         &self,
         se: &mut super::SerializedEntity,

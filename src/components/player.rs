@@ -23,6 +23,10 @@ impl ComponentBounds for Player {
             .checkbox(&imgui::im_str!("Active##{}", ip.uid), &mut self.active);
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "name"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .player

@@ -126,6 +126,10 @@ impl ComponentBounds for SerializationMarker {
         unimplemented!();
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "serialization_marker"
+    }
+
     fn is_serialized(&self, _: &SerializedEntity, _: bool) -> bool {
         unimplemented!()
     }

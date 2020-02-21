@@ -6,6 +6,8 @@ extern crate log;
 extern crate failure;
 #[macro_use]
 extern crate serde;
+#[macro_use]
+extern crate bit_bots_derive;
 
 mod action_map;
 mod clockwork;

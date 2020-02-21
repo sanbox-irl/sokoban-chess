@@ -172,6 +172,10 @@ impl ComponentBounds for Tilemap {
         }
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "tilemap"
+    }
+
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity.tilemap.as_ref().map_or(false, |s| {
             if s.active == active {

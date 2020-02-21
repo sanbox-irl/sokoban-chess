@@ -119,6 +119,10 @@ impl ComponentBounds for GraphNode {
             .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
+    fn serialization_name(&self) -> &'static str {
+        "graph_node"
+    }
+
     fn commit_to_scene(
         &self,
         se: &mut super::SerializedEntity,

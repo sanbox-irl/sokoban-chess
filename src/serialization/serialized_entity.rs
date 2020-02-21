@@ -1,9 +1,10 @@
 use super::{
     component_serialization::*, physics_components::*, prefab_system, ComponentBounds, ComponentDatabase,
     ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name,
-    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher, SingletonDatabase,
-    SoundSource, Sprite, TextSource, Transform, Velocity,
+    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher, SerializableComponent,
+    SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
 };
+use serde_yaml::Value;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -280,5 +281,19 @@ impl SerializedEntity {
         println!("---");
         println!("Serialized Entity: {:#?}", self);
         println!("---");
+    }
+
+    pub fn get_serialized_component<T: SerializableComponent + ComponentBounds + Clone>(
+        serialized_entity: &SerializedEntity,
+    ) -> Option<T>
+    where
+        for<'de> T: serde::Deserialize<'de>,
+    {
+        let mut serialized_entity_value: Value = serde_yaml::to_value(serialized_entity.clone()).unwrap();
+
+        let mapping = serialized_entity_value.as_mapping_mut().unwrap();
+        let my_output = mapping.remove(&T::SERIALIZATION_NAME);
+
+        my_output.map(|value| serde_yaml::from_value(value).unwrap())
     }
 }
