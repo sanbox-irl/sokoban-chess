@@ -1,2 +1,6 @@
 /target
 /dev
+.vscode/
+
+run-release.sh
+run.sh
