@@ -26,14 +26,22 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             }
         };
 
-        let serialized_entity = if let Some(se) = component_database.serialization_markers.get_mut(entity) {
+        let serialized_prefab = {
             let mut base_entity = SerializedEntity::default();
 
-            prefab_system::get_serialized_parent_prefab_from_inheritor(
+            if prefab_system::get_serialized_parent_prefab_from_inheritor(
                 component_database.prefab_markers.get(entity),
                 resources,
                 &mut base_entity,
-            );
+            ) {
+                Some(base_entity)
+            } else {
+                None
+            }
+        };
+
+        let serialized_entity = if let Some(se) = component_database.serialization_markers.get_mut(entity) {
+            let base_entity = serialized_prefab.clone().unwrap_or_default();
 
             let cached_se: SerializedEntity = se
                 .inner_mut()
@@ -72,6 +80,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                 component_list.component_inspector(
                     entity,
                     serialized_entity.as_ref(),
+                    serialized_prefab.as_ref(),
                     entities,
                     unsafe { &*names_raw_pointer },
                     resources.prefabs(),
@@ -96,6 +105,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                 component_inspector_raw(
                     s_marker,
                     SyncStatus::Synced,
+                    SyncStatus::Unsynced,
                     entities,
                     &component_database.names,
                     resources.prefabs(),
@@ -333,9 +343,10 @@ pub fn entity_serialization_options(
 pub fn component_inspector_raw<T>(
     comp: &mut Component<T>,
     serialization_sync_status: SyncStatus,
+    prefab_sync_status: SyncStatus,
     entities: &[Entity],
     entity_names: &ComponentList<Name>,
-    prefab_hashmap: &PrefabMap,
+    prefabs: &PrefabMap,
     ui: &Ui<'_>,
     is_open: bool,
     mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
@@ -374,7 +385,7 @@ where
                         ui.separator();
 
                         if MenuItem::new(&imgui_str("Serialize", uid))
-                            .enabled(serialization_sync_status != SyncStatus::Unsynced)
+                            .enabled(serialization_sync_status == SyncStatus::OutofSync)
                             .build(ui)
                         {
                             info!("Let's serialize!")
@@ -387,11 +398,27 @@ where
                             info!("Let's serialize!")
                         }
 
-                        if MenuItem::new(&imgui_str("Revert", uid))
-                            .enabled(serialization_sync_status != SyncStatus::Unsynced)
+                        if MenuItem::new(&imgui_str("Revert to Serialization", uid))
+                            .enabled(serialization_sync_status == SyncStatus::Unsynced)
                             .build(ui)
                         {
                             info!("Let's revert!")
+                        }
+
+                        ui.separator();
+
+                        if MenuItem::new(&imgui_str("Apply Overrides To Prefab", uid))
+                            .enabled(prefab_sync_status == SyncStatus::Unsynced)
+                            .build(ui)
+                        {
+                            info!("Applying my overrides to Dad!");
+                        }
+
+                        if MenuItem::new(&imgui_str("Revert to Prefab", uid))
+                            .enabled(prefab_sync_status == SyncStatus::OutofSync)
+                            .build(ui)
+                        {
+                            info!("Reverting to Prefab DAD!");
                         }
                     });
                 });
@@ -438,7 +465,7 @@ where
                     ui,
                     entities,
                     entity_names,
-                    prefabs: prefab_hashmap,
+                    prefabs,
                 };
                 f(comp.inner_mut(), inspector_parameters);
             }

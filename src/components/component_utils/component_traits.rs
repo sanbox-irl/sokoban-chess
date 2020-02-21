@@ -40,6 +40,7 @@ pub trait ComponentListBounds {
         &mut self,
         entity: &Entity,
         current_serialized_entity: Option<&SerializedEntity>,
+        current_prefab_parent: Option<&SerializedEntity>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         prefab_hashmap: &PrefabMap,
@@ -105,6 +106,7 @@ where
         &mut self,
         entity: &Entity,
         current_serialized_entity: Option<&SerializedEntity>,
+        current_prefab_parent: Option<&SerializedEntity>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         prefab_hashmap: &PrefabMap,
@@ -113,7 +115,23 @@ where
     ) {
         if let Some(comp) = self.get_mut(entity) {
             // get our serialization_statuses:
-            let sync_status: SyncStatus = current_serialized_entity
+            let serialized_sync_status: SyncStatus = current_serialized_entity
+                .map(|se| {
+                    if comp.inner().is_serialized(se, comp.is_active) {
+                        SyncStatus::Synced
+                    } else {
+                        SyncStatus::OutofSync
+                    }
+                })
+                .unwrap_or_else(|| {
+                    if super::scene_system::current_scene_mode() == super::SceneMode::Draft {
+                        SyncStatus::Headless
+                    } else {
+                        SyncStatus::Unsynced
+                    }
+                });
+
+            let prefab_sync_status: SyncStatus = current_prefab_parent
                 .map(|se| {
                     if comp.inner().is_serialized(se, comp.is_active) {
                         SyncStatus::Synced
@@ -131,7 +149,8 @@ where
 
             if super::imgui_system::component_inspector_raw(
                 comp,
-                sync_status,
+                serialized_sync_status,
+                prefab_sync_status,
                 entities,
                 entity_names,
                 prefab_hashmap,
