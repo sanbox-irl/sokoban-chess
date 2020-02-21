@@ -1,6 +1,7 @@
 use super::*;
 use failure::Fallible;
-use imgui::{Condition, ImString, MenuItem, Window};
+use imgui::{Condition, ImString, MenuItem, StyleColor, StyleVar, Window};
+use imgui_utility::imgui_str;
 
 pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     let ui: &Ui<'_> = &ui_handler.ui;
@@ -363,46 +364,65 @@ where
         .default_open(true)
         .frame_padding(false)
         .build(|| {
-            let full_alpha_guard = ui.push_style_var(imgui::StyleVar::Alpha(1.0));
+            imgui_utility::wrap_style_var(ui, StyleVar::Alpha(1.0), || {
+                imgui_system::right_click_popup(ui, uid, || {
+                    imgui_utility::wrap_style_color_var(ui, StyleColor::Text, default_color, || {
+                        MenuItem::new(&im_str!("Is Active##{}", uid)).build_with_ref(ui, &mut comp.is_active);
+                        MenuItem::new(&im_str!("Delete##{}", uid))
+                            .build_with_ref(ui, &mut delete_this_component);
 
-            imgui_system::right_click_popup(ui, uid, || {
-                let normal_text_color = ui.push_style_color(imgui::StyleColor::Text, default_color);
+                        ui.separator();
 
-                MenuItem::new(&im_str!("Is Active##{}", uid)).build_with_ref(ui, &mut comp.is_active);
-                MenuItem::new(&im_str!("Delete##{}", uid)).build_with_ref(ui, &mut delete_this_component);
-                ui.separator();
-                MenuItem::new(&im_str!("Hey Bob")).build(ui);
+                        if MenuItem::new(&imgui_str("Serialize", uid))
+                            .enabled(serialization_sync_status != SyncStatus::Unsynced)
+                            .build(ui)
+                        {
+                            info!("Let's serialize!")
+                        }
 
-                normal_text_color.pop(ui);
-            });
+                        if MenuItem::new(&imgui_str("Stop Serializing", uid))
+                            .enabled(serialization_sync_status.is_synced_at_all())
+                            .build(ui)
+                        {
+                            info!("Let's serialize!")
+                        }
 
-            // Handle the Warning!
-            match serialization_sync_status {
-                SyncStatus::Unsynced => {
-                    if scene_mode == SceneMode::Draft {
-                        imgui_utility::help_marker_generic(
-                            ui,
-                            imgui_utility::WARNING_ICON,
-                            format!("{} is not committed to the Scene!", name),
-                        )
+                        if MenuItem::new(&imgui_str("Revert", uid))
+                            .enabled(serialization_sync_status != SyncStatus::Unsynced)
+                            .build(ui)
+                        {
+                            info!("Let's revert!")
+                        }
+                    });
+                });
+
+                // Handle the Warning!
+                match serialization_sync_status {
+                    SyncStatus::Unsynced => {
+                        if scene_mode == SceneMode::Draft {
+                            imgui_utility::help_marker_generic(
+                                ui,
+                                imgui_utility::WARNING_ICON,
+                                format!("{} is not committed to the Scene!", name),
+                            )
+                        }
                     }
-                }
-                SyncStatus::Headless => imgui_utility::help_marker_generic(
-                    ui,
-                    imgui_utility::WARNING_ICON,
-                    format!(
-                        "{} is Headless! We thought we had a serialization, but we don't!",
-                        name
+                    SyncStatus::Headless => imgui_utility::help_marker_generic(
+                        ui,
+                        imgui_utility::WARNING_ICON,
+                        format!(
+                            "{} is Headless! We thought we had a serialization, but we don't!",
+                            name
+                        ),
                     ),
-                ),
-                SyncStatus::OutofSync => imgui_utility::help_marker_generic(
-                    ui,
-                    imgui_utility::WARNING_ICON,
-                    format!("{} is out of Sync with its Serialization!", name),
-                ),
-                SyncStatus::Synced => {}
-            };
-            full_alpha_guard.pop(ui);
+                    SyncStatus::OutofSync => imgui_utility::help_marker_generic(
+                        ui,
+                        imgui_utility::WARNING_ICON,
+                        format!("{} is out of Sync with its Serialization!", name),
+                    ),
+                    SyncStatus::Synced => {}
+                };
+            });
 
             if comp.is_active == false {
                 return;

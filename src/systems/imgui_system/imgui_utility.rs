@@ -93,18 +93,12 @@ pub fn typed_enum_selection<
 
     let mut variant: Option<T> = None;
 
+    // Popup
     ui.popup(&popup_name, || {
-        let mut close_popup = false;
-
         for this_variant in T::iter() {
-            if ui.button(&im_str!("{:?}", this_variant), [0.0, 0.0]) {
+            if MenuItem::new(&im_str!("{:?}", this_variant)).build(ui) {
                 variant = Some(this_variant);
-                close_popup = true;
             }
-        }
-
-        if close_popup || pressed_escape(ui) {
-            ui.close_current_popup();
         }
     });
 
@@ -141,7 +135,7 @@ fn typed_enum_selection_option_raw<T, I>(
     ui: &Ui<'_>,
     current_value: &Option<T>,
     name: &str,
-    unique_id: &str,
+    uid: &str,
 ) -> Option<Option<T>>
 where
     T: std::fmt::Debug + strum::IntoEnumIterator<Iterator = I>,
@@ -150,13 +144,11 @@ where
     let mut variant: Option<Option<T>> = None;
 
     // Button
-    let popup_name = im_str!("{}##{}", name, unique_id);
-
-    // @techdebt this is messy and has some allocaitons. we should clean this up.
+    let popup_name = im_str!("{}##{}", name, uid);
     let pressed = label_button(
         ui,
         &ImString::new(name),
-        &im_str!("{}##{}", &pretty_option_debug(current_value), unique_id),
+        &im_str!("{}##{}", &pretty_option_debug(current_value), uid),
     );
 
     if pressed {
@@ -165,22 +157,14 @@ where
 
     // Popup
     ui.popup(&popup_name, || {
-        let mut close_popup = false;
-
         for this_variant in T::iter() {
-            if ui.button(&im_str!("{:?}", this_variant), [0.0, 0.0]) {
+            if MenuItem::new(&im_str!("{:?}", this_variant)).build(ui) {
                 variant = Some(Some(this_variant));
-                close_popup = true;
             }
         }
 
-        if ui.button(&im_str!("None"), [0.0, 0.0]) {
+        if MenuItem::new(im_str!("None")).build(ui) {
             variant = Some(None);
-            close_popup = true;
-        }
-
-        if close_popup || pressed_escape(ui) {
-            ui.close_current_popup();
         }
     });
 
@@ -472,4 +456,24 @@ pub fn help_marker_generic<T: AsRef<str>>(ui: &Ui<'_>, item: char, message: T) {
     if ui.is_item_hovered() {
         ui.tooltip_text(message);
     }
+}
+
+pub fn wrap_style_var(ui: &Ui<'_>, style_var: StyleVar, f: impl FnOnce()) {
+    let style_var_token = ui.push_style_var(style_var);
+
+    f();
+
+    style_var_token.pop(ui);
+}
+
+pub fn wrap_style_color_var(ui: &Ui<'_>, style_color: StyleColor, color: [f32; 4], f: impl FnOnce()) {
+    let style_color_token = ui.push_style_color(style_color, color);
+
+    f();
+
+    style_color_token.pop(ui);
+}
+
+pub fn imgui_str(message: &str, uid: &str) -> ImString {
+    im_str!("{}##{}", message, uid)
 }

@@ -133,7 +133,7 @@ impl ImGui {
         style.colors[imgui::StyleColor::TextDisabled as usize] = [0.36, 0.42, 0.47, 1.00];
         style.colors[imgui::StyleColor::WindowBg as usize] = [0.11, 0.15, 0.17, 1.00];
         style.colors[imgui::StyleColor::ChildBg as usize] = [27.0 / 255.0, 32.0 / 255.0, 46.0 / 255.0, 1.00];
-        style.colors[imgui::StyleColor::PopupBg as usize] = [0.08, 0.08, 0.08, 0.94];
+        style.colors[imgui::StyleColor::PopupBg as usize] = [0.08, 0.08, 0.08, 1.0];
         style.colors[imgui::StyleColor::Border as usize] = [0.08, 0.10, 0.12, 1.00];
         style.colors[imgui::StyleColor::BorderShadow as usize] = [0.00, 0.00, 0.00, 0.00];
         style.colors[imgui::StyleColor::FrameBg as usize] = [0.20, 0.25, 0.29, 1.00];
