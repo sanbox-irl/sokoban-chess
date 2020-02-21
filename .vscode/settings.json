@@ -1,9 +1,0 @@
-{
-    "files.exclude": {
-        "**/target": true,
-        "**/vendor": true
-    },
-    "rust-analyzer.cargo-watch.arguments": [
-        "--features=metal"
-    ],
-}
