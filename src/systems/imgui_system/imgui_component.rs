@@ -350,11 +350,11 @@ pub fn component_inspector_raw<T>(
     ui: &Ui<'_>,
     is_open: bool,
     mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
-) -> bool
+) -> Option<ComponentInspectorAction>
 where
     T: ComponentBounds + Clone + typename::TypeName + std::fmt::Debug + 'static,
 {
-    let mut delete_this_component = false;
+    let mut requested_action = None;
     let scene_mode = scene_system::current_scene_mode();
 
     let name = super::imgui_system::typed_text_ui::<T>();
@@ -376,52 +376,14 @@ where
         .frame_padding(false)
         .build(|| {
             imgui_utility::wrap_style_var(ui, StyleVar::Alpha(1.0), || {
-                imgui_system::right_click_popup(ui, uid, || {
-                    imgui_utility::wrap_style_color_var(ui, StyleColor::Text, default_color, || {
-                        MenuItem::new(&im_str!("Is Active##{}", uid)).build_with_ref(ui, &mut comp.is_active);
-                        MenuItem::new(&im_str!("Delete##{}", uid))
-                            .build_with_ref(ui, &mut delete_this_component);
-
-                        ui.separator();
-
-                        if MenuItem::new(&imgui_str("Serialize", uid))
-                            .enabled(serialization_sync_status == SyncStatus::OutofSync)
-                            .build(ui)
-                        {
-                            info!("Let's serialize!")
-                        }
-
-                        if MenuItem::new(&imgui_str("Stop Serializing", uid))
-                            .enabled(serialization_sync_status.is_synced_at_all())
-                            .build(ui)
-                        {
-                            info!("Let's serialize!")
-                        }
-
-                        if MenuItem::new(&imgui_str("Revert to Serialization", uid))
-                            .enabled(serialization_sync_status == SyncStatus::Unsynced)
-                            .build(ui)
-                        {
-                            info!("Let's revert!")
-                        }
-
-                        ui.separator();
-
-                        if MenuItem::new(&imgui_str("Apply Overrides To Prefab", uid))
-                            .enabled(prefab_sync_status == SyncStatus::Unsynced)
-                            .build(ui)
-                        {
-                            info!("Applying my overrides to Dad!");
-                        }
-
-                        if MenuItem::new(&imgui_str("Revert to Prefab", uid))
-                            .enabled(prefab_sync_status == SyncStatus::OutofSync)
-                            .build(ui)
-                        {
-                            info!("Reverting to Prefab DAD!");
-                        }
-                    });
-                });
+                requested_action = component_inspector_right_click(
+                    ui,
+                    uid,
+                    &mut comp.is_active,
+                    default_color,
+                    serialization_sync_status,
+                    prefab_sync_status,
+                );
 
                 // Handle the Warning!
                 match serialization_sync_status {
@@ -451,33 +413,89 @@ where
                 };
             });
 
-            if comp.is_active == false {
-                return;
+            if comp.is_active {
+                imgui_system::wrap_style_color_var(ui, imgui::StyleColor::Text, default_color, || {
+                    let inspector_parameters = InspectorParameters {
+                        is_open,
+                        uid,
+                        ui,
+                        entities,
+                        entity_names,
+                        prefabs,
+                    };
+                    f(comp.inner_mut(), inspector_parameters);
+                });
             }
-
-            let normal_text_color = ui.push_style_color(imgui::StyleColor::Text, default_color);
-
-            // DELETE ENTITY
-            if delete_this_component != true {
-                let inspector_parameters = InspectorParameters {
-                    is_open,
-                    uid,
-                    ui,
-                    entities,
-                    entity_names,
-                    prefabs,
-                };
-                f(comp.inner_mut(), inspector_parameters);
-            }
-
-            normal_text_color.pop(ui);
         });
+
     text_color_token.pop(ui);
     if let Some(alpha_token) = alpha_controller {
         alpha_token.pop(ui);
     }
 
-    delete_this_component
+    requested_action
+}
+
+fn component_inspector_right_click(
+    ui: &Ui<'_>,
+    uid: &str,
+    is_active: &mut bool,
+    default_color: ImColor,
+    serialization_sync_status: SyncStatus,
+    prefab_sync_status: SyncStatus,
+) -> Option<ComponentInspectorAction> {
+    let mut requested_action = None;
+
+    imgui_system::right_click_popup(ui, uid, || {
+        imgui_utility::wrap_style_color_var(ui, StyleColor::Text, default_color, || {
+            MenuItem::new(&im_str!("Is Active##{}", uid)).build_with_ref(ui, is_active);
+
+            if MenuItem::new(&im_str!("Delete##{}", uid)).build(ui) {
+                requested_action = Some(ComponentInspectorAction::Delete);
+            }
+
+            ui.separator();
+
+            if MenuItem::new(&imgui_str("Serialize", uid))
+                .enabled(serialization_sync_status == SyncStatus::OutofSync)
+                .build(ui)
+            {
+                requested_action = Some(ComponentInspectorAction::Serialize);
+            }
+
+            if MenuItem::new(&imgui_str("Stop Serializing", uid))
+                .enabled(serialization_sync_status.is_synced_at_all())
+                .build(ui)
+            {
+                requested_action = Some(ComponentInspectorAction::StopSerializing);
+            }
+
+            if MenuItem::new(&imgui_str("Revert to Serialization", uid))
+                .enabled(serialization_sync_status == SyncStatus::Unsynced)
+                .build(ui)
+            {
+                requested_action = Some(ComponentInspectorAction::RevertSerialization);
+            }
+
+            ui.separator();
+
+            if MenuItem::new(&imgui_str("Apply Overrides To Prefab", uid))
+                .enabled(prefab_sync_status == SyncStatus::Unsynced)
+                .build(ui)
+            {
+                requested_action = Some(ComponentInspectorAction::ApplyOverrideToParentPrefab);
+            }
+
+            if MenuItem::new(&imgui_str("Revert to Prefab", uid))
+                .enabled(prefab_sync_status == SyncStatus::OutofSync)
+                .build(ui)
+            {
+                requested_action = Some(ComponentInspectorAction::RevertToParentPrefab);
+            }
+        });
+    });
+
+    requested_action
 }
 
 impl<T> ComponentList<T>

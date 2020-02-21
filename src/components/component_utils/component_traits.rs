@@ -1,6 +1,6 @@
 use super::{
-    Component, ComponentList, Entity, Name, PrefabMap, PrefabStatus, SerializationDelta, SerializationMarker,
-    SerializedEntity, SyncStatus,
+    Component, ComponentInspectorAction, ComponentList, Entity, Name, PrefabMap, PrefabStatus,
+    SerializationDelta, SerializationMarker, SerializedEntity, SyncStatus,
 };
 use failure::Fallible;
 use imgui::Ui;
@@ -147,7 +147,7 @@ where
                     }
                 });
 
-            if super::imgui_system::component_inspector_raw(
+            if let Some(action) = super::imgui_system::component_inspector_raw(
                 comp,
                 serialized_sync_status,
                 prefab_sync_status,
@@ -158,7 +158,16 @@ where
                 is_open,
                 |inner, ip| inner.entity_inspector(ip),
             ) {
-                self.unset(entity);
+                match action {
+                    ComponentInspectorAction::Delete => {
+                        self.unset(entity);
+                    }
+                    ComponentInspectorAction::Serialize => {}
+                    ComponentInspectorAction::StopSerializing => {}
+                    ComponentInspectorAction::RevertSerialization => {}
+                    ComponentInspectorAction::ApplyOverrideToParentPrefab => {}
+                    ComponentInspectorAction::RevertToParentPrefab => {}
+                }
             }
         }
     }

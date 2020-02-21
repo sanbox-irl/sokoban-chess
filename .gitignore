@@ -2,5 +2,7 @@
 /dev
 .vscode/
 
-run-release.sh
-run.sh
+# These are probably scripts used to build the project
+*.sh
+*.zsh
+*.cmd
