@@ -47,7 +47,7 @@ impl Ecs {
         self.singleton_database
             .initialize_with_runtime_resources(resources, hardware_interfaces);
 
-        tilemap_system::initialize_tilemaps(&mut self.component_database.tilemaps, &resources.tilesets);
+        // tilemap_system::initialize_tilemaps(&mut self.component_database.tilemaps, &resources.tilesets);
 
         player_system::initialize_players(
             &mut self.component_database.players,
@@ -93,7 +93,7 @@ impl Ecs {
             text_sources: &self.component_database.text_sources,
             sprites: &self.component_database.sprites,
             rects: &self.component_database.draw_rectangles,
-            tilemaps: &self.component_database.tilemaps,
+            // tilemaps: &self.component_database.tilemaps,
             transforms: &self.component_database.transforms,
             camera_entity: self
                 .singleton_database

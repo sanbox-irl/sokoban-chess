@@ -1,6 +1,6 @@
 use super::{
-    tilemap::Tilemap, Camera, ComponentList, DrawRectangle, Entity, RenderingUtility, ResourcesDatabase,
-    Sprite, TextSource, Transform, Vec2,
+    Camera, ComponentList, DrawRectangle, Entity, RenderingUtility, ResourcesDatabase, Sprite, TextSource,
+    Transform, Vec2,
 };
 
 #[derive(Default)]
@@ -13,7 +13,7 @@ pub struct GameWorldDrawCommands<'a> {
     pub text_sources: &'a ComponentList<TextSource>,
     pub sprites: &'a ComponentList<Sprite>,
     pub rects: &'a ComponentList<DrawRectangle>,
-    pub tilemaps: &'a ComponentList<Tilemap>,
+    // pub tilemaps: &'a ComponentList<Tilemap>,
     pub transforms: &'a ComponentList<Transform>,
     pub rendering_utility: &'a mut RenderingUtility,
     pub camera_entity: Option<&'a Entity>,

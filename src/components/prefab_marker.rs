@@ -1,7 +1,7 @@
 use super::{ComponentBounds, InspectorParameters};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName, Hash)]
+#[derive(Debug,SerializableComponent, Default, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName, Hash)]
 pub struct PrefabMarker {
     main_id: Uuid,
     sub_id: Uuid,
@@ -36,10 +36,6 @@ impl ComponentBounds for PrefabMarker {
         } else {
             ip.ui.text(imgui::im_str!("Original Prefab: {}", self.main_id));
         }
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "prefab_marker"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

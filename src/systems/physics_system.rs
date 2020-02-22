@@ -1,5 +1,5 @@
 use super::{
-    physics_components::BoundingBox, tilemap::Tilemap, Axis, ComponentList, Entity, PositionalRect, Rect,
+    physics_components::BoundingBox, Axis, ComponentList, Entity, PositionalRect, Rect,
     Transform, Vec2,
 };
 
@@ -8,7 +8,7 @@ pub fn create_positional_rect_lists(
     entity_id: Entity,
     transforms: &ComponentList<Transform>,
     object_bbs: &ComponentList<BoundingBox>,
-    tilemaps: &ComponentList<Tilemap>,
+    // tilemaps: &ComponentList<Tilemap>,
 ) -> (PositionalRect, Vec<PositionalRect>) {
     let mut out_list = Vec::new();
     let mut our_bb = None;
@@ -30,11 +30,11 @@ pub fn create_positional_rect_lists(
         }
     }
 
-    for this_comp in tilemaps.iter() {
-        for bb in this_comp.inner().collision_bounding_boxes.iter() {
-            out_list.push(*bb);
-        }
-    }
+    // for this_comp in tilemaps.iter() {
+    //     for bb in this_comp.inner().collision_bounding_boxes.iter() {
+    //         out_list.push(*bb);
+    //     }
+    // }
 
     (our_bb.unwrap(), out_list)
 }

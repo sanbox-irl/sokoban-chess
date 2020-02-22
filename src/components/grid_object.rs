@@ -1,6 +1,6 @@
 use super::{ComponentBounds, InspectorParameters, Vec2Int};
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Clone,SerializableComponent, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct GridObject {
     pub grid_type: GridType,
@@ -59,10 +59,6 @@ impl ComponentBounds for GridObject {
             .grid_object
             .as_ref()
             .map_or(false, |s| s.active == active && &s.inner == self)
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "grid_object"
     }
 
     fn commit_to_scene(

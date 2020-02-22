@@ -4,7 +4,9 @@ use super::{
     imgui_system, Color, ComponentBounds, DrawOrder, InspectorParameters, StandardQuad, Vec2,
 };
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(
+    Debug, SerializableComponent, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName,
+)]
 #[serde(default)]
 pub struct TextSource {
     pub font: FontName,
@@ -71,10 +73,6 @@ impl ComponentBounds for TextSource {
             .text_source
             .as_ref()
             .map_or(false, |s| s.active == active && &s.inner == self)
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "text_source"
     }
 
     fn commit_to_scene(

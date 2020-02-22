@@ -1,6 +1,8 @@
 use super::{cardinals::CardinalPrime, ComponentBounds, InspectorParameters};
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(
+    Debug, SerializableComponent, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName,
+)]
 #[serde(default)]
 pub struct Velocity {
     pub intended_direction: Option<CardinalPrime>,
@@ -16,10 +18,6 @@ impl ComponentBounds for Velocity {
         ) {
             self.intended_direction = new_direction;
         }
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "velocity"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

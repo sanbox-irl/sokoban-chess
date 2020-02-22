@@ -8,7 +8,7 @@ use super::{
 use imgui::{im_str, MenuItem};
 use regex::Regex;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, Hash, typename::TypeName)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, SerializableComponent, Hash, typename::TypeName)]
 #[serde(default)]
 pub struct Name {
     pub name: String,
@@ -297,10 +297,6 @@ impl ComponentBounds for Name {
     // Don't use this -- use the imgui function in the above impl
     fn entity_inspector(&mut self, _inspector_parameters: InspectorParameters<'_, '_>) {
         unimplemented!();
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "name"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

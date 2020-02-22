@@ -1,12 +1,11 @@
 use super::{
-    Component, ComponentInspectorAction, ComponentList, Entity, Name, PrefabMap, PrefabStatus,
-    SerializationDelta, SerializationMarker, SerializedEntity, SyncStatus,
+    Component, ComponentInspectorListAction, ComponentInspectorPostAction, ComponentList, Entity, Name,
+    PrefabMap, PrefabStatus, SerializationDelta, SerializationMarker, SerializedEntity, SyncStatus,
 };
 use failure::Fallible;
 use imgui::Ui;
 
 pub trait ComponentBounds {
-    fn serialization_name(&self) -> &'static str;
     fn entity_inspector(&mut self, inspector_parameters: InspectorParameters<'_, '_>);
     fn is_serialized(&self, serialized_entity: &SerializedEntity, active: bool) -> bool;
     fn commit_to_scene(
@@ -19,7 +18,7 @@ pub trait ComponentBounds {
     fn post_deserialization(&mut self, _: Entity, _: &ComponentList<SerializationMarker>) {}
 }
 
-pub trait SerializableComponent {
+pub trait SerializableComponent: std::fmt::Debug + typename::TypeName + Clone + Default {
     const SERIALIZATION_NAME: once_cell::sync::Lazy<serde_yaml::Value>;
 }
 
@@ -41,6 +40,8 @@ pub trait ComponentListBounds {
 
     // IMGUI
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>);
+
+    #[must_use]
     fn component_inspector(
         &mut self,
         entity: &Entity,
@@ -51,7 +52,7 @@ pub trait ComponentListBounds {
         prefab_hashmap: &PrefabMap,
         ui: &imgui::Ui<'_>,
         is_open: bool,
-    ) -> Option<ComponentInspectorAction>;
+    ) -> Option<ComponentInspectorPostAction>;
 
     fn serialization_option(
         &self,
@@ -73,7 +74,7 @@ pub trait ComponentListBounds {
 
 impl<T> ComponentListBounds for ComponentList<T>
 where
-    T: ComponentBounds + std::fmt::Debug + typename::TypeName + Clone + Default + 'static,
+    T: ComponentBounds + SerializableComponent + for<'de> serde::Deserialize<'de> + 'static,
 {
     fn expand_list(&mut self) {
         self.expand_list();
@@ -117,7 +118,7 @@ where
         prefab_hashmap: &PrefabMap,
         ui: &Ui<'_>,
         is_open: bool,
-    ) -> Option<ComponentInspectorAction> {
+    ) -> Option<ComponentInspectorPostAction> {
         if let Some(comp) = self.get_mut(entity) {
             // get our serialization_statuses:
             let serialized_sync_status: SyncStatus = current_serialized_entity
@@ -152,7 +153,7 @@ where
                     }
                 });
 
-            super::imgui_system::component_inspector_raw(
+            if let Some(action) = super::imgui_system::component_inspector_raw(
                 comp,
                 serialized_sync_status,
                 prefab_sync_status,
@@ -162,28 +163,31 @@ where
                 ui,
                 is_open,
                 |inner, ip| inner.entity_inspector(ip),
-            )
-            .map(|action| {
+            ) {
                 match action {
-                    ComponentInspectorAction::Delete => {
+                    ComponentInspectorListAction::Delete => {
                         self.unset(entity);
                     }
-                    ComponentInspectorAction::RevertSerialization => {}
-                    ComponentInspectorAction::RevertToParentPrefab => {}
-
-                    ComponentInspectorAction::Serialize
-                    | ComponentInspectorAction::StopSerializing
-                    | ComponentInspectorAction::ApplyOverrideToParentPrefab => {
-                        // these are going to handled outside this function.
-                        // we should probably transform this into another enum for that!
+                    ComponentInspectorListAction::RevertSerialization => {
+                        let old_component: T =
+                            SerializedEntity::get_serialized_component(current_serialized_entity.unwrap())
+                                .unwrap();
+                        *comp.inner_mut() = old_component;
+                    }
+                    ComponentInspectorListAction::RevertToParentPrefab => {
+                        let prefab: T =
+                            SerializedEntity::get_serialized_component(current_prefab_parent.unwrap())
+                                .unwrap();
+                        *comp.inner_mut() = prefab;
+                    }
+                    ComponentInspectorListAction::ComponentInspectorPostAction(post_action) => {
+                        return Some(post_action)
                     }
                 }
-
-                action
-            })
-        } else {
-            None
+            }
         }
+
+        None
     }
 
     fn serialization_option(

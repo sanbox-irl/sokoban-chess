@@ -1,6 +1,6 @@
 use super::{imgui_system, sprite_resources::SpriteName, ComponentBounds, InspectorParameters};
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug,SerializableComponent, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Player {
     pub standing_sprite: Option<SpriteName>,
@@ -21,10 +21,6 @@ impl ComponentBounds for Player {
 
         ip.ui
             .checkbox(&imgui::im_str!("Active##{}", ip.uid), &mut self.active);
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "name"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

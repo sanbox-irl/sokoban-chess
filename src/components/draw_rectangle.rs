@@ -3,7 +3,7 @@ use super::{
     TextureDescription, Vec2,
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default, typename::TypeName)]
+#[derive(Debug, Clone,SerializableComponent, PartialEq, Serialize, Deserialize, Default, typename::TypeName)]
 pub struct DrawRectangle {
     pub rect: Rect,
     pub draw_order: DrawOrder,
@@ -33,10 +33,6 @@ impl ComponentBounds for DrawRectangle {
             &imgui::im_str!("Bind to Bounding Box##{}", uid),
             &mut self.bind_to_bounding_box,
         );
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "draw_rectangle"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

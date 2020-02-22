@@ -61,32 +61,32 @@ where
     Ok(fs::write(path, s)?)
 }
 
-fn load_file_bin<T: Default>(path: &str) -> Result<T, Error>
-where
-    for<'de> T: serde::Deserialize<'de>,
-{
-    let path = std::path::Path::new(path);
-    fs::create_dir_all(path.parent().unwrap())?;
+// fn load_file_bin<T: Default>(path: &str) -> Result<T, Error>
+// where
+//     for<'de> T: serde::Deserialize<'de>,
+// {
+//     let path = std::path::Path::new(path);
+//     fs::create_dir_all(path.parent().unwrap())?;
 
-    if path.exists() == false {
-        fs::File::create(path)?;
-    }
+//     if path.exists() == false {
+//         fs::File::create(path)?;
+//     }
 
-    let file_bits: Vec<u8> = fs::read(path)?;
-    Ok(bincode::deserialize(&file_bits).unwrap_or_default())
-}
+//     let file_bits: Vec<u8> = fs::read(path)?;
+//     Ok(bincode::deserialize(&file_bits).unwrap_or_default())
+// }
 
-fn save_file_bin<T>(item: &T, path: &str) -> Result<(), Error>
-where
-    T: serde::Serialize,
-{
-    let path = std::path::Path::new(path);
-    fs::create_dir_all(path.parent().unwrap())?;
+// fn save_file_bin<T>(item: &T, path: &str) -> Result<(), Error>
+// where
+//     T: serde::Serialize,
+// {
+//     let path = std::path::Path::new(path);
+//     fs::create_dir_all(path.parent().unwrap())?;
 
-    if path.exists() == false {
-        fs::File::create(path)?;
-    }
+//     if path.exists() == false {
+//         fs::File::create(path)?;
+//     }
 
-    let s = bincode::serialize(item)?;
-    Ok(fs::write(path, s)?)
-}
+//     let s = bincode::serialize(item)?;
+//     Ok(fs::write(path, s)?)
+// }

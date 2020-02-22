@@ -1,6 +1,17 @@
 use super::*;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, typename::TypeName, Hash)]
+#[derive(
+    Debug,
+    SerializableComponent,
+    Clone,
+    Default,
+    PartialEq,
+    Eq,
+    Serialize,
+    Deserialize,
+    typename::TypeName,
+    Hash,
+)]
 #[serde(default)]
 pub struct SoundSource {
     pub sound_to_play: Option<SoundResource>,
@@ -20,10 +31,6 @@ impl ComponentBounds for SoundSource {
 
         // MUTED
         ui.checkbox(&im_str!("Muted##{}", uid), &mut self.muted);
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "sound_source"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

@@ -3,7 +3,7 @@ use super::{
     imgui_system, ComponentBounds, InspectorParameters, Vec2,
 };
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Clone,SerializableComponent, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Follow {
     pub approach: Approach,
@@ -39,10 +39,6 @@ impl ComponentBounds for Follow {
         // Offset
         self.offset
             .inspector(ip.ui, &imgui::im_str!("Offset##{}", ip.uid));
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "follow"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

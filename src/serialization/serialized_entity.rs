@@ -1,8 +1,8 @@
 use super::{
-    component_serialization::*, physics_components::*, prefab_system, ComponentBounds, ComponentDatabase,
-    ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name,
-    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher, SerializableComponent,
-    SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
+    physics_components::*, prefab_system, ComponentBounds, ComponentDatabase, ConversantNPC, DrawRectangle,
+    Entity, Follow, GraphNode, GridObject, Marker, Name, NonInspectableEntities, Player, PrefabMarker,
+    ResourcesDatabase, SceneSwitcher, SerializableComponent, SingletonDatabase, SoundSource, Sprite,
+    TextSource, Transform, Velocity,
 };
 use serde_yaml::Value;
 use uuid::Uuid;
@@ -66,7 +66,7 @@ pub struct SerializedEntity {
     pub draw_rectangle: SerializedComponentWrapper<DrawRectangle>,
     pub bounding_box: SerializedComponentWrapper<BoundingBox>,
     pub text_source: SerializedComponentWrapper<TextSource>,
-    pub tilemap: SerializedComponentWrapper<TilemapSerialized>,
+    // pub tilemap: SerializedComponentWrapper<TilemapSerialized>,
     pub follow: SerializedComponentWrapper<Follow>,
     pub conversant_npc: SerializedComponentWrapper<ConversantNPC>,
     pub prefab_marker: SerializedComponentWrapper<PrefabMarker>,
@@ -173,7 +173,7 @@ impl SerializedEntity {
             draw_rectangle,
             bounding_box,
             text_source,
-            tilemap,
+            // tilemap,
             follow,
             conversant_npc,
             prefab_marker,
@@ -206,7 +206,7 @@ impl SerializedEntity {
             draw_rectangle,
             bounding_box,
             text_source,
-            tilemap,
+            // tilemap,
             follow,
             conversant_npc
         );
@@ -238,7 +238,7 @@ impl SerializedEntity {
             draw_rectangle,
             bounding_box,
             text_source,
-            tilemap,
+            // tilemap,
             follow,
             conversant_npc,
             prefab_marker: _,
@@ -271,7 +271,7 @@ impl SerializedEntity {
             draw_rectangle,
             bounding_box,
             text_source,
-            tilemap,
+            // tilemap,
             follow,
             conversant_npc
         );
@@ -283,12 +283,11 @@ impl SerializedEntity {
         println!("---");
     }
 
-    pub fn get_serialized_component<T: SerializableComponent + ComponentBounds + Clone>(
+    pub fn get_serialized_component<
+        T: for<'de> serde::Deserialize<'de> + SerializableComponent + ComponentBounds + Clone,
+    >(
         serialized_entity: &SerializedEntity,
-    ) -> Option<T>
-    where
-        for<'de> T: serde::Deserialize<'de>,
-    {
+    ) -> Option<T> {
         let mut serialized_entity_value: Value = serde_yaml::to_value(serialized_entity.clone()).unwrap();
 
         let mapping = serialized_entity_value.as_mapping_mut().unwrap();

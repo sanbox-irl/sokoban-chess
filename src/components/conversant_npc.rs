@@ -3,7 +3,9 @@ use super::{
     SerializablePrefabReference,
 };
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(
+    Debug, Clone, SerializableComponent, Default, PartialEq, Serialize, Deserialize, typename::TypeName,
+)]
 #[serde(default)]
 pub struct ConversantNPC {
     pub conversation_partner: SerializableEntityReference,
@@ -45,10 +47,6 @@ impl ComponentBounds for ConversantNPC {
             &imgui::im_str!("Converse With Input##{}", ip.uid),
             &mut self.converse_with_input,
         );
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "conversant_npc"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

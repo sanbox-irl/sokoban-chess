@@ -3,7 +3,7 @@ use super::{
     InspectorParameters, SerializableEntityReference, SerializationMarker, Transform,
 };
 
-#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, Clone,SerializableComponent, PartialEq, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct GraphNode {
     pub children: Option<Vec<SerializableEntityReference>>,
@@ -117,10 +117,6 @@ impl ComponentBounds for GraphNode {
             .graph_node
             .as_ref()
             .map_or(false, |s| s.active == active && &s.inner == self)
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "graph_node"
     }
 
     fn commit_to_scene(

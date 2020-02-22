@@ -76,14 +76,14 @@ impl Clockwork {
             );
 
             if scene_mode == SceneMode::Draft {
-                tilemap_system::update_tilemaps_and_tilesets(
-                    &mut self.ecs.component_database.tilemaps,
-                    &mut self.ecs.component_database.transforms,
-                    &mut self.resources.tilesets,
-                    &mut self.resources.sprites,
-                    &self.hardware_interfaces.input,
-                    &self.ecs.singleton_database,
-                );
+                // tilemap_system::update_tilemaps_and_tilesets(
+                //     &mut self.ecs.component_database.tilemaps,
+                //     &mut self.ecs.component_database.transforms,
+                //     &mut self.resources.tilesets,
+                //     &mut self.resources.sprites,
+                //     &self.hardware_interfaces.input,
+                //     &self.ecs.singleton_database,
+                // );
             }
 
             // Make the Action Map:

@@ -14,7 +14,7 @@ pub struct ComponentDatabase {
     pub sound_sources: ComponentList<SoundSource>,
     pub bounding_boxes: ComponentList<physics_components::BoundingBox>,
     pub draw_rectangles: ComponentList<DrawRectangle>,
-    pub tilemaps: ComponentList<tilemap::Tilemap>,
+    // pub tilemaps: ComponentList<tilemap::Tilemap>,
     pub text_sources: ComponentList<TextSource>,
     pub follows: ComponentList<Follow>,
     pub conversant_npcs: ComponentList<ConversantNPC>,
@@ -137,7 +137,7 @@ impl ComponentDatabase {
         f(&mut self.sound_sources);
         f(&mut self.bounding_boxes);
         f(&mut self.draw_rectangles);
-        f(&mut self.tilemaps);
+        // f(&mut self.tilemaps);
         f(&mut self.scene_switchers);
         f(&mut self.text_sources);
         f(&mut self.follows);
@@ -185,7 +185,7 @@ impl ComponentDatabase {
         f(&self.sound_sources);
         f(&self.bounding_boxes);
         f(&self.draw_rectangles);
-        f(&self.tilemaps);
+        // f(&self.tilemaps);
         f(&self.scene_switchers);
         f(&self.text_sources);
         f(&self.follows);
@@ -341,7 +341,7 @@ impl ComponentDatabase {
             sound_source,
             sprite,
             text_source,
-            tilemap,
+            // tilemap,
             transform,
             velocity,
             graph_node,
@@ -380,23 +380,23 @@ impl ComponentDatabase {
         transfer_serialized_components!(conversant_npc, conversant_npcs);
 
         // Tilemap Handling
-        if let Some(serialized_component) = tilemap {
-            let tiles: Vec<Option<Tile>> =
-                serialization_util::tilemaps::load_tiles(&serialized_component.inner.tiles)
-                    .map_err(|e| {
-                        error!(
-                            "Couldn't retrieve tilemaps for {}. Error: {}",
-                            &serialized_component.inner.tiles.relative_path, e
-                        )
-                    })
-                    .ok()
-                    .unwrap_or_default();
+        // if let Some(serialized_component) = tilemap {
+        //     let tiles: Vec<Option<Tile>> =
+        //         serialization_util::tilemaps::load_tiles(&serialized_component.inner.tiles)
+        //             .map_err(|e| {
+        //                 error!(
+        //                     "Couldn't retrieve tilemaps for {}. Error: {}",
+        //                     &serialized_component.inner.tiles.relative_path, e
+        //                 )
+        //             })
+        //             .ok()
+        //             .unwrap_or_default();
 
-            let tilemap: tilemap::Tilemap = serialized_component.inner.to_tilemap(tiles);
+        //     let tilemap: tilemap::Tilemap = serialized_component.inner.to_tilemap(tiles);
 
-            self.tilemaps
-                .set_component_with_active(entity, tilemap, serialized_component.active);
-        }
+        //     self.tilemaps
+        //         .set_component_with_active(entity, tilemap, serialized_component.active);
+        // }
 
         // Singleton Components
         if let Some(singleton_marker) = serialized_entity.marker {
@@ -437,7 +437,7 @@ impl Default for ComponentDatabase {
             sound_sources: Default::default(),
             bounding_boxes: Default::default(),
             draw_rectangles: Default::default(),
-            tilemaps: Default::default(),
+            // tilemaps: Default::default(),
             text_sources: Default::default(),
             follows: Default::default(),
             conversant_npcs: Default::default(),

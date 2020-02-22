@@ -3,7 +3,9 @@ use super::{
     InspectorParameters,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, typename::TypeName, Default)]
+#[derive(
+    Serialize, SerializableComponent, Deserialize, Debug, Clone, PartialEq, typename::TypeName, Default,
+)]
 pub struct Sprite {
     pub sprite_name: Option<SpriteName>,
     pub running_data: SpriteRunningData,
@@ -59,10 +61,6 @@ impl ComponentBounds for Sprite {
         {
             self.running_data.current_frame = frame as usize;
         }
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "sprite"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

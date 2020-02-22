@@ -1,6 +1,6 @@
 use super::{ComponentBounds, InspectorParameters};
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName)]
+#[derive(Debug,SerializableComponent, Default, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName)]
 pub struct SceneSwitcher {
     pub target_scene: String,
 }
@@ -17,10 +17,6 @@ impl ComponentBounds for SceneSwitcher {
         {
             self.target_scene = scene_name.to_string();
         }
-    }
-
-    fn serialization_name(&self) -> &'static str {
-        "scene_switcher"
     }
 
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {

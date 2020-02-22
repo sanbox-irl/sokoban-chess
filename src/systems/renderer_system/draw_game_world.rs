@@ -32,7 +32,7 @@ pub(super) unsafe fn draw_game_world<'a>(
         sprites,
         rects,
         transforms,
-        tilemaps,
+        // tilemaps,
         camera,
         camera_entity,
         rendering_utility,
@@ -99,13 +99,13 @@ pub(super) unsafe fn draw_game_world<'a>(
             );
         }
     }
-    for this_tilemap in tilemaps.iter() {
-        if let Some(transform) = transforms.get(&this_tilemap.entity_id()) {
-            this_tilemap
-                .inner()
-                .create_tile_quads(transform.inner().world_position(), quad_buffer);
-        }
-    }
+    // for this_tilemap in tilemaps.iter() {
+    //     if let Some(transform) = transforms.get(&this_tilemap.entity_id()) {
+    //         this_tilemap
+    //             .inner()
+    //             .create_tile_quads(transform.inner().world_position(), quad_buffer);
+    //     }
+    // }
 
     quad_buffer.sort();
 

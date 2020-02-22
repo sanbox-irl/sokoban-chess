@@ -139,11 +139,16 @@ impl Default for EntityListInformation {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum ComponentInspectorAction {
+pub enum ComponentInspectorListAction {
     Delete,
+    RevertSerialization,
+    RevertToParentPrefab,
+    ComponentInspectorPostAction(ComponentInspectorPostAction),
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum ComponentInspectorPostAction {
     Serialize,
     StopSerializing,
-    RevertSerialization,
     ApplyOverrideToParentPrefab,
-    RevertToParentPrefab,
 }

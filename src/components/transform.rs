@@ -3,7 +3,7 @@ use super::{
     TransformParent, Vec2,
 };
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug, SerializableComponent, Clone, Default, Serialize, Deserialize, typename::TypeName)]
 #[serde(default)]
 pub struct Transform {
     local_position: Vec2,
@@ -102,20 +102,11 @@ impl ComponentBounds for Transform {
             .no_interact_inspector(ip.ui, &im_str!("World Position##{}", ip.uid));
     }
 
-    fn serialization_name(&self) -> &'static str {
-        "transform"
-    }
-
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .transform
             .as_ref()
-            .map_or(false, |serialized_transform| {
-                if serialized_transform.active != active {
-                    return false;
-                }
-                self == &serialized_transform.inner
-            })
+            .map_or(false, |s| s.active == active && &s.inner == self)
     }
 
     fn commit_to_scene(

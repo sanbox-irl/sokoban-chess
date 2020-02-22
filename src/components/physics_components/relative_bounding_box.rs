@@ -1,6 +1,8 @@
 use super::{Rect, Vec2};
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(
+    Debug, Clone, SerializableComponent, Copy, Default, PartialEq, Serialize, Deserialize, typename::TypeName,
+)]
 #[serde(default)]
 pub struct RelativeBoundingBox {
     pub rect: Rect,

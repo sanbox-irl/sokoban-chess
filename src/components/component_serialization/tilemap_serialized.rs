@@ -42,32 +42,29 @@ impl TilemapSerialized {
     }
 }
 
-impl ComponentBounds for TilemapSerialized {
-    fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
-        ip.ui
-            .text("Tilemaps cannot currently be added as a Prefab because I'm lazy as shit!");
-    }
+// impl ComponentBounds for TilemapSerialized {
+//     fn entity_inspector(&mut self, ip: InspectorParameters<'_, '_>) {
+//         ip.ui
+//             .text("Tilemaps cannot currently be added as a Prefab because I'm lazy as shit!");
+//     }
 
-    fn serialization_name(&self) -> &'static str {
-        "tilemap"
-    }
+//     fn is_serialized(&self, se: &super::SerializedEntity, active: bool) -> bool {
+//         // se.tilemap
+//         //     .as_ref()
+//         //     .map_or(false, |se| se.active == active && &se.inner == self)
+//         true
+//     }
 
-    fn is_serialized(&self, se: &super::SerializedEntity, active: bool) -> bool {
-        se.tilemap
-            .as_ref()
-            .map_or(false, |se| se.active == active && &se.inner == self)
-    }
+//     fn commit_to_scene(
+//         &self,
+//         _: &mut super::SerializedEntity,
+//         _: bool,
+//         _: &super::ComponentList<super::SerializationMarker>,
+//     ) {
+//         unimplemented!()
+//     }
 
-    fn commit_to_scene(
-        &self,
-        _: &mut super::SerializedEntity,
-        _: bool,
-        _: &super::ComponentList<super::SerializationMarker>,
-    ) {
-        unimplemented!()
-    }
-
-    fn uncommit_to_scene(&self, _: &mut super::SerializedEntity) {
-        unimplemented!()
-    }
-}
+//     fn uncommit_to_scene(&self, _: &mut super::SerializedEntity) {
+//         unimplemented!()
+//     }
+// }

@@ -1,6 +1,8 @@
 use super::{ComponentBounds, InspectorParameters, Rect, Vec2};
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize, typename::TypeName)]
+#[derive(
+    Debug, Clone, SerializableComponent, Copy, Default, PartialEq, Serialize, Deserialize, typename::TypeName,
+)]
 #[serde(default)]
 pub struct BoundingBox {
     pub rect: Rect,
@@ -27,10 +29,6 @@ impl ComponentBounds for BoundingBox {
         );
     }
 
-    fn serialization_name(&self) -> &'static str {
-        "bounding_box"
-    }
-
     fn is_serialized(&self, serialized_entity: &super::SerializedEntity, active: bool) -> bool {
         serialized_entity
             .bounding_box
@@ -53,9 +51,4 @@ impl ComponentBounds for BoundingBox {
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
         se.bounding_box = None;
     }
-}
-
-impl super::SerializableComponent for BoundingBox {
-    const SERIALIZATION_NAME: once_cell::sync::Lazy<serde_yaml::Value> =
-        once_cell::sync::Lazy::new(|| serde_yaml::Value::String("bounding_box".to_owned()));
 }
