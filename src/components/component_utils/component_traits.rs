@@ -1,8 +1,7 @@
 use super::{
     Component, ComponentInspectorListAction, ComponentInspectorPostAction, ComponentList, Entity, Name,
-    PrefabMap, PrefabStatus, SerializationDelta, SerializationMarker, SerializedEntity, SyncStatus,
+    PrefabMap, PrefabStatus, SerializationMarker, SerializedEntity, SyncStatus,
 };
-use failure::Fallible;
 use imgui::Ui;
 
 pub trait ComponentBounds {
@@ -54,13 +53,14 @@ pub trait ComponentListBounds {
         is_open: bool,
     ) -> Option<ComponentInspectorPostAction>;
 
+    #[must_use]
     fn serialization_option(
         &self,
         ui: &Ui<'_>,
         entity_id: &Entity,
         prefab_status: PrefabStatus,
         serialized_marker: &ComponentList<super::SerializationMarker>,
-    ) -> Fallible<SerializationDelta>;
+    ) -> Option<ComponentInspectorPostAction>;
 
     fn load_component_into_serialized_entity(
         &self,
@@ -168,12 +168,6 @@ where
                     ComponentInspectorListAction::Delete => {
                         self.unset(entity);
                     }
-                    ComponentInspectorListAction::RevertSerialization => {
-                        let old_component: T =
-                            SerializedEntity::get_serialized_component(current_serialized_entity.unwrap())
-                                .unwrap();
-                        *comp.inner_mut() = old_component;
-                    }
                     ComponentInspectorListAction::RevertToParentPrefab => {
                         let prefab: T =
                             SerializedEntity::get_serialized_component(current_prefab_parent.unwrap())
@@ -196,7 +190,7 @@ where
         entity_id: &Entity,
         prefab_status: PrefabStatus,
         serialized_markers: &ComponentList<super::SerializationMarker>,
-    ) -> Fallible<SerializationDelta> {
+    ) -> Option<ComponentInspectorPostAction> {
         self.serialization_option_raw(ui, entity_id, prefab_status, serialized_markers)
     }
 

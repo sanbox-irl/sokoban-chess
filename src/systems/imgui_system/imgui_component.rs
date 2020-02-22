@@ -1,6 +1,6 @@
 use super::*;
 use failure::Fallible;
-use imgui::{Condition, ImString, MenuItem, StyleColor, StyleVar, Window};
+use imgui::{Condition, ImStr, ImString, MenuItem, StyleColor, StyleVar, Window};
 use imgui_utility::imgui_str;
 
 pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
@@ -300,21 +300,14 @@ pub fn entity_serialization_options(
 
     component_database.foreach_component_list(
         NonInspectableEntities::NAME | NonInspectableEntities::PREFAB | NonInspectableEntities::GRAPH_NODE,
-        |component_list| match component_list.serialization_option(
-            ui,
-            entity_id,
-            prefab_status,
-            &component_database.serialization_markers,
-        ) {
-            Ok(serialization_delta) => {
-                if serialization_delta == SerializationDelta::Updated && prefab_status == PrefabStatus::Prefab
-                {
-                    reload_prefab = true;
-                }
-            }
-
-            Err(e) => {
-                error!("Error in Serialization Option {}", e);
+        |component_list| {
+            if let Some(post_inspector) = component_list.serialization_option(
+                ui,
+                entity_id,
+                prefab_status,
+                &component_database.serialization_markers,
+            ) {
+                
             }
         },
     );
@@ -484,7 +477,9 @@ fn component_inspector_right_click(
                 .enabled(serialization_sync_status == SyncStatus::Unsynced)
                 .build(ui)
             {
-                requested_action = Some(ComponentInspectorListAction::RevertSerialization);
+                requested_action = Some(ComponentInspectorListAction::ComponentInspectorPostAction(
+                    ComponentInspectorPostAction::Revert,
+                ));
             }
 
             ui.separator();
@@ -520,78 +515,80 @@ where
         entity_id: &Entity,
         prefab_status: PrefabStatus,
         serialized_markers: &ComponentList<SerializationMarker>,
-    ) -> failure::Fallible<SerializationDelta> {
+    ) -> Option<ComponentInspectorPostAction> {
         lazy_static::lazy_static! {
-            static ref DEFAULT_SERIALIZE_TEXT: ImString = ImString::new("Serialize");
-            static ref DEFAULT_DESERIALIZE_TEXT: ImString = ImString::new("Deserialize");
-            static ref PREFAB_SERIALIZE_TEXT: ImString = ImString::new("Serialize Override");
-            static ref PREFAB_DESERIALIZE_TEXT: ImString = ImString::new("Deserialize Override");
+            static ref SERIALIZE: &'static ImStr = im_str!("Serialize");
+            static ref DESERIALIZE: &'static ImStr = im_str!("Stop Serializing");
+            static ref REVERT: &'static ImStr = im_str!("Revert");
         }
 
         let type_name = ImString::new(imgui_system::typed_text_ui::<T>());
         let component_exists = self.get(entity_id).is_some();
-
-        let mut serialization_delta = SerializationDelta::Unchanged;
+        let mut output = None;
 
         if let Some(my_serialization_marker) = serialized_markers.get(entity_id) {
             if let Some(serde_menu) = ui.begin_menu(&type_name, component_exists) {
                 if let Some(component) = self.get(entity_id) {
-                    // SERIALIZE
-                    if MenuItem::new(if prefab_status == PrefabStatus::PrefabInstance {
-                        &PREFAB_SERIALIZE_TEXT
-                    } else {
-                        &DEFAULT_SERIALIZE_TEXT
-                    })
-                    .build(ui)
-                    {
-                        let serialized_entity = serialization_util::entities::load_committed_entity(
-                            &my_serialization_marker.inner(),
-                        )?;
-
-                        if let Some(mut serialized_entity) = serialized_entity {
-                            component.inner().commit_to_scene(
-                                &mut serialized_entity,
-                                component.is_active,
-                                serialized_markers,
-                            );
-                            serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
-                            serialization_delta = SerializationDelta::Updated;
-                        } else {
-                            error!(
-                                "Couldn't find a Serialized Entity for {}. Check the YAML?",
-                                entity_id
-                            );
-                        }
+                    // Serialize
+                    if MenuItem::new(&SERIALIZE).build(ui) {
+                        output = Some(ComponentInspectorPostAction::Serialize);
                     }
 
-                    // DESERIALIZE
-                    if MenuItem::new(if prefab_status == PrefabStatus::PrefabInstance {
-                        &PREFAB_DESERIALIZE_TEXT
-                    } else {
-                        &DEFAULT_DESERIALIZE_TEXT
-                    })
-                    .build(ui)
-                    {
-                        let serialized_entity = serialization_util::entities::load_committed_entity(
-                            &my_serialization_marker.inner(),
-                        )?;
+                    // Deserialize
+                    if MenuItem::new(&DESERIALIZE).build(ui) {
+                        output = Some(ComponentInspectorPostAction::StopSerializing);
+                    }
 
-                        if let Some(mut serialized_entity) = serialized_entity {
-                            component.inner().uncommit_to_scene(&mut serialized_entity);
-
-                            serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
-                            serialization_delta = SerializationDelta::Updated;
-                        } else {
-                            error!(
-                                "Couldn't find a Serialized Entity for {}. Check the YAML?",
-                                entity_id
-                            );
-                        }
+                    // Revert
+                    if MenuItem::new(&REVERT).build(ui) {
+                        output = Some(ComponentInspectorPostAction::ApplyOverrideToParentPrefab);
                     }
                 }
                 serde_menu.end(ui);
             }
         }
-        Ok(serialization_delta)
+
+        output
     }
 }
+
+/*
+
+let serialized_entity = serialization_util::entities::load_committed_entity(
+    &my_serialization_marker.inner(),
+)?;
+
+if let Some(mut serialized_entity) = serialized_entity {
+    component.inner().commit_to_scene(
+        &mut serialized_entity,
+        component.is_active,
+        serialized_markers,
+    );
+    serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
+    serialization_delta = SerializationDelta::Updated;
+} else {
+    error!(
+        "Couldn't find a Serialized Entity for {}. Check the YAML?",
+        entity_id
+    );
+}
+
+*/
+
+/*
+let serialized_entity = serialization_util::entities::load_committed_entity(
+    &my_serialization_marker.inner(),
+)?;
+
+if let Some(mut serialized_entity) = serialized_entity {
+    component.inner().uncommit_to_scene(&mut serialized_entity);
+
+    serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
+    serialization_delta = SerializationDelta::Updated;
+} else {
+    error!(
+        "Couldn't find a Serialized Entity for {}. Check the YAML?",
+        entity_id
+    );
+}
+*/
