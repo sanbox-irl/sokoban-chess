@@ -1,4 +1,7 @@
-use super::{game_config::Config, ClipboardSupport, Entity, EntityAllocator, EntityListInformation, Window};
+use super::{
+    game_config::Config, imgui_component_utils::EntityListInformation, ClipboardSupport, Entity,
+    EntityAllocator, Window,
+};
 use failure::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};

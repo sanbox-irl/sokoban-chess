@@ -1,16 +1,17 @@
-use super::*;
-use failure::Fallible;
+use super::{imgui_component_utils::*, *};
 use imgui::{Condition, ImStr, ImString, MenuItem, StyleColor, StyleVar, Window};
 use imgui_utility::imgui_str;
 
 pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     let ui: &Ui<'_> = &ui_handler.ui;
     let mut remove_this_entity = None;
+    let mut final_post_action: Option<ComponentInspectorPostAction> = None;
+
 
     let Ecs {
         component_database,
         singleton_database,
-        entity_allocator,
+        entity_allocator: _,
         entities,
     } = ecs;
 
@@ -40,29 +41,31 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             }
         };
 
-        let serialized_entity = if let Some(se) = component_database.serialization_markers.get_mut(entity) {
-            let base_entity = serialized_prefab.clone().unwrap_or_default();
+        let names = &component_database.names;
+        let serialized_entity = component_database
+            .serialization_markers
+            .get_mut(entity)
+            .and_then(|se| {
+                let base_entity = serialized_prefab.clone().unwrap_or_default();
 
-            let cached_se: SerializedEntity = se
-                .inner_mut()
-                .cached_serialized_entity()
-                .cloned()
-                .unwrap_or_default();
+                let cached_se: SerializedEntity = se
+                    .inner_mut()
+                    .cached_serialized_entity()
+                    .cloned()
+                    .unwrap_or_default();
 
-            match prefab_system::load_override_into_prefab(base_entity, cached_se) {
-                Ok(se) => Some(se),
-                Err(e) => {
-                    error!(
-                        "We failed to override our prefab for {} because {}",
-                        Name::get_name_quick(&component_database.names, entity),
-                        e
-                    );
-                    None
+                match prefab_system::load_override_into_prefab(base_entity, cached_se) {
+                    Ok(se) => Some(se),
+                    Err(e) => {
+                        error!(
+                            "We failed to override our prefab for {} because {}",
+                            Name::get_name_quick(names, entity),
+                            e
+                        );
+                        None
+                    }
                 }
-            }
-        } else {
-            None
-        };
+            });
 
         let entity_window = Window::new(&window_name)
             .size([600.0, 800.0], Condition::FirstUseEver)
@@ -88,11 +91,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     ui,
                     window_is_open,
                 ) {
-                    match post_inspector {
-                        ComponentInspectorPostAction::Serialize => (),
-                        ComponentInspectorPostAction::StopSerializing => (),
-                        ComponentInspectorPostAction::ApplyOverrideToParentPrefab => (),
-                    }
+                    final_post_action = Some(post_inspector);
                 }
             });
 
@@ -106,8 +105,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                 }
             };
 
-            // Serialization
-            let mut serialize_it = false;
+            // Serialization Inspector
             if let Some(s_marker) = component_database.serialization_markers.get_mut(entity) {
                 component_inspector_raw(
                     s_marker,
@@ -119,24 +117,15 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     ui,
                     window_is_open,
                     |inner, ip| {
-                        serialize_it = inner.entity_inspector_results(ip);
+                        if inner.entity_inspector_results(ip) {
+                            final_post_action = Some(ComponentInspectorPostAction::EntityCommands(
+                                EntitySerializationCommand {
+                                    id: inner.id,
+                                    command_type: EntitySerializationCommandType::Overwrite,
+                                },
+                            ))
+                        }
                     },
-                );
-            }
-
-            if serialize_it {
-                serialization_util::entities::serialize_entity_full(
-                    entity,
-                    component_database
-                        .serialization_markers
-                        .get(entity)
-                        .as_ref()
-                        .unwrap()
-                        .inner()
-                        .id,
-                    component_database,
-                    singleton_database,
-                    resources,
                 );
             }
 
@@ -172,58 +161,18 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     add_component_submenu.end(ui);
                 }
 
-                let serialization_menu_text = if prefab_status == PrefabStatus::PrefabInstance {
-                    "Serialize Overrides"
-                } else {
-                    "Serialization"
-                };
-
                 if let Some(serialization_submenu) = ui.begin_menu(
-                    &ImString::new(serialization_menu_text),
+                    im_str!("Serialize"),
                     component_database.serialization_markers.get(entity).is_some(),
                 ) {
                     if let Some(comp) = component_database.serialization_markers.get(entity) {
-                        let id = comp.inner().id;
-                        match entity_serialization_options(
+                        if let Some(post_inspector) = entity_serialization_options(
                             comp.inner(),
                             ui,
                             entity,
-                            prefab_status,
                             component_database,
                         ) {
-                            Ok((command, reload_prefab)) => {
-                                if let Some(command) = command {
-                                    serialization_util::entities::process_serialized_command(
-                                        entity,
-                                        command,
-                                        component_database,
-                                        singleton_database,
-                                        entities,
-                                        entity_allocator,
-                                        resources,
-                                    );
-                                }
-
-                                if reload_prefab {
-                                    let prefab = resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
-
-                                    match serialization_util::entities::load_entity_by_id(&id) {
-                                        Result::Ok(new_prefab) => {
-                                            if let Some(new_prefab) = new_prefab {
-                                                prefab.members.insert(id, new_prefab);
-                                            } else {
-                                                error!("We tried to reload Prefab with UUID {} but we couldn't find it. Did the file get deleted?", id);
-                                            }
-                                        }
-                                        Result::Err(e) => {
-                                            error!("Couldn't reload the prefab that we just edited. The current application is out of date! {}", e);
-                                        }
-                                    }
-                                }
-                            }
-                            Err(e) => {
-                                error!("{}", e);
-                            }
+                            final_post_action = Some(post_inspector);
                         };
                     }
 
@@ -283,8 +232,19 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
         }
     }
 
+    // This happens when someone closes a window
     if let Some(entity) = remove_this_entity {
         ui_handler.stored_ids.remove(&entity);
+    }
+
+    if let Some(final_post_action) = final_post_action {
+        match final_post_action {
+            ComponentInspectorPostAction::Serialize => (),
+            ComponentInspectorPostAction::StopSerializing => (),
+            ComponentInspectorPostAction::Revert => (),
+            ComponentInspectorPostAction::ApplyOverrideToParentPrefab => (),
+            ComponentInspectorPostAction::EntityCommands(_) => (),
+        }
     }
 }
 
@@ -292,11 +252,9 @@ pub fn entity_serialization_options(
     serialized_marker: &SerializationMarker,
     ui: &Ui<'_>,
     entity_id: &Entity,
-    prefab_status: PrefabStatus,
     component_database: &ComponentDatabase,
-) -> Fallible<(Option<ImGuiSerializationDataCommand>, bool)> {
-    // If this is a prefab we're inspecting, we need to update our cache!
-    let mut reload_prefab = false;
+) -> Option<ComponentInspectorPostAction> {
+    let mut post_action = None;
 
     component_database.foreach_component_list(
         NonInspectableEntities::NAME | NonInspectableEntities::PREFAB | NonInspectableEntities::GRAPH_NODE,
@@ -304,39 +262,37 @@ pub fn entity_serialization_options(
             if let Some(post_inspector) = component_list.serialization_option(
                 ui,
                 entity_id,
-                prefab_status,
                 &component_database.serialization_markers,
             ) {
-                
+                post_action = Some(post_inspector);
             }
         },
     );
 
-    ui.spacing();
+    ui.separator();
 
-    let mut sc = None;
     // REVERT SAVE
     if ui.button(im_str!("Revert"), [0.0, 0.0]) {
-        sc = Some(ImGuiSerializationDataCommand {
-            id: serialized_marker.id,
-            serialization_type: ImGuiSerializationDataType::Revert,
-        });
+        post_action = Some(ComponentInspectorPostAction::EntityCommands(
+            EntitySerializationCommand {
+                id: serialized_marker.id,
+                command_type: EntitySerializationCommandType::Revert,
+            },
+        ));
     }
 
     // OVERWRITE
     ui.same_line(0.0);
     if ui.button(im_str!("Overwrite"), [0.0, 0.0]) {
-        sc = Some(ImGuiSerializationDataCommand {
-            id: serialized_marker.id,
-            serialization_type: ImGuiSerializationDataType::Overwrite,
-        });
+        post_action = Some(ComponentInspectorPostAction::EntityCommands(
+            EntitySerializationCommand {
+                id: serialized_marker.id,
+                command_type: EntitySerializationCommandType::Revert,
+            },
+        ));
     }
 
-    if sc.is_some() && prefab_status == PrefabStatus::Prefab {
-        reload_prefab = true;
-    }
-
-    Ok((sc, reload_prefab))
+    post_action
 }
 
 pub fn component_inspector_raw<T>(
@@ -513,7 +469,6 @@ where
         &self,
         ui: &imgui::Ui<'_>,
         entity_id: &Entity,
-        prefab_status: PrefabStatus,
         serialized_markers: &ComponentList<SerializationMarker>,
     ) -> Option<ComponentInspectorPostAction> {
         lazy_static::lazy_static! {
@@ -591,4 +546,58 @@ if let Some(mut serialized_entity) = serialized_entity {
         entity_id
     );
 }
+*/
+
+/*
+Ok((command, reload_prefab)) => {
+if let Some(command) = command {
+    serialization_util::entities::process_serialized_command(
+        entity,
+        command,
+        component_database,
+        singleton_database,
+        entities,
+        entity_allocator,
+        resources,
+    );
+}
+
+if reload_prefab {
+    let prefab = resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
+
+    match serialization_util::entities::load_entity_by_id(&id) {
+        Result::Ok(new_prefab) => {
+            if let Some(new_prefab) = new_prefab {
+                prefab.members.insert(id, new_prefab);
+            } else {
+                error!("We tried to reload Prefab with UUID {} but we couldn't find it. Did the file get deleted?", id);
+            }
+        }
+        Result::Err(e) => {
+            error!("Couldn't reload the prefab that we just edited. The current application is out of date! {}", e);
+        }
+    }
+}
+}
+
+*/
+
+/*
+// THIS IS BEGIN SERIALIZATION BUTTON IN THE SERIALIZED MARKER INSPECTOR
+if serialize_it {
+    serialization_util::entities::serialize_entity_full(
+        entity,
+        component_database
+            .serialization_markers
+            .get(entity)
+            .as_ref()
+            .unwrap()
+            .inner()
+            .id,
+        component_database,
+        singleton_database,
+        resources,
+    );
+}
+
 */

@@ -1,6 +1,6 @@
 use super::{
-    Component, ComponentInspectorListAction, ComponentInspectorPostAction, ComponentList, Entity, Name,
-    PrefabMap, PrefabStatus, SerializationMarker, SerializedEntity, SyncStatus,
+    imgui_component_utils::*, Component, ComponentList, Entity, Name, PrefabMap, SerializationMarker,
+    SerializedEntity,
 };
 use imgui::Ui;
 
@@ -58,7 +58,6 @@ pub trait ComponentListBounds {
         &self,
         ui: &Ui<'_>,
         entity_id: &Entity,
-        prefab_status: PrefabStatus,
         serialized_marker: &ComponentList<super::SerializationMarker>,
     ) -> Option<ComponentInspectorPostAction>;
 
@@ -188,10 +187,9 @@ where
         &self,
         ui: &imgui::Ui<'_>,
         entity_id: &Entity,
-        prefab_status: PrefabStatus,
         serialized_markers: &ComponentList<super::SerializationMarker>,
     ) -> Option<ComponentInspectorPostAction> {
-        self.serialization_option_raw(ui, entity_id, prefab_status, serialized_markers)
+        self.serialization_option_raw(ui, entity_id, serialized_markers)
     }
 
     fn load_component_into_serialized_entity(

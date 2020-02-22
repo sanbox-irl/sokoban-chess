@@ -1,4 +1,7 @@
-use super::*;
+use super::{
+    imgui_component_utils::{EntitySerializationCommand, EntitySerializationCommandType},
+    *,
+};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -31,15 +34,15 @@ pub fn save_entity_list(entities: &HashMap<Uuid, SerializedEntity>) -> Fallible<
 
 pub fn process_serialized_command(
     entity: &Entity,
-    command: ImGuiSerializationDataCommand,
+    command: EntitySerializationCommand,
     component_database: &mut ComponentDatabase,
     singleton_database: &mut SingletonDatabase,
     entities: &mut Vec<Entity>,
     entity_allocator: &mut EntityAllocator,
     resources: &ResourcesDatabase,
 ) {
-    match &command.serialization_type {
-        ImGuiSerializationDataType::Revert => {
+    match &command.command_type {
+        EntitySerializationCommandType::Revert => {
             // Remove the Entity
             component_database.deregister_entity(entity);
 
@@ -79,7 +82,7 @@ pub fn process_serialized_command(
             }
         }
 
-        ImGuiSerializationDataType::Overwrite => {
+        EntitySerializationCommandType::Overwrite => {
             // SERIALIZE OVER:
             serialize_entity_full(
                 entity,

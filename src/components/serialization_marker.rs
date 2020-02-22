@@ -1,5 +1,6 @@
 use super::{
-    component_utils::SyncStatus, serialization_util, ComponentBounds, InspectorParameters, SerializedEntity,
+    imgui_component_utils::SyncStatus, serialization_util, ComponentBounds, InspectorParameters,
+    SerializedEntity,
 };
 use imgui::*;
 use std::time::{Duration, Instant};
@@ -161,14 +162,4 @@ impl ComponentBounds for SerializationMarker {
 impl super::SerializableComponent for SerializationMarker {
     const SERIALIZATION_NAME: once_cell::sync::Lazy<serde_yaml::Value> =
         once_cell::sync::Lazy::new(|| serde_yaml::Value::Null);
-}
-
-pub struct ImGuiSerializationDataCommand {
-    pub id: uuid::Uuid,
-    pub serialization_type: ImGuiSerializationDataType,
-}
-
-pub enum ImGuiSerializationDataType {
-    Revert,
-    Overwrite,
 }

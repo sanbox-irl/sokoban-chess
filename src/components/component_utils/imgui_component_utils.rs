@@ -1,4 +1,5 @@
 use super::Color;
+use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum NameRequestedAction {
@@ -151,4 +152,17 @@ pub enum ComponentInspectorPostAction {
     StopSerializing,
     Revert,
     ApplyOverrideToParentPrefab,
+    EntityCommands(EntitySerializationCommand),
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct EntitySerializationCommand {
+    pub id: Uuid,
+    pub command_type: EntitySerializationCommandType,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum EntitySerializationCommandType {
+    Revert,
+    Overwrite,
 }

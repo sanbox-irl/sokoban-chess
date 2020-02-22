@@ -1,4 +1,4 @@
-use super::*;
+use super::{imgui_component_utils::*, *};
 
 pub fn entity_list(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
     let mut open = true;

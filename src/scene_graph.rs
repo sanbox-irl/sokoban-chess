@@ -1,7 +1,7 @@
 use super::{
-    ComponentData, ComponentDatabase, ComponentList, Entity, GraphNode, Name, NameInspectorParameters,
-    PrefabMarker, ResourcesDatabase, SerializationMarker, SerializedEntity, SingletonDatabase, Transform,
-    Vec2,
+    imgui_component_utils::NameInspectorParameters, ComponentData, ComponentDatabase, ComponentList, Entity,
+    GraphNode, Name, PrefabMarker, ResourcesDatabase, SerializationMarker, SerializedEntity,
+    SingletonDatabase, Transform, Vec2,
 };
 use lazy_static::lazy_static;
 use std::sync::Mutex;

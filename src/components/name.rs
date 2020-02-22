@@ -1,14 +1,13 @@
 use super::{
-    component_utils::{
-        EntityListInformation, NameInspectorParameters, NameInspectorResult, NameRequestedAction,
-        PrefabStatus,
-    },
-    imgui_system, Color, ComponentBounds, ComponentList, Entity, InspectorParameters, SyncStatus,
+    imgui_component_utils::*, imgui_system, Color, ComponentBounds, ComponentList, Entity,
+    InspectorParameters,
 };
 use imgui::{im_str, MenuItem};
 use regex::Regex;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, SerializableComponent, Hash, typename::TypeName)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Serialize, Deserialize, SerializableComponent, Hash, typename::TypeName,
+)]
 #[serde(default)]
 pub struct Name {
     pub name: String,
