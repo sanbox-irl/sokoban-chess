@@ -1,4 +1,4 @@
-use super::Color;
+use super::{Color, ComponentBounds, SerializedEntity};
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -63,7 +63,7 @@ impl NameInspectorParameters {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum SyncStatus {
     Unsynced,
     Headless,
@@ -84,6 +84,28 @@ impl Default for SyncStatus {
 }
 
 impl SyncStatus {
+    pub fn new<T: ComponentBounds + Clone>(
+        comp: &super::Component<T>,
+        serialized_entity: Option<&SerializedEntity>,
+        draft_mode: bool,
+    ) -> SyncStatus {
+        serialized_entity
+            .map(|se| {
+                if comp.is_serialized(se) {
+                    SyncStatus::Synced
+                } else {
+                    SyncStatus::OutofSync
+                }
+            })
+            .unwrap_or_else(|| {
+                if draft_mode {
+                    SyncStatus::Headless
+                } else {
+                    SyncStatus::Unsynced
+                }
+            })
+    }
+
     pub fn is_synced_at_all(&self) -> bool {
         match self {
             SyncStatus::Unsynced => false,
@@ -105,6 +127,26 @@ impl SyncStatus {
             SyncStatus::Headless => super::imgui_system::red_warning_color(),
             SyncStatus::OutofSync => super::imgui_system::yellow_warning_color(),
             SyncStatus::Synced => Color::WHITE.into(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct ParentSyncStatus {
+    pub serialized: SyncStatus,
+    pub prefab: SyncStatus,
+}
+
+impl ParentSyncStatus {
+    pub fn new<T: ComponentBounds + Clone>(
+        comp: &super::Component<T>,
+        serialized_entity: Option<&SerializedEntity>,
+        prefab_entity: Option<&SerializedEntity>,
+        draft_mode: bool,
+    ) -> ParentSyncStatus {
+        ParentSyncStatus {
+            serialized: SyncStatus::new(comp, serialized_entity, draft_mode),
+            prefab: SyncStatus::new(comp, prefab_entity, draft_mode),
         }
     }
 }
@@ -139,20 +181,33 @@ impl Default for EntityListInformation {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum ComponentInspectorListAction {
     Delete,
     RevertToParentPrefab,
-    ComponentInspectorPostAction(ComponentInspectorPostAction),
+    ComponentPostAction(ComponentSerializationCommandType),
+    EntityPostAction(EntitySerializationCommandType),
+}
+
+#[derive(Debug, Clone)]
+pub enum ComponentInspectorPostAction {
+    ComponentCommands(ComponentSerializationCommand),
+    EntityCommands(EntitySerializationCommand),
+}
+
+#[derive(Debug, Clone)]
+pub struct ComponentSerializationCommand {
+    pub delta: serde_yaml::Value,
+    pub command_type: ComponentSerializationCommandType,
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum ComponentInspectorPostAction {
+pub enum ComponentSerializationCommandType {
     Serialize,
     StopSerializing,
     Revert,
     ApplyOverrideToParentPrefab,
-    EntityCommands(EntitySerializationCommand),
+    RevertToParentPrefab,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -165,4 +220,5 @@ pub struct EntitySerializationCommand {
 pub enum EntitySerializationCommandType {
     Revert,
     Overwrite,
+    StopSerializing,
 }

@@ -1,10 +1,10 @@
 use super::{
-    physics_components::*, prefab_system, ComponentBounds, ComponentDatabase, ConversantNPC, DrawRectangle,
-    Entity, Follow, GraphNode, GridObject, Marker, Name, NonInspectableEntities, Player, PrefabMarker,
-    ResourcesDatabase, SceneSwitcher, SerializableComponent, SingletonDatabase, SoundSource, Sprite,
-    TextSource, Transform, Velocity,
+    physics_components::*, prefab_system, ComponentBounds,
+    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name,
+    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher, SerializableComponent,
+    SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
 };
-use serde_yaml::Value;
+use serde_yaml::Value as YamlValue;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
@@ -283,16 +283,38 @@ impl SerializedEntity {
         println!("---");
     }
 
-    pub fn get_serialized_component<
-        T: for<'de> serde::Deserialize<'de> + SerializableComponent + ComponentBounds + Clone,
-    >(
+    pub fn get_serialized_yaml_component<T: SerializableComponent + ComponentBounds>(
         serialized_entity: &SerializedEntity,
-    ) -> Option<T> {
-        let mut serialized_entity_value: Value = serde_yaml::to_value(serialized_entity.clone()).unwrap();
+    ) -> YamlValue {
+        if let YamlValue::Mapping(mut serialized_entity_value) =
+            serde_yaml::to_value(serialized_entity.clone()).unwrap()
+        {
+            serialized_entity_value
+                .remove(&T::SERIALIZATION_NAME)
+                .unwrap_or_default()
+        } else {
+            YamlValue::default()
+        }
+    }
 
-        let mapping = serialized_entity_value.as_mapping_mut().unwrap();
-        let my_output = mapping.remove(&T::SERIALIZATION_NAME);
+    pub fn get_serialized_component<T: SerializableComponent + ComponentBounds>(
+        serialized_entity: &SerializedEntity,
+    ) -> Option<SerializedComponent<T>> {
+        let my_output = SerializedEntity::get_serialized_yaml_component::<T>(serialized_entity);
+        if my_output.is_mapping() {
+            serde_yaml::from_value(my_output).unwrap_or_default()
+        } else {
+            None
+        }
+    }
 
-        my_output.map(|value| serde_yaml::from_value(value).unwrap())
+    pub fn create_yaml_component<T: SerializableComponent + ComponentBounds>(
+        cmp: &super::Component<T>,
+    ) -> YamlValue {
+        serde_yaml::to_value(SerializedComponent {
+            inner: cmp.clone_inner(),
+            active: cmp.is_active,
+        })
+        .unwrap_or_default()
     }
 }

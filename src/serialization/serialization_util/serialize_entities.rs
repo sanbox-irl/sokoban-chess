@@ -60,7 +60,7 @@ pub fn process_serialized_command(
 
                     if let Some(post) = post {
                         component_database.post_deserialization(post, |component_list, sl| {
-                            if let Some(inner) = component_list.get_mut(entity) {
+                            if let Some((inner, _)) = component_list.get_mut(entity) {
                                 inner.post_deserialization(*entity, sl);
                             }
                         });
@@ -92,6 +92,8 @@ pub fn process_serialized_command(
                 resources,
             );
         }
+
+        EntitySerializationCommandType::StopSerializing => unimplemented!(),
     }
 }
 

@@ -17,7 +17,15 @@ pub trait ComponentBounds {
     fn post_deserialization(&mut self, _: Entity, _: &ComponentList<SerializationMarker>) {}
 }
 
-pub trait SerializableComponent: std::fmt::Debug + typename::TypeName + Clone + Default {
+pub trait SerializableComponent:
+    std::fmt::Debug
+    + typename::TypeName
+    + Clone
+    + Default
+    + serde::Serialize
+    + for<'de> serde::Deserialize<'de>
+    + 'static
+{
     const SERIALIZATION_NAME: once_cell::sync::Lazy<serde_yaml::Value>;
 }
 
@@ -33,47 +41,65 @@ pub struct InspectorParameters<'a, 'b> {
 pub trait ComponentListBounds {
     fn expand_list(&mut self);
     fn unset(&mut self, index: &Entity) -> bool;
-    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds>;
+    fn get_mut(&mut self, index: &Entity) -> Option<(&mut dyn ComponentBounds, bool)>;
     fn dump_to_log(&self, index: &Entity);
     fn clone_entity(&mut self, index: &Entity, new_entity: &Entity);
 
     // IMGUI
     fn component_add_button(&mut self, index: &Entity, ui: &imgui::Ui<'_>);
-
     #[must_use]
     fn component_inspector(
         &mut self,
-        entity: &Entity,
-        current_serialized_entity: Option<&SerializedEntity>,
-        current_prefab_parent: Option<&SerializedEntity>,
+        index: &Entity,
+        parent_sync_status: Option<ParentSyncStatus>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         prefab_hashmap: &PrefabMap,
         ui: &imgui::Ui<'_>,
         is_open: bool,
-    ) -> Option<ComponentInspectorPostAction>;
+    ) -> Option<ComponentSerializationCommandType>;
 
     #[must_use]
     fn serialization_option(
         &self,
         ui: &Ui<'_>,
-        entity_id: &Entity,
+        index: &Entity,
         serialized_marker: &ComponentList<super::SerializationMarker>,
-    ) -> Option<ComponentInspectorPostAction>;
+    ) -> Option<ComponentSerializationCommandType>;
 
     fn load_component_into_serialized_entity(
         &self,
-        entity: &Entity,
+        index: &Entity,
         serialized_entity: &mut super::SerializedEntity,
         serialization_markers: &ComponentList<super::SerializationMarker>,
     );
 
     fn post_deserialization(&mut self, entity_names: &ComponentList<SerializationMarker>);
+
+    // This gets the sync status of a given Entity, provided, optionally, two serialized entities.
+    // In the most general sense, the returned SyncStatus
+    fn get_sync_status(
+        &self,
+        index: &Entity,
+        draft_mode: bool,
+        serialized_entity: Option<&SerializedEntity>,
+        serialized_prefab: Option<&SerializedEntity>,
+    ) -> Option<ParentSyncStatus>;
+
+    /// `create_yaml_component` creates a YamlValue out of our Component,
+    /// ready for serialization. If succesful, the Value will be a Mapping of a
+    /// SerializedComponent<T>, else, it will be a Value::Null.
+    fn create_yaml_component(&self, index: &Entity) -> serde_yaml::Value;
+
+    /// Given a SerializedEntity, this function will find the correct YamlValue inside it
+    /// and return it, nice and easy!
+    fn get_yaml_component(&self, serialized_entity: &SerializedEntity) -> serde_yaml::Value;
+    fn get_yaml_component_key(&self) -> serde_yaml::Value;
 }
 
 impl<T> ComponentListBounds for ComponentList<T>
 where
-    T: ComponentBounds + SerializableComponent + for<'de> serde::Deserialize<'de> + 'static,
+    T: ComponentBounds + SerializableComponent,
 {
     fn expand_list(&mut self) {
         self.expand_list();
@@ -110,77 +136,37 @@ where
     fn component_inspector(
         &mut self,
         entity: &Entity,
-        current_serialized_entity: Option<&SerializedEntity>,
-        current_prefab_parent: Option<&SerializedEntity>,
+        parent_sync_status: Option<ParentSyncStatus>,
         entities: &[Entity],
         entity_names: &ComponentList<Name>,
         prefab_hashmap: &PrefabMap,
         ui: &Ui<'_>,
         is_open: bool,
-    ) -> Option<ComponentInspectorPostAction> {
+    ) -> Option<ComponentSerializationCommandType> {
         if let Some(comp) = self.get_mut(entity) {
-            // get our serialization_statuses:
-            let serialized_sync_status: SyncStatus = current_serialized_entity
-                .map(|se| {
-                    if comp.is_serialized(se) {
-                        SyncStatus::Synced
-                    } else {
-                        SyncStatus::OutofSync
-                    }
-                })
-                .unwrap_or_else(|| {
-                    if super::scene_system::current_scene_mode() == super::SceneMode::Draft {
-                        SyncStatus::Headless
-                    } else {
-                        SyncStatus::Unsynced
-                    }
-                });
+            let ParentSyncStatus { serialized, prefab } = parent_sync_status.unwrap();
 
-            let prefab_sync_status: SyncStatus = current_prefab_parent
-                .map(|se| {
-                    if comp.is_serialized(se) {
-                        SyncStatus::Synced
-                    } else {
-                        SyncStatus::OutofSync
-                    }
-                })
-                .unwrap_or_else(|| {
-                    if super::scene_system::current_scene_mode() == super::SceneMode::Draft {
-                        SyncStatus::Headless
-                    } else {
-                        SyncStatus::Unsynced
-                    }
-                });
-
-            if let Some(action) = super::imgui_system::component_inspector_raw(
+            let (serialization_command, delete) = super::imgui_system::component_inspector_raw(
                 comp,
-                serialized_sync_status,
-                prefab_sync_status,
+                serialized,
+                prefab,
                 entities,
                 entity_names,
                 prefab_hashmap,
                 ui,
                 is_open,
+                true,
                 |inner, ip| inner.entity_inspector(ip),
-            ) {
-                match action {
-                    ComponentInspectorListAction::Delete => {
-                        self.unset(entity);
-                    }
-                    ComponentInspectorListAction::RevertToParentPrefab => {
-                        let prefab: T =
-                            SerializedEntity::get_serialized_component(current_prefab_parent.unwrap())
-                                .unwrap();
-                        *comp.inner_mut() = prefab;
-                    }
-                    ComponentInspectorListAction::ComponentInspectorPostAction(post_action) => {
-                        return Some(post_action)
-                    }
-                }
-            }
-        }
+            );
 
-        None
+            if delete {
+                self.unset(entity);
+            }
+
+            serialization_command
+        } else {
+            None
+        }
     }
 
     fn serialization_option(
@@ -188,7 +174,7 @@ where
         ui: &imgui::Ui<'_>,
         entity_id: &Entity,
         serialized_markers: &ComponentList<super::SerializationMarker>,
-    ) -> Option<ComponentInspectorPostAction> {
+    ) -> Option<ComponentSerializationCommandType> {
         self.serialization_option_raw(ui, entity_id, serialized_markers)
     }
 
@@ -220,8 +206,36 @@ where
         }
     }
 
-    fn get_mut(&mut self, index: &Entity) -> Option<&mut dyn ComponentBounds> {
-        self.get_mut(index).map(|component| component.inner_mut() as _)
+    fn get_mut(&mut self, index: &Entity) -> Option<(&mut dyn ComponentBounds, bool)> {
+        self.get_mut(index).map(|component| {
+            let is_active = component.is_active;
+            (component.inner_mut() as _, is_active)
+        })
+    }
+
+    fn get_sync_status(
+        &self,
+        index: &Entity,
+        draft_mode: bool,
+        serialized_entity: Option<&SerializedEntity>,
+        serialized_prefab: Option<&SerializedEntity>,
+    ) -> Option<ParentSyncStatus> {
+        self.get(index)
+            .map(|cmp| ParentSyncStatus::new(cmp, serialized_entity, serialized_prefab, draft_mode))
+    }
+
+    fn create_yaml_component(&self, index: &Entity) -> serde_yaml::Value {
+        self.get(index)
+            .map(|comp| SerializedEntity::create_yaml_component(comp))
+            .unwrap_or_default()
+    }
+
+    fn get_yaml_component(&self, serialized_entity: &SerializedEntity) -> serde_yaml::Value {
+        SerializedEntity::get_serialized_yaml_component::<T>(serialized_entity)
+    }
+
+    fn get_yaml_component_key(&self) -> serde_yaml::Value {
+        T::SERIALIZATION_NAME.clone()
     }
 }
 

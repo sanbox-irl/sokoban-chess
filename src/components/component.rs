@@ -1,6 +1,6 @@
 use super::{ComponentBounds, Entity, GenerationalIndexValue};
 
-#[derive(Debug, Clone, Serialize, Deserialize, typename::TypeName)]
+#[derive(Debug)]
 pub struct Component<T: ComponentBounds + Clone> {
     pub is_active: bool,
     entity_id: Entity,

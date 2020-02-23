@@ -2,11 +2,14 @@ use super::{imgui_component_utils::*, *};
 use imgui::{Condition, ImStr, ImString, MenuItem, StyleColor, StyleVar, Window};
 use imgui_utility::imgui_str;
 
-pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_handler: &mut UiHandler<'_>) {
+pub fn entity_inspector(
+    ecs: &mut Ecs,
+    resources: &mut ResourcesDatabase,
+    ui_handler: &mut UiHandler<'_>,
+) -> Option<EntitySerializationCommand> {
     let ui: &Ui<'_> = &ui_handler.ui;
     let mut remove_this_entity = None;
     let mut final_post_action: Option<ComponentInspectorPostAction> = None;
-
 
     let Ecs {
         component_database,
@@ -15,7 +18,10 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
         entities,
     } = ecs;
 
-    let scene_is_prefab = scene_system::CURRENT_SCENE.lock().unwrap().is_prefab();
+    let (scene_is_prefab, scene_is_draft_mode) = {
+        let scene_data = scene_system::CURRENT_SCENE.lock().unwrap();
+        (scene_data.is_prefab(), scene_data.mode() == SceneMode::Draft)
+    };
 
     for entity in ui_handler.stored_ids.iter() {
         let mut window_is_open = true;
@@ -54,17 +60,15 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     .cloned()
                     .unwrap_or_default();
 
-                match prefab_system::load_override_into_prefab(base_entity, cached_se) {
-                    Ok(se) => Some(se),
-                    Err(e) => {
+                prefab_system::load_override_into_prefab(base_entity, cached_se)
+                    .map_err(|e| {
                         error!(
                             "We failed to override our prefab for {} because {}",
                             Name::get_name_quick(names, entity),
                             e
                         );
-                        None
-                    }
-                }
+                    })
+                    .ok()
             });
 
         let entity_window = Window::new(&window_name)
@@ -80,20 +84,35 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
             // become a lot trickier.
             let names_raw_pointer: *const _ = &component_database.names;
 
-            component_database.foreach_component_list_mut(NonInspectableEntities::PREFAB, |component_list| {
-                if let Some(post_inspector) = component_list.component_inspector(
-                    entity,
-                    serialized_entity.as_ref(),
-                    serialized_prefab.as_ref(),
-                    entities,
-                    unsafe { &*names_raw_pointer },
-                    resources.prefabs(),
-                    ui,
-                    window_is_open,
-                ) {
-                    final_post_action = Some(post_inspector);
-                }
-            });
+            component_database.foreach_component_list_mut(
+                NonInspectableEntities::empty(),
+                |component_list| {
+                    let possible_sync_statuses = component_list.get_sync_status(
+                        entity,
+                        scene_is_draft_mode,
+                        serialized_entity.as_ref(),
+                        serialized_prefab.as_ref(),
+                    );
+
+                    if let Some(command_type) = component_list.component_inspector(
+                        entity,
+                        possible_sync_statuses,
+                        entities,
+                        unsafe { &*names_raw_pointer },
+                        resources.prefabs(),
+                        ui,
+                        window_is_open,
+                    ) {
+                        final_post_action = Some(handle_serialization_command(
+                            entity,
+                            command_type,
+                            serialized_entity.as_ref(),
+                            serialized_prefab.as_ref(),
+                            component_list,
+                        ));
+                    }
+                },
+            );
 
             let prefab_status = if scene_is_prefab {
                 PrefabStatus::Prefab
@@ -107,7 +126,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
 
             // Serialization Inspector
             if let Some(s_marker) = component_database.serialization_markers.get_mut(entity) {
-                component_inspector_raw(
+                let (_, delete) = component_inspector_raw(
                     s_marker,
                     SyncStatus::Synced,
                     SyncStatus::Unsynced,
@@ -116,6 +135,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     resources.prefabs(),
                     ui,
                     window_is_open,
+                    false,
                     |inner, ip| {
                         if inner.entity_inspector_results(ip) {
                             final_post_action = Some(ComponentInspectorPostAction::EntityCommands(
@@ -127,19 +147,31 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                         }
                     },
                 );
+
+                if delete {
+                    final_post_action = Some(ComponentInspectorPostAction::EntityCommands(
+                        EntitySerializationCommand {
+                            id: s_marker.inner().id,
+                            command_type: EntitySerializationCommandType::StopSerializing,
+                        },
+                    ));
+                }
             }
 
             // Menu bar funtimes!
             if let Some(menu_bar) = ui.begin_menu_bar() {
-                let component_add_button_text = if prefab_status == PrefabStatus::PrefabInstance {
-                    "Add Override"
-                } else {
-                    "Add Component"
-                };
-
-                if let Some(add_component_submenu) =
-                    ui.begin_menu(&ImString::new(component_add_button_text), true)
-                {
+                // Add Component Menubar
+                if let Some(add_component_submenu) = ui.begin_menu(
+                    &im_str!(
+                        "Add {}",
+                        if prefab_status == PrefabStatus::PrefabInstance {
+                            "Override"
+                        } else {
+                            "Component"
+                        }
+                    ),
+                    true,
+                ) {
                     // @update_components exception
                     let had_transform = component_database.transforms.get(entity).is_some();
 
@@ -161,16 +193,19 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     add_component_submenu.end(ui);
                 }
 
+                // Serialization Menubar
                 if let Some(serialization_submenu) = ui.begin_menu(
                     im_str!("Serialize"),
                     component_database.serialization_markers.get(entity).is_some(),
                 ) {
                     if let Some(comp) = component_database.serialization_markers.get(entity) {
-                        if let Some(post_inspector) = entity_serialization_options(
+                        if let Some(post_inspector) = serialization_menu(
                             comp.inner(),
                             ui,
                             entity,
                             component_database,
+                            serialized_entity.as_ref(),
+                            serialized_prefab.as_ref(),
                         ) {
                             final_post_action = Some(post_inspector);
                         };
@@ -179,6 +214,7 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
                     serialization_submenu.end(ui);
                 }
 
+                // Prefab Menubar
                 if let Some(prefab_submenu) =
                     ui.begin_menu(im_str!("Create Prefab"), prefab_status == PrefabStatus::None)
                 {
@@ -237,34 +273,47 @@ pub fn entity_inspector(ecs: &mut Ecs, resources: &mut ResourcesDatabase, ui_han
         ui_handler.stored_ids.remove(&entity);
     }
 
-    if let Some(final_post_action) = final_post_action {
-        match final_post_action {
-            ComponentInspectorPostAction::Serialize => (),
-            ComponentInspectorPostAction::StopSerializing => (),
-            ComponentInspectorPostAction::Revert => (),
-            ComponentInspectorPostAction::ApplyOverrideToParentPrefab => (),
-            ComponentInspectorPostAction::EntityCommands(_) => (),
+    final_post_action.and_then(|final_post_action| match final_post_action {
+        ComponentInspectorPostAction::ComponentCommands(command) => {
+            match command.command_type {
+                ComponentSerializationCommandType::Serialize => {
+                    
+                },
+                ComponentSerializationCommandType::StopSerializing => (),
+                ComponentSerializationCommandType::Revert => (),
+                ComponentSerializationCommandType::ApplyOverrideToParentPrefab => (),
+                ComponentSerializationCommandType::RevertToParentPrefab => (),
+            }
+
+            None
         }
-    }
+        ComponentInspectorPostAction::EntityCommands(entity_command) => Some(entity_command),
+    })
 }
 
-pub fn entity_serialization_options(
+pub fn serialization_menu(
     serialized_marker: &SerializationMarker,
     ui: &Ui<'_>,
-    entity_id: &Entity,
+    entity: &Entity,
     component_database: &ComponentDatabase,
+    current_serialized_entity: Option<&SerializedEntity>,
+    current_prefab_parent: Option<&SerializedEntity>,
 ) -> Option<ComponentInspectorPostAction> {
-    let mut post_action = None;
+    let mut post_action: Option<ComponentInspectorPostAction> = None;
 
     component_database.foreach_component_list(
         NonInspectableEntities::NAME | NonInspectableEntities::PREFAB | NonInspectableEntities::GRAPH_NODE,
         |component_list| {
-            if let Some(post_inspector) = component_list.serialization_option(
-                ui,
-                entity_id,
-                &component_database.serialization_markers,
-            ) {
-                post_action = Some(post_inspector);
+            if let Some(command_type) =
+                component_list.serialization_option(ui, entity, &component_database.serialization_markers)
+            {
+                post_action = Some(handle_serialization_command(
+                    entity,
+                    command_type,
+                    current_serialized_entity,
+                    current_prefab_parent,
+                    component_list,
+                ));
             }
         },
     );
@@ -295,6 +344,7 @@ pub fn entity_serialization_options(
     post_action
 }
 
+#[must_use]
 pub fn component_inspector_raw<T>(
     comp: &mut Component<T>,
     serialization_sync_status: SyncStatus,
@@ -304,41 +354,49 @@ pub fn component_inspector_raw<T>(
     prefabs: &PrefabMap,
     ui: &Ui<'_>,
     is_open: bool,
+    can_right_click: bool,
     mut f: impl FnMut(&mut T, InspectorParameters<'_, '_>),
-) -> Option<ComponentInspectorListAction>
+) -> (Option<ComponentSerializationCommandType>, bool)
 where
     T: ComponentBounds + Clone + typename::TypeName + std::fmt::Debug + 'static,
 {
     let mut requested_action = None;
-    let scene_mode = scene_system::current_scene_mode();
+    let mut delete = false;
 
+    let scene_mode = scene_system::current_scene_mode();
     let name = super::imgui_system::typed_text_ui::<T>();
     let uid = &format!("{}{}", comp.entity_id(), &T::type_name());
 
-    let alpha_controller = if comp.is_active == false {
+    let default_color = ui.style_color(imgui::StyleColor::Text);
+    let alpha_amount = if comp.is_active == false {
         Some(ui.push_style_var(imgui::StyleVar::Alpha(0.6)))
     } else {
         None
     };
 
-    let default_color = ui.style_color(imgui::StyleColor::Text);
     let text_color_token = ui.push_style_color(
         imgui::StyleColor::Text,
         serialization_sync_status.imgui_color(scene_mode),
     );
+
     ui.tree_node(&imgui::ImString::new(&name))
         .default_open(true)
         .frame_padding(false)
         .build(|| {
             imgui_utility::wrap_style_var(ui, StyleVar::Alpha(1.0), || {
-                requested_action = component_inspector_right_click(
-                    ui,
-                    uid,
-                    &mut comp.is_active,
-                    default_color,
-                    serialization_sync_status,
-                    prefab_sync_status,
-                );
+                // Sadly, we lack destructure assign
+                if can_right_click {
+                    let right_click_actions = component_inspector_right_click(
+                        ui,
+                        uid,
+                        &mut comp.is_active,
+                        default_color,
+                        serialization_sync_status,
+                        prefab_sync_status,
+                    );
+                    requested_action = right_click_actions.0;
+                    delete = right_click_actions.1;
+                }
 
                 // Handle the Warning!
                 match serialization_sync_status {
@@ -384,11 +442,11 @@ where
         });
 
     text_color_token.pop(ui);
-    if let Some(alpha_token) = alpha_controller {
+    if let Some(alpha_token) = alpha_amount {
         alpha_token.pop(ui);
     }
 
-    requested_action
+    (requested_action, delete)
 }
 
 fn component_inspector_right_click(
@@ -398,15 +456,16 @@ fn component_inspector_right_click(
     default_color: ImColor,
     serialization_sync_status: SyncStatus,
     prefab_sync_status: SyncStatus,
-) -> Option<ComponentInspectorListAction> {
+) -> (Option<ComponentSerializationCommandType>, bool) {
     let mut requested_action = None;
+    let mut delete = false;
 
     imgui_system::right_click_popup(ui, uid, || {
         imgui_utility::wrap_style_color_var(ui, StyleColor::Text, default_color, || {
             MenuItem::new(&im_str!("Is Active##{}", uid)).build_with_ref(ui, is_active);
 
             if MenuItem::new(&im_str!("Delete##{}", uid)).build(ui) {
-                requested_action = Some(ComponentInspectorListAction::Delete);
+                delete = true;
             }
 
             ui.separator();
@@ -415,27 +474,21 @@ fn component_inspector_right_click(
                 .enabled(serialization_sync_status == SyncStatus::OutofSync)
                 .build(ui)
             {
-                requested_action = Some(ComponentInspectorListAction::ComponentInspectorPostAction(
-                    ComponentInspectorPostAction::Serialize,
-                ));
+                requested_action = Some(ComponentSerializationCommandType::Serialize);
             }
 
             if MenuItem::new(&imgui_str("Stop Serializing", uid))
                 .enabled(serialization_sync_status.is_synced_at_all())
                 .build(ui)
             {
-                requested_action = Some(ComponentInspectorListAction::ComponentInspectorPostAction(
-                    ComponentInspectorPostAction::StopSerializing,
-                ));
+                requested_action = Some(ComponentSerializationCommandType::StopSerializing);
             }
 
             if MenuItem::new(&imgui_str("Revert to Serialization", uid))
                 .enabled(serialization_sync_status == SyncStatus::Unsynced)
                 .build(ui)
             {
-                requested_action = Some(ComponentInspectorListAction::ComponentInspectorPostAction(
-                    ComponentInspectorPostAction::Revert,
-                ));
+                requested_action = Some(ComponentSerializationCommandType::Revert);
             }
 
             ui.separator();
@@ -444,21 +497,19 @@ fn component_inspector_right_click(
                 .enabled(prefab_sync_status == SyncStatus::Unsynced)
                 .build(ui)
             {
-                requested_action = Some(ComponentInspectorListAction::ComponentInspectorPostAction(
-                    ComponentInspectorPostAction::Serialize,
-                ));
+                requested_action = Some(ComponentSerializationCommandType::ApplyOverrideToParentPrefab);
             }
 
             if MenuItem::new(&imgui_str("Revert to Prefab", uid))
                 .enabled(prefab_sync_status == SyncStatus::OutofSync)
                 .build(ui)
             {
-                requested_action = Some(ComponentInspectorListAction::RevertToParentPrefab);
+                requested_action = Some(ComponentSerializationCommandType::RevertToParentPrefab);
             }
         });
     });
 
-    requested_action
+    (requested_action, delete)
 }
 
 impl<T> ComponentList<T>
@@ -470,7 +521,7 @@ where
         ui: &imgui::Ui<'_>,
         entity_id: &Entity,
         serialized_markers: &ComponentList<SerializationMarker>,
-    ) -> Option<ComponentInspectorPostAction> {
+    ) -> Option<ComponentSerializationCommandType> {
         lazy_static::lazy_static! {
             static ref SERIALIZE: &'static ImStr = im_str!("Serialize");
             static ref DESERIALIZE: &'static ImStr = im_str!("Stop Serializing");
@@ -481,22 +532,22 @@ where
         let component_exists = self.get(entity_id).is_some();
         let mut output = None;
 
-        if let Some(my_serialization_marker) = serialized_markers.get(entity_id) {
+        if serialized_markers.get(entity_id).is_some() {
             if let Some(serde_menu) = ui.begin_menu(&type_name, component_exists) {
-                if let Some(component) = self.get(entity_id) {
+                if self.get(entity_id).is_some() {
                     // Serialize
                     if MenuItem::new(&SERIALIZE).build(ui) {
-                        output = Some(ComponentInspectorPostAction::Serialize);
+                        output = Some(ComponentSerializationCommandType::Serialize);
                     }
 
                     // Deserialize
                     if MenuItem::new(&DESERIALIZE).build(ui) {
-                        output = Some(ComponentInspectorPostAction::StopSerializing);
+                        output = Some(ComponentSerializationCommandType::StopSerializing);
                     }
 
                     // Revert
                     if MenuItem::new(&REVERT).build(ui) {
-                        output = Some(ComponentInspectorPostAction::ApplyOverrideToParentPrefab);
+                        output = Some(ComponentSerializationCommandType::ApplyOverrideToParentPrefab);
                     }
                 }
                 serde_menu.end(ui);
@@ -504,6 +555,61 @@ where
         }
 
         output
+    }
+}
+
+fn handle_serialization_command(
+    entity: &Entity,
+    command_type: ComponentSerializationCommandType,
+    serialized_entity: Option<&SerializedEntity>,
+    serialized_prefab: Option<&SerializedEntity>,
+    component_list: &dyn ComponentListBounds,
+) -> ComponentInspectorPostAction {
+    match command_type {
+        ComponentSerializationCommandType::Serialize => {
+            ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
+                delta: component_list.create_yaml_component(entity),
+                command_type,
+            })
+        }
+        ComponentSerializationCommandType::StopSerializing => {
+            ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
+                delta: serde_yaml::Value::Null,
+                command_type,
+            })
+        }
+        ComponentSerializationCommandType::Revert => {
+            let delta = {
+                if let Some(serialized_entity) = serialized_entity {
+                    component_list.get_yaml_component(serialized_entity)
+                } else {
+                    Default::default()
+                }
+            };
+            ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
+                delta,
+                command_type,
+            })
+        }
+        ComponentSerializationCommandType::ApplyOverrideToParentPrefab => {
+            ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
+                delta: component_list.create_yaml_component(entity),
+                command_type,
+            })
+        }
+        ComponentSerializationCommandType::RevertToParentPrefab => {
+            let delta = {
+                if let Some(serialized_prefab) = serialized_prefab {
+                    component_list.get_yaml_component(serialized_prefab)
+                } else {
+                    Default::default()
+                }
+            };
+            ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
+                delta,
+                command_type,
+            })
+        }
     }
 }
 

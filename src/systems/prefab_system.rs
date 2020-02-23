@@ -4,6 +4,7 @@ use super::{
 };
 use anyhow::{Context, Result};
 use failure::Fallible;
+use serde_yaml::Value as YamlValue;
 use uuid::Uuid;
 
 pub fn commit_blank_prefab(resources: &mut ResourcesDatabase) -> Fallible<uuid::Uuid> {
@@ -36,7 +37,7 @@ pub fn instantiate_entity_from_prefab(
     if let Some(post) = success {
         ecs.component_database
             .post_deserialization(post, |component_list, sl| {
-                if let Some(inner) = component_list.get_mut(&entity) {
+                if let Some((inner, _)) = component_list.get_mut(&entity) {
                     inner.post_deserialization(entity, sl);
                 }
             });
@@ -136,8 +137,8 @@ pub fn get_serialized_parent_prefab_from_inheritor(
     }
 }
 
-/// This uses the *experimental* idea of some dynamic typings in YAML. This is relatively
-/// prone to crash in current form, but I'm a lazy slut!
+/// This uses the *experimental* idea of some dynamic typings in YAML! These unwraps *should*
+/// be safe, as we know that SerializedEntity can be safely serialized and deserialized.
 pub fn load_override_into_prefab(
     prefab_serialized_entity: SerializedEntity,
     se_override: SerializedEntity,
@@ -147,9 +148,11 @@ pub fn load_override_into_prefab(
 
     let prefab_serialized_value_as_map = prefab_serialized_yaml.as_mapping_mut().unwrap();
 
-    for (key, value) in se_override_yaml.as_mapping().unwrap().iter() {
-        if *value != serde_yaml::Value::Null {
-            prefab_serialized_value_as_map.insert(key.clone(), value.clone());
+    if let YamlValue::Mapping(mapping) = se_override_yaml {
+        for (key, value) in mapping {
+            if value != serde_yaml::Value::Null {
+                prefab_serialized_value_as_map.insert(key, value);
+            }
         }
     }
 
