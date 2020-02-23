@@ -1,4 +1,5 @@
 use super::{BufferBundle, BufferError, LoadedImageError, PipelineBundle, Vec2Int};
+use anyhow::Error;
 use core::mem::ManuallyDrop;
 use gfx_hal::{
     adapter::{Adapter, PhysicalDevice},
@@ -36,7 +37,7 @@ impl<B: Backend> LoadedImage<B> {
         width: usize,
         height: usize,
         filter: gfx_hal::image::Filter,
-    ) -> Result<Self, failure::Error> {
+    ) -> Result<Self, Error> {
         unsafe {
             // Make the Image Object!
             let mut image_object = device
@@ -158,7 +159,7 @@ impl<B: Backend> LoadedImage<B> {
         device: &B::Device,
         command_pool: &mut B::CommandPool,
         command_queue: &mut B::CommandQueue,
-    ) -> Result<(), failure::Error> {
+    ) -> Result<(), Error> {
         unsafe {
             // allocate texture
             let (staging_bundle, buffer_width) =
@@ -194,7 +195,7 @@ impl<B: Backend> LoadedImage<B> {
         img: &[u8],
         width: usize,
         height: usize,
-    ) -> Result<(BufferBundle<B>, u32), failure::Error> {
+    ) -> Result<(BufferBundle<B>, u32), Error> {
         //  Memory garbanzo
         let row_alignment_mask = adapter
             .physical_device
@@ -238,7 +239,7 @@ impl<B: Backend> LoadedImage<B> {
         device: &B::Device,
         command_pool: &mut B::CommandPool,
         command_queue: &mut B::CommandQueue,
-    ) -> Result<(), failure::Error> {
+    ) -> Result<(), Error> {
         let mut cmd_buffer = command_pool.allocate_one(command::Level::Primary);
         cmd_buffer.begin_primary(command::CommandBufferFlags::ONE_TIME_SUBMIT);
 

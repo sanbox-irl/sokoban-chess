@@ -1,4 +1,5 @@
 use super::{imgui_component_utils::*, *};
+use anyhow::Error;
 use imgui::{Condition, ImStr, ImString, MenuItem, StyleColor, StyleVar, Window};
 use imgui_utility::imgui_str;
 
@@ -6,7 +7,7 @@ pub fn entity_inspector(
     ecs: &mut Ecs,
     resources: &mut ResourcesDatabase,
     ui_handler: &mut UiHandler<'_>,
-) -> Option<EntitySerializationCommand> {
+) -> Result<Option<EntitySerializationCommand>, Error> {
     let ui: &Ui<'_> = &ui_handler.ui;
     let mut remove_this_entity = None;
     let mut final_post_action: Option<ComponentInspectorPostAction> = None;
@@ -104,7 +105,7 @@ pub fn entity_inspector(
                         window_is_open,
                     ) {
                         final_post_action = Some(handle_serialization_command(
-                            entity,
+                            *entity,
                             command_type,
                             serialized_entity.as_ref(),
                             serialized_prefab.as_ref(),
@@ -273,22 +274,100 @@ pub fn entity_inspector(
         ui_handler.stored_ids.remove(&entity);
     }
 
-    final_post_action.and_then(|final_post_action| match final_post_action {
-        ComponentInspectorPostAction::ComponentCommands(command) => {
-            match command.command_type {
-                ComponentSerializationCommandType::Serialize => {
-                    
-                },
-                ComponentSerializationCommandType::StopSerializing => (),
-                ComponentSerializationCommandType::Revert => (),
-                ComponentSerializationCommandType::ApplyOverrideToParentPrefab => (),
-                ComponentSerializationCommandType::RevertToParentPrefab => (),
-            }
+    let entity_command = if let Some(final_post_action) = final_post_action {
+        match final_post_action {
+            ComponentInspectorPostAction::ComponentCommands(command) => {
+                match command.command_type {
+                    ComponentSerializationCommandType::Serialize
+                    | ComponentSerializationCommandType::StopSerializing => {
+                        let uuid = component_database
+                            .serialization_markers
+                            .get(&command.entity)
+                            .map(|sm| sm.inner().id)
+                            .unwrap();
 
-            None
+                        let mut serialized_yaml = serde_yaml::to_value(
+                            serialization_util::entities::load_entity_by_id(&uuid)?.unwrap(),
+                        )?;
+
+                        // Insert our New Serialization
+                        serialized_yaml
+                            .as_mapping_mut()
+                            .unwrap()
+                            .insert(command.key, command.delta);
+
+                        serialization_util::entities::commit_entity_to_scene(serde_yaml::from_value(
+                            serialized_yaml,
+                        )?)?;
+                    }
+                    ComponentSerializationCommandType::Revert
+                    | ComponentSerializationCommandType::RevertToParentPrefab => {
+                        let uuid = component_database
+                            .serialization_markers
+                            .get(&command.entity)
+                            .map(|sm| sm.inner().id)
+                            .unwrap();
+
+                        let mut base_serialized_entity =
+                            serde_yaml::to_value(SerializedEntity::with_uuid(uuid))?;
+
+                        base_serialized_entity
+                            .as_mapping_mut()
+                            .unwrap()
+                            .insert(command.key, command.delta);
+
+                        let serialized_entity = serde_yaml::from_value(base_serialized_entity)?;
+
+                        let post_deserialization = component_database.load_serialized_entity_into_database(
+                            &command.entity,
+                            serialized_entity,
+                            &mut singleton_database.associated_entities,
+                        );
+
+                        let entity = command.entity;
+                        component_database.post_deserialization(post_deserialization, |component_list, sl| {
+                            if let Some((inner, _)) = component_list.get_mut(&entity) {
+                                inner.post_deserialization(entity, sl);
+                            }
+                        })
+                    }
+                    
+                    ComponentSerializationCommandType::ApplyOverrideToParentPrefab => {
+                        let (main_id, sub_id) = component_database
+                            .prefab_markers
+                            .get(&command.entity)
+                            .map(|pm| (pm.inner().main_id(), pm.inner().sub_id()))
+                            .unwrap();
+
+                        let mut prefab = serialization_util::prefabs::load_prefab(&main_id)?.unwrap();
+                        let (new_member, _diff): (SerializedEntity, _) = {
+                            let mut member_yaml =
+                                serde_yaml::to_value(prefab.members.get(&sub_id).cloned().unwrap())?;
+
+                            let diff = member_yaml
+                                .as_mapping_mut()
+                                .unwrap()
+                                .insert(command.key, command.delta);
+
+                            (serde_yaml::from_value(member_yaml)?, diff)
+                        };
+
+                        prefab.members.insert(new_member.id, new_member);
+
+                        let prefab_reload_required =
+                            prefab_system::serialize_and_cache_prefab(prefab, resources);
+                    }
+                }
+
+                None
+            }
+            ComponentInspectorPostAction::EntityCommands(entity_command) => Some(entity_command),
         }
-        ComponentInspectorPostAction::EntityCommands(entity_command) => Some(entity_command),
-    })
+    } else {
+        None
+    };
+
+    Ok(entity_command)
 }
 
 pub fn serialization_menu(
@@ -308,7 +387,7 @@ pub fn serialization_menu(
                 component_list.serialization_option(ui, entity, &component_database.serialization_markers)
             {
                 post_action = Some(handle_serialization_command(
-                    entity,
+                    *entity,
                     command_type,
                     current_serialized_entity,
                     current_prefab_parent,
@@ -422,7 +501,7 @@ where
                         imgui_utility::WARNING_ICON,
                         format!("{} is out of Sync with its Serialization!", name),
                     ),
-                    SyncStatus::Synced => {}
+                    SyncStatus::Synced => (),
                 };
             });
 
@@ -559,7 +638,7 @@ where
 }
 
 fn handle_serialization_command(
-    entity: &Entity,
+    entity: Entity,
     command_type: ComponentSerializationCommandType,
     serialized_entity: Option<&SerializedEntity>,
     serialized_prefab: Option<&SerializedEntity>,
@@ -568,14 +647,18 @@ fn handle_serialization_command(
     match command_type {
         ComponentSerializationCommandType::Serialize => {
             ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
-                delta: component_list.create_yaml_component(entity),
+                delta: component_list.create_yaml_component(&entity),
                 command_type,
+                key: component_list.get_yaml_component_key(),
+                entity,
             })
         }
         ComponentSerializationCommandType::StopSerializing => {
             ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
                 delta: serde_yaml::Value::Null,
                 command_type,
+                key: component_list.get_yaml_component_key(),
+                entity,
             })
         }
         ComponentSerializationCommandType::Revert => {
@@ -589,12 +672,16 @@ fn handle_serialization_command(
             ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
                 delta,
                 command_type,
+                key: component_list.get_yaml_component_key(),
+                entity,
             })
         }
         ComponentSerializationCommandType::ApplyOverrideToParentPrefab => {
             ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
-                delta: component_list.create_yaml_component(entity),
+                delta: component_list.create_yaml_component(&entity),
                 command_type,
+                key: component_list.get_yaml_component_key(),
+                entity,
             })
         }
         ComponentSerializationCommandType::RevertToParentPrefab => {
@@ -608,6 +695,8 @@ fn handle_serialization_command(
             ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
                 delta,
                 command_type,
+                key: component_list.get_yaml_component_key(),
+                entity,
             })
         }
     }

@@ -38,7 +38,7 @@ pub use {
     grid_object::{GridObject, GridType},
     name::Name,
     player::Player,
-    prefab_marker::PrefabMarker,
+    prefab_marker::{PrefabLoadRequired, PrefabMarker},
     scene_switcher::SceneSwitcher,
     serialization_marker::SerializationMarker,
     sound_source::SoundSource,

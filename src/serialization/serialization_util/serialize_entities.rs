@@ -20,7 +20,7 @@ pub fn load_all_entities() -> Result<HashMap<Uuid, SerializedEntity>, Error> {
     }
 }
 
-pub fn save_entity_list(entities: &HashMap<Uuid, SerializedEntity>) -> Fallible<()> {
+pub fn save_entity_list(entities: &HashMap<Uuid, SerializedEntity>) -> AnyResult<()> {
     let (path, is_prefab) = path();
     if is_prefab {
         let mut prefab: Prefab = load_serialized_file(&path)?;

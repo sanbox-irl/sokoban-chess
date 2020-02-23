@@ -1,6 +1,6 @@
 use super::{LoadedImage, RendererCreationError, Window, RC};
 use core::mem::ManuallyDrop;
-use failure::Error;
+use anyhow::Error;
 use gfx_hal::{
     command,
     device::Device,

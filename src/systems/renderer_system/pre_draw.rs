@@ -2,7 +2,7 @@ use super::{
     ComponentDatabase, ComponentList, DrawingError, LoadedImage, PipelineBundle, RendererComponent,
     ResourcesDatabase, StandardQuad, StandardTexture, TextSource, TextureDescription, Vec2, Vec2Int,
 };
-use failure::Error;
+use anyhow::Error;
 use glyph_brush::{rusttype::Scale, BrushAction, BrushError, Layout, Section};
 
 #[cfg(feature = "dx12")]

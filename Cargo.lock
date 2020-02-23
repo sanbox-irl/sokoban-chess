@@ -218,6 +218,7 @@ dependencies = [
  "sheep",
  "strum",
  "strum_macros",
+ "thiserror",
  "typename",
  "uuid",
  "winit",

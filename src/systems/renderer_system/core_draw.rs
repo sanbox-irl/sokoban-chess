@@ -1,5 +1,5 @@
 use arrayvec::ArrayVec;
-use failure::Error;
+use anyhow::Error;
 use gfx_hal::{
     command::{ClearColor, ClearValue, CommandBuffer, CommandBufferFlags, SubpassContents},
     device::Device,

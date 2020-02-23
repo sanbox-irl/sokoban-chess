@@ -1,6 +1,4 @@
 use super::*;
-
-use failure::Fallible;
 use uuid::Uuid;
 
 lazy_static::lazy_static! {
@@ -31,7 +29,7 @@ pub fn serialize_prefab(prefab: &Prefab) -> Result<(), Error> {
     save_serialized_file(&prefab, &path)
 }
 
-pub fn invalidate_prefab(prefab: &Prefab) -> Fallible<()> {
+pub fn invalidate_prefab(prefab: &Prefab) -> AnyResult<()> {
     let path = path(&prefab.root_id().to_string());
     fs::remove_file(&path)?;
 
@@ -51,7 +49,7 @@ pub fn load_prefab(prefab_id: &Uuid) -> Result<Option<Prefab>, Error> {
         .ok())
 }
 
-pub fn load_all_prefabs() -> Fallible<PrefabMap> {
+pub fn load_all_prefabs() -> AnyResult<PrefabMap> {
     let mut ret = std::collections::HashMap::new();
 
     for path in glob::glob(&PREFAB_GLOB)? {

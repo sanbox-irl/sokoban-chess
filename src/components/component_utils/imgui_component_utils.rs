@@ -1,4 +1,4 @@
-use super::{Color, ComponentBounds, SerializedEntity};
+use super::{Color, ComponentBounds, Entity, SerializedEntity};
 use uuid::Uuid;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -195,9 +195,32 @@ pub enum ComponentInspectorPostAction {
     EntityCommands(EntitySerializationCommand),
 }
 
+/// This serialization command is for **Component** serde
+/// and **Component prefab** serde.
+///
+///  An example usage would be serializing a component `Sprite` on some Entity.
+///
+/// If we wanted to serialize an **Entity** which HAD a `Sprite`, we would use an
+/// `EntitySerializationCommand`.
 #[derive(Debug, Clone)]
 pub struct ComponentSerializationCommand {
+    /// This is the Entity ID of the target.
+    pub entity: Entity,
+
+    /// This is our Change to be Applied:
+    /// - `Serialize` => New Component Data to Overwrite Old Data
+    /// - `StopSerializing` => A Value::NULL
+    /// - `Revert` => The old Serialized data to set on our live instance
+    /// - `ApplyOverrideToParent` => This is the New Component Data to Overwrite Old Prefab Data
+    /// - `RevertToParentPrefab` => This is the Old Prefab data to set on our live instance
     pub delta: serde_yaml::Value,
+
+    /// This is, essentially, the name of our component as a YamlValue.
+    /// For example, `Sprite` would be `sprite`. It will always be
+    /// YamlValue::String(str)
+    pub key: serde_yaml::Value,
+
+    /// The Command to be Executed by the ImGui Serialization System
     pub command_type: ComponentSerializationCommandType,
 }
 

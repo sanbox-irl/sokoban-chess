@@ -2,7 +2,7 @@ use super::{
     serialization_util, Scene, SceneMode, SerializedEntity, SingletonDatabase, ENTITY_SUBPATH,
     PREFAB_DIRECTORY, SCENE_DIRECTORY, SINGLETONS_SUBPATH,
 };
-use failure::Error;
+use anyhow::Error;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 

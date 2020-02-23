@@ -2,7 +2,7 @@ use super::{
     game_config::Config, imgui_component_utils::EntityListInformation, ClipboardSupport, Entity,
     EntityAllocator, Window,
 };
-use failure::Error;
+use anyhow::Error;
 use imgui::{Context, FontConfig, FontGlyphRanges, FontSource, Ui};
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
 use std::collections::HashMap;
@@ -83,7 +83,7 @@ impl ImGui {
         }
     }
 
-    pub fn save_meta_data(&mut self) -> Result<(), failure::Error> {
+    pub fn save_meta_data(&mut self) -> Result<(), Error> {
         let success = serde_yaml::to_string(&self.meta_data)?;
         std::fs::write("dev/imgui/meta_data.yaml", success)?;
 

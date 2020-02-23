@@ -1,3 +1,4 @@
+use anyhow::Error;
 use core::mem::ManuallyDrop;
 use gfx_hal::{device::Device, pso::DescriptorPool, Backend};
 
@@ -23,7 +24,7 @@ impl<B: Backend> PipelineBundle<B> {
         }
     }
 
-    pub fn allocate_descriptor_set(&mut self) -> Result<B::DescriptorSet, failure::Error> {
+    pub fn allocate_descriptor_set(&mut self) -> Result<B::DescriptorSet, Error> {
         match &mut self.descriptor_pool {
             Some(dp) => unsafe {
                 if let Some(descriptor_set_layout) = &self.descriptor_set_layout {

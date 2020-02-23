@@ -1,8 +1,8 @@
 use super::{
-    physics_components::*, prefab_system, ComponentBounds,
-    ComponentDatabase, ConversantNPC, DrawRectangle, Entity, Follow, GraphNode, GridObject, Marker, Name,
-    NonInspectableEntities, Player, PrefabMarker, ResourcesDatabase, SceneSwitcher, SerializableComponent,
-    SingletonDatabase, SoundSource, Sprite, TextSource, Transform, Velocity,
+    physics_components::*, prefab_system, ComponentBounds, ComponentDatabase, ConversantNPC, DrawRectangle,
+    Entity, Follow, GraphNode, GridObject, Marker, Name, NonInspectableEntities, Player, PrefabMarker,
+    ResourcesDatabase, SceneSwitcher, SerializableComponent, SingletonDatabase, SoundSource, Sprite,
+    TextSource, Transform, Velocity,
 };
 use serde_yaml::Value as YamlValue;
 use uuid::Uuid;
@@ -154,6 +154,14 @@ impl SerializedEntity {
             ..Default::default()
         }
     }
+
+    pub fn with_uuid(uuid: Uuid) -> Self {
+        SerializedEntity {
+            id: uuid,
+            ..Default::default()
+        }
+    }
+
     pub fn foreach_component(
         &mut self,
         entity_bitmask: NonInspectableEntities,

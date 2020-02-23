@@ -1,7 +1,18 @@
 use super::{ComponentBounds, InspectorParameters};
 use uuid::Uuid;
 
-#[derive(Debug,SerializableComponent, Default, Clone, Serialize, Deserialize, PartialEq, Eq, typename::TypeName, Hash)]
+#[derive(
+    Debug,
+    SerializableComponent,
+    Default,
+    Clone,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    typename::TypeName,
+    Hash,
+)]
 pub struct PrefabMarker {
     main_id: Uuid,
     sub_id: Uuid,
@@ -61,3 +72,9 @@ impl ComponentBounds for PrefabMarker {
         se.prefab_marker = None;
     }
 }
+
+/// This is a marker, given out after loading a prefab into the prefab system,
+/// which you must use to reload any prefab-inheritors in the current scene.
+/// To do that, feed it into `prefab_system::update_prefab_inheritors();
+#[must_use]
+pub struct PrefabLoadRequired;

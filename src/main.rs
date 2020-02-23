@@ -3,11 +3,11 @@
 #[macro_use]
 extern crate log;
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate serde;
 #[macro_use]
 extern crate bit_bots_derive;
+#[macro_use]
+extern crate anyhow;
 
 mod action_map;
 mod clockwork;
@@ -48,14 +48,10 @@ fn main() {
         Ok(clockwork) => clockwork,
         Err(e) => {
             error!("Error on Startup: {}", e);
-            let causes = e.iter_causes();
-            if causes.count() == 0 {
-                error!("No causes listed. (Is RUST_LOG set in your env. variables?)");
-            } else {
-                for this_cause in e.iter_causes() {
-                    error!("{}", this_cause);
-                }
+            for this_cause in e.chain() {
+                error!("{}", this_cause);
             }
+
             return;
         }
     };
@@ -68,8 +64,7 @@ fn main() {
         }
         Err(e) => {
             error!("Runtime Error: {}", e);
-            let causes = e.iter_causes();
-            for this_cause in causes {
+            for this_cause in e.chain() {
                 error!("{}", this_cause);
             }
         }

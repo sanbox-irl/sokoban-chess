@@ -1,6 +1,4 @@
-use std::ops::Deref;
-
-use failure::Error;
+use anyhow::Error;
 use gfx_hal::{
     adapter::Adapter,
     buffer,
@@ -8,6 +6,7 @@ use gfx_hal::{
     pso::{Rect, ShaderStageFlags, Viewport},
     Backend, IndexType,
 };
+use std::ops::Deref;
 
 #[cfg(feature = "dx12")]
 use gfx_backend_dx12 as back;

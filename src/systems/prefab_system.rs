@@ -1,13 +1,12 @@
 use super::{
-    serialization_util, Component, ComponentDatabase, Ecs, Entity, Prefab, PrefabMap, PrefabMarker,
-    ResourcesDatabase, SerializedComponent, SerializedEntity, SingletonDatabase,
+    serialization_util, Component, ComponentDatabase, Ecs, Entity, Prefab, PrefabLoadRequired, PrefabMap,
+    PrefabMarker, ResourcesDatabase, SerializedComponent, SerializedEntity, SingletonDatabase,
 };
 use anyhow::{Context, Result};
-use failure::Fallible;
 use serde_yaml::Value as YamlValue;
 use uuid::Uuid;
 
-pub fn commit_blank_prefab(resources: &mut ResourcesDatabase) -> Fallible<uuid::Uuid> {
+pub fn commit_blank_prefab(resources: &mut ResourcesDatabase) -> Result<uuid::Uuid> {
     let blank_prefab = Prefab::new_blank();
 
     serialization_util::prefabs::serialize_prefab(&blank_prefab)?;
@@ -72,16 +71,7 @@ pub fn load_entity_into_prefab(
     ) {
         let prefab = Prefab::new(serialized_entity);
 
-        if let Err(e) = serialization_util::prefabs::serialize_prefab(&prefab) {
-            error!("Error Creating Prefab: {}", e);
-        }
-
-        match serialization_util::prefabs::cycle_prefab(prefab) {
-            Ok(prefab) => {
-                resources.add_prefab(prefab);
-            }
-            Err(e) => error!("We couldn't cycle the Prefab! It wasn't saved! {}", e),
-        }
+        let prefab_reload = serialize_and_cache_prefab(prefab, resources);
 
         // Add our Prefab Marker back to the Original entity we made into a prefab...
         component_database
@@ -100,6 +90,21 @@ pub fn load_entity_into_prefab(
             );
         }
     }
+}
+
+pub fn serialize_and_cache_prefab(prefab: Prefab, resources: &mut ResourcesDatabase) -> PrefabLoadRequired {
+    if let Err(e) = serialization_util::prefabs::serialize_prefab(&prefab) {
+        error!("Error Creating Prefab: {}", e);
+    }
+
+    match serialization_util::prefabs::cycle_prefab(prefab) {
+        Ok(prefab) => {
+            resources.add_prefab(prefab);
+        }
+        Err(e) => error!("We couldn't cycle the Prefab! It wasn't saved! {}", e),
+    }
+
+    PrefabLoadRequired
 }
 
 /// This gets the parent prefab of a given inheritor.

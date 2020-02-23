@@ -51,6 +51,7 @@ impl SerializationMarker {
         self.cache.serialized_entity_on_disk.as_ref()
     }
 
+    #[must_use]
     pub fn entity_inspector_results(&mut self, ip: InspectorParameters<'_, '_>) -> bool {
         self.update_cache();
 

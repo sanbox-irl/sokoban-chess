@@ -1,5 +1,5 @@
 use super::{input::Input, renderer::RendererComponent, window::Window};
-use failure::Error;
+use anyhow::Error;
 
 pub struct HardwareInterface {
     pub input: Input,

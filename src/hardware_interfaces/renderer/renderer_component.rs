@@ -1,6 +1,6 @@
+use anyhow::Error;
 use arrayvec::ArrayVec;
 use core::mem::ManuallyDrop;
-use failure::Error;
 use gfx_hal::{
     adapter::{Adapter, Gpu, PhysicalDevice},
     buffer, command,

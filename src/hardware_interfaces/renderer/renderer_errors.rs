@@ -1,8 +1,10 @@
 use super::SpriteName;
+use anyhow::Error as AnyError;
 use gfx_hal::{
     device::{CreationError, MapError, OomOrDeviceLost, OutOfMemory, ShaderError},
     UnsupportedBackend,
 };
+use std::error::Error;
 
 #[allow(unused_macros)]
 macro_rules! quick_from {
@@ -15,18 +17,20 @@ macro_rules! quick_from {
     };
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum DrawingError {
-    AcquireAnImageFromSwapchain(#[cause] gfx_hal::window::AcquireError),
+    AcquireAnImageFromSwapchain(gfx_hal::window::AcquireError),
     WaitOnFence(OomOrDeviceLost),
-    ResetFence(#[cause] OutOfMemory),
-    PresentIntoSwapchain(#[cause] gfx_hal::window::PresentError),
+    ResetFence(OutOfMemory),
+    PresentIntoSwapchain(gfx_hal::window::PresentError),
     BufferCreationError,
     BufferError,
     SpriteWithoutTexturePage(SpriteName),
     ProcessingQueuedData,
-    DynamicTextureCreation(#[cause] failure::Error),
+    DynamicTextureCreation(AnyError),
 }
+
+impl Error for DrawingError {}
 
 impl std::fmt::Display for DrawingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -34,7 +38,7 @@ impl std::fmt::Display for DrawingError {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum RendererCreationError {
     InstanceCreation(UnsupportedBackend),
     GraphicalAdapter,
@@ -46,15 +50,17 @@ pub enum RendererCreationError {
     EmptyFormatList,
     WindowExist,
     SurfaceColor,
-    Swapchain(#[cause] gfx_hal::window::CreationError),
-    Fence(#[cause] OutOfMemory),
-    ImageAvailableSemaphore(#[cause] OutOfMemory),
-    RenderFinishedSemaphore(#[cause] OutOfMemory),
-    RenderPassCreation(#[cause] OutOfMemory),
-    ImageViews(#[cause] gfx_hal::image::ViewError),
-    FrameBuffers(#[cause] OutOfMemory),
-    CommandPool(#[cause] OutOfMemory),
+    Swapchain(gfx_hal::window::CreationError),
+    Fence(OutOfMemory),
+    ImageAvailableSemaphore(OutOfMemory),
+    RenderFinishedSemaphore(OutOfMemory),
+    RenderPassCreation(OutOfMemory),
+    ImageViews(gfx_hal::image::ViewError),
+    FrameBuffers(OutOfMemory),
+    CommandPool(OutOfMemory),
 }
+
+impl Error for RendererCreationError {}
 
 impl std::fmt::Display for RendererCreationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -104,16 +110,18 @@ impl std::fmt::Display for RendererCreationError {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum PipelineCreationError {
     ShaderCompilerFailed,
-    VertexModule(#[cause] ShaderError),
-    FragmentModule(#[cause] ShaderError),
-    DescriptorSetLayout(#[cause] OutOfMemory),
-    DescriptorPool(#[cause] OutOfMemory),
-    PipelineLayout(#[cause] OutOfMemory),
+    VertexModule(ShaderError),
+    FragmentModule(ShaderError),
+    DescriptorSetLayout(OutOfMemory),
+    DescriptorPool(OutOfMemory),
+    PipelineLayout(OutOfMemory),
     PipelineCreation(gfx_hal::pso::CreationError, &'static str),
 }
+
+impl Error for PipelineCreationError {}
 
 impl std::fmt::Display for PipelineCreationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -138,10 +146,12 @@ impl std::fmt::Display for PipelineCreationError {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum BufferBundleError {
-    Creation(#[cause] gfx_hal::buffer::CreationError),
+    Creation(gfx_hal::buffer::CreationError),
 }
+
+impl Error for BufferBundleError {}
 
 impl std::fmt::Display for BufferBundleError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -153,12 +163,14 @@ impl std::fmt::Display for BufferBundleError {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum BufferError {
     MemoryId,
-    Allocate(#[cause] gfx_hal::device::AllocationError),
-    Bind(#[cause] gfx_hal::device::BindError),
+    Allocate(gfx_hal::device::AllocationError),
+    Bind(gfx_hal::device::BindError),
 }
+
+impl Error for BufferError {}
 
 impl std::fmt::Display for BufferError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -172,15 +184,17 @@ impl std::fmt::Display for BufferError {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum LoadedImageError {
-    AcquireMappingWriter(#[cause] MapError),
-    CreateImage(#[cause] gfx_hal::image::CreationError),
-    ImageView(#[cause] gfx_hal::image::ViewError),
-    Sampler(#[cause] gfx_hal::device::AllocationError),
-    UploadFence(#[cause] OutOfMemory),
+    AcquireMappingWriter(MapError),
+    CreateImage(gfx_hal::image::CreationError),
+    ImageView(gfx_hal::image::ViewError),
+    Sampler(gfx_hal::device::AllocationError),
+    UploadFence(OutOfMemory),
     WaitForFence(OomOrDeviceLost),
 }
+
+impl Error for LoadedImageError {}
 
 impl std::fmt::Display for LoadedImageError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -200,18 +214,12 @@ impl std::fmt::Display for LoadedImageError {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, thiserror::Error)]
 pub enum MemoryWritingError {
-    #[fail(
-        display = "Couldn't acquire a mapping writer to the staging buffer! => {}",
-        _0
-    )]
-    AcquireMappingWriter(#[cause] MapError),
-    #[fail(
-        display = "Couldn't release the mapping writer to the staging buffer! => {}",
-        _0
-    )]
-    ReleaseMappingWriter(#[cause] OutOfMemory),
+    #[error("Couldn't acquire a mapping writer to the staging buffer! => {}", _0)]
+    AcquireMappingWriter(MapError),
+    #[error("Couldn't release the mapping writer to the staging buffer! => {}", _0)]
+    ReleaseMappingWriter(OutOfMemory),
 }
 
 quick_from!(

@@ -2,6 +2,7 @@ use super::{
     serialization_util, Camera, Entity, Marker, RenderingUtility, ResourcesDatabase, SingletonBounds,
     SingletonComponent,
 };
+use anyhow::{Error, Result as AnyResult};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,7 +15,7 @@ pub struct SingletonDatabase {
 }
 
 impl SingletonDatabase {
-    pub fn new(marker_map: HashMap<Marker, Entity>) -> Result<SingletonDatabase, failure::Error> {
+    pub fn new(marker_map: HashMap<Marker, Entity>) -> Result<SingletonDatabase, Error> {
         let mut serialized_singletons: SingletonDatabase =
             serialization_util::singleton_components::load_singleton_database()?;
 
@@ -35,7 +36,7 @@ impl SingletonDatabase {
     pub fn edit_serialized_singleton_database<T: SingletonBounds, F>(
         live_component: &mut SingletonComponent<T>,
         edit_function: F,
-    ) -> Result<(), failure::Error>
+    ) -> AnyResult<()>
     where
         F: Fn(&mut SingletonDatabase, &mut SingletonComponent<T>),
     {

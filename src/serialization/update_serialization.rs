@@ -101,7 +101,7 @@ pub const UPDATE_COMPONENT_DATABASE: bool = false;
 //     }
 // }
 
-pub fn update_component_database() -> Result<(), failure::Error> {
+pub fn update_component_database() -> Result<(), anyhow::Error> {
     // let scene_entity_path = serialization_util::entities::path();
     // let saved_entities: Vec<SerializedEntity> =
     //     serialization_util::load_serialized_file(&scene_entity_path)?;

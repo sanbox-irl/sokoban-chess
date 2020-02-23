@@ -1,4 +1,5 @@
 use super::{BufferBundleError, BufferError};
+use anyhow::Error;
 use core::mem::ManuallyDrop;
 use gfx_hal::{
     adapter::{Adapter, PhysicalDevice},
@@ -24,7 +25,7 @@ impl<B: Backend> BufferBundle<B> {
         size: u64,
         usage: buffer::Usage,
         map_it: bool,
-    ) -> Result<Self, failure::Error> {
+    ) -> Result<Self, Error> {
         unsafe {
             let mut buffer = device
                 .create_buffer(size, usage)
@@ -95,7 +96,7 @@ impl<B: Backend> BufferBundle<B> {
         device.free_memory(manual_drop!(self.memory));
     }
 
-    pub unsafe fn flush(&self, device: &B::Device) -> Result<(), failure::Error> {
+    pub unsafe fn flush(&self, device: &B::Device) -> Result<(), Error> {
         device.flush_mapped_memory_ranges(&[(&*self.memory, ..)])?;
         Ok(())
     }
@@ -117,7 +118,7 @@ impl<B: Backend> VertexIndexPairBufferBundle<B> {
         new_num_idx: usize,
         device: &B::Device,
         adapter: &Adapter<B>,
-    ) -> Result<bool, failure::Error> {
+    ) -> Result<bool, Error> {
         if self.num_vert < new_num_vert || self.num_idx < new_num_idx {
             trace!(
                 "Updating our imgui-buffer! Old size was [{}, {}], new size is [{}, {}]",

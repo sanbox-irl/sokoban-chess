@@ -14,7 +14,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new(size: Vec2) -> Result<Self, failure::Error> {
+    pub fn new(size: Vec2) -> Result<Self, anyhow::Error> {
         let events_loop = EventLoop::new();
 
         let output = WindowBuilder::new()

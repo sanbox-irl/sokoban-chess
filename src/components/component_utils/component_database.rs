@@ -1,4 +1,5 @@
 use super::*;
+use anyhow::Error;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -29,7 +30,7 @@ impl ComponentDatabase {
         entities: &mut Vec<Entity>,
         marker_map: &mut std::collections::HashMap<Marker, Entity>,
         prefabs: &PrefabMap,
-    ) -> Result<ComponentDatabase, failure::Error> {
+    ) -> Result<ComponentDatabase, Error> {
         // Update the database...
         if cfg!(debug_assertions) {
             if update_serialization::UPDATE_COMPONENT_DATABASE {
@@ -322,7 +323,7 @@ impl ComponentDatabase {
     /// This actually does the business of unwrapping a serialized entity and putting it inside
     /// the Ecs.
     #[must_use]
-    fn load_serialized_entity_into_database(
+    pub fn load_serialized_entity_into_database(
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,

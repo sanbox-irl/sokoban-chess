@@ -7,7 +7,7 @@ use super::{
     systems::*,
     ActionMap, GameWorldDrawCommands,
 };
-use failure::Error;
+use anyhow::Error;
 
 pub struct Ecs {
     pub component_database: ComponentDatabase,

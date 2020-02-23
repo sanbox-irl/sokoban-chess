@@ -1,10 +1,3 @@
-use failure::Error;
-use glyph_brush::GlyphBrushBuilder;
-use std::collections::HashMap;
-use std::fs;
-use std::io::Cursor;
-use std::str::FromStr;
-
 use super::{
     fonts::{FontData, FontName},
     game_config::Config,
@@ -13,6 +6,12 @@ use super::{
     tile_resources::{TileSet, TileSetName, TileSetSerialized},
     Prefab, PrefabMap, RendererComponent, SoundResource, Vec2,
 };
+use anyhow::Error;
+use glyph_brush::GlyphBrushBuilder;
+use std::collections::HashMap;
+use std::fs;
+use std::io::Cursor;
+use std::str::FromStr;
 use strum::IntoEnumIterator;
 
 pub struct ResourcesDatabase {
@@ -174,7 +173,7 @@ impl ResourcesDatabase {
         Ok(())
     }
 
-    pub fn load_spritesheets() -> Result<Vec<u8>, failure::Error> {
+    pub fn load_spritesheets() -> Result<Vec<u8>, Error> {
         // @techdebt this needs to be a config file or something...
         const PACKED_SHEET_DIR: &str = "assets/gen/textures/packed_sheet_0.png";
         match std::fs::read(PACKED_SHEET_DIR) {

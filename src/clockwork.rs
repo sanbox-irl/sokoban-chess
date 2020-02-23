@@ -3,7 +3,7 @@ use super::{
     ResourcesDatabase, TimeKeeper,
 };
 use array2d::Array2D;
-use failure::Error;
+use anyhow::Error;
 
 pub struct Clockwork {
     pub ecs: Ecs,
