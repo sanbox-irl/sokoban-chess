@@ -33,68 +33,70 @@ pub fn save_entity_list(entities: &HashMap<Uuid, SerializedEntity>) -> AnyResult
 }
 
 pub fn process_serialized_command(
-    entity: &Entity,
     command: EntitySerializationCommand,
     component_database: &mut ComponentDatabase,
     singleton_database: &mut SingletonDatabase,
     entities: &mut Vec<Entity>,
     entity_allocator: &mut EntityAllocator,
     resources: &ResourcesDatabase,
-) {
+) -> Result<(), Error> {
     match &command.command_type {
         EntitySerializationCommandType::Revert => {
-            // Remove the Entity
-            component_database.deregister_entity(entity);
+            let serialized_entity = load_entity_by_id(&command.id)?.ok_or_else(|| {
+                format_err!(
+                    "We couldn't find {}. Is it in the YAML?",
+                    Name::get_name_quick(&component_database.names, &command.entity)
+                )
+            })?;
 
-            match load_entity_by_id(&command.id) {
-                Ok(Some(serialized_entity)) => {
-                    // Reload the Entity
-                    let post = component_database.load_serialized_entity(
-                        entity,
-                        serialized_entity,
-                        entity_allocator,
-                        entities,
-                        &mut singleton_database.associated_entities,
-                        resources.prefabs(),
-                    );
+            // Reload the Entity
+            let post = component_database.load_serialized_entity(
+                &command.entity,
+                serialized_entity,
+                entity_allocator,
+                entities,
+                &mut singleton_database.associated_entities,
+                resources.prefabs(),
+            );
 
-                    if let Some(post) = post {
-                        component_database.post_deserialization(post, |component_list, sl| {
-                            if let Some((inner, _)) = component_list.get_mut(entity) {
-                                inner.post_deserialization(*entity, sl);
-                            }
-                        });
+            if let Some(post) = post {
+                component_database.post_deserialization(post, |component_list, sl| {
+                    if let Some((inner, _)) = component_list.get_mut(&command.entity) {
+                        inner.post_deserialization(command.entity, sl);
                     }
-                }
-
-                Ok(None) => {
-                    error!(
-                        "We couldn't find {}. Is it in the YAML?",
-                        Name::get_name_quick(&component_database.names, entity)
-                    );
-                }
-
-                Err(e) => error!(
-                    "IO Error On Revert for {}: {}",
-                    Name::get_name_quick(&component_database.names, entity),
-                    e
-                ),
+                });
             }
         }
 
         EntitySerializationCommandType::Overwrite => {
-            // SERIALIZE OVER:
-            serialize_entity_full(
-                entity,
+            let result = serialize_entity_full(
+                &command.entity,
                 command.id,
                 component_database,
                 singleton_database,
                 resources,
             );
+
+            if result == false {
+                bail!(
+                    "We couldn't serialize {}!",
+                    Name::get_name_quick(&component_database.names, &command.entity)
+                )
+            };
         }
 
-        EntitySerializationCommandType::StopSerializing => unimplemented!(),
+        EntitySerializationCommandType::StopSerializing => {
+            let result = unserialize_entity(&command.id)?;
+            if result == false {
+                bail!(
+                    "We couldn't find {}. Is it in the YAML?",
+                    Name::get_name_quick(&component_database.names, &command.entity)
+                );
+            }
+        }
     }
+
+    Ok(())
 }
 
 pub fn serialize_all_entities(

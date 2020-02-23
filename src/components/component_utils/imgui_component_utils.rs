@@ -4,9 +4,6 @@ use uuid::Uuid;
 #[derive(Debug, PartialEq, Eq)]
 pub enum NameRequestedAction {
     ChangeName(String),
-
-    Serialize,
-    Unserialize,
     ToggleInspect,
 
     Clone,
@@ -19,6 +16,8 @@ pub enum NameRequestedAction {
     LogEntity,
     LogSerializedEntity,
     LogPrefab,
+
+    EntitySerializationCommand(EntitySerializationCommandType),
 }
 
 pub struct NameInspectorResult {
@@ -236,12 +235,13 @@ pub enum ComponentSerializationCommandType {
 #[derive(Debug, Copy, Clone)]
 pub struct EntitySerializationCommand {
     pub id: Uuid,
+    pub entity: Entity,
     pub command_type: EntitySerializationCommandType,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum EntitySerializationCommandType {
-    Revert,
     Overwrite,
     StopSerializing,
+    Revert,
 }

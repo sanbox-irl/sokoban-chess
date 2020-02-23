@@ -141,6 +141,7 @@ pub fn entity_inspector(
                         if inner.entity_inspector_results(ip) {
                             final_post_action = Some(ComponentInspectorPostAction::EntityCommands(
                                 EntitySerializationCommand {
+                                    entity: *entity,
                                     id: inner.id,
                                     command_type: EntitySerializationCommandType::Overwrite,
                                 },
@@ -152,6 +153,7 @@ pub fn entity_inspector(
                 if delete {
                     final_post_action = Some(ComponentInspectorPostAction::EntityCommands(
                         EntitySerializationCommand {
+                            entity: *entity,
                             id: s_marker.inner().id,
                             command_type: EntitySerializationCommandType::StopSerializing,
                         },
@@ -331,7 +333,7 @@ pub fn entity_inspector(
                             }
                         })
                     }
-                    
+
                     ComponentSerializationCommandType::ApplyOverrideToParentPrefab => {
                         let (main_id, sub_id) = component_database
                             .prefab_markers
@@ -403,6 +405,7 @@ pub fn serialization_menu(
     if ui.button(im_str!("Revert"), [0.0, 0.0]) {
         post_action = Some(ComponentInspectorPostAction::EntityCommands(
             EntitySerializationCommand {
+                entity: *entity,
                 id: serialized_marker.id,
                 command_type: EntitySerializationCommandType::Revert,
             },
@@ -414,6 +417,7 @@ pub fn serialization_menu(
     if ui.button(im_str!("Overwrite"), [0.0, 0.0]) {
         post_action = Some(ComponentInspectorPostAction::EntityCommands(
             EntitySerializationCommand {
+                entity: *entity,
                 id: serialized_marker.id,
                 command_type: EntitySerializationCommandType::Revert,
             },
@@ -701,98 +705,3 @@ fn handle_serialization_command(
         }
     }
 }
-
-/*
-
-let serialized_entity = serialization_util::entities::load_committed_entity(
-    &my_serialization_marker.inner(),
-)?;
-
-if let Some(mut serialized_entity) = serialized_entity {
-    component.inner().commit_to_scene(
-        &mut serialized_entity,
-        component.is_active,
-        serialized_markers,
-    );
-    serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
-    serialization_delta = SerializationDelta::Updated;
-} else {
-    error!(
-        "Couldn't find a Serialized Entity for {}. Check the YAML?",
-        entity_id
-    );
-}
-
-*/
-
-/*
-let serialized_entity = serialization_util::entities::load_committed_entity(
-    &my_serialization_marker.inner(),
-)?;
-
-if let Some(mut serialized_entity) = serialized_entity {
-    component.inner().uncommit_to_scene(&mut serialized_entity);
-
-    serialization_util::entities::commit_entity_to_scene(serialized_entity)?;
-    serialization_delta = SerializationDelta::Updated;
-} else {
-    error!(
-        "Couldn't find a Serialized Entity for {}. Check the YAML?",
-        entity_id
-    );
-}
-*/
-
-/*
-Ok((command, reload_prefab)) => {
-if let Some(command) = command {
-    serialization_util::entities::process_serialized_command(
-        entity,
-        command,
-        component_database,
-        singleton_database,
-        entities,
-        entity_allocator,
-        resources,
-    );
-}
-
-if reload_prefab {
-    let prefab = resources.prefabs_mut().unwrap().get_mut(&id).unwrap();
-
-    match serialization_util::entities::load_entity_by_id(&id) {
-        Result::Ok(new_prefab) => {
-            if let Some(new_prefab) = new_prefab {
-                prefab.members.insert(id, new_prefab);
-            } else {
-                error!("We tried to reload Prefab with UUID {} but we couldn't find it. Did the file get deleted?", id);
-            }
-        }
-        Result::Err(e) => {
-            error!("Couldn't reload the prefab that we just edited. The current application is out of date! {}", e);
-        }
-    }
-}
-}
-
-*/
-
-/*
-// THIS IS BEGIN SERIALIZATION BUTTON IN THE SERIALIZED MARKER INSPECTOR
-if serialize_it {
-    serialization_util::entities::serialize_entity_full(
-        entity,
-        component_database
-            .serialization_markers
-            .get(entity)
-            .as_ref()
-            .unwrap()
-            .inner()
-            .id,
-        component_database,
-        singleton_database,
-        resources,
-    );
-}
-
-*/

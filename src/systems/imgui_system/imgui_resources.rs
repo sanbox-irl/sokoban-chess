@@ -311,8 +311,7 @@ pub fn prefab_entity_viewer(resources: &mut ResourcesDatabase, ui_handler: &mut 
         if let Some((id, action_on_prefab)) = action_on_prefab {
             match action_on_prefab {
                 NameRequestedAction::ChangeName(_)
-                | NameRequestedAction::Serialize
-                | NameRequestedAction::Unserialize
+                | NameRequestedAction::EntitySerializationCommand(_)
                 | NameRequestedAction::LogSerializedEntity
                 | NameRequestedAction::UnpackPrefab => {
                     error!("Unimplemented!");
@@ -372,7 +371,7 @@ fn display_prefab_id(
     let NameInspectorResult {
         show_children,
         requested_action,
-    } = imgui_utility::display_name_core(
+    } = Name::inspect(
         name.map_or(&format!("Prefab {}", prefab), |name| &name.name),
         entity_list_info,
         name_inspector_params,

@@ -1,4 +1,4 @@
-use super::{imgui_component_utils::*, *};
+use super::*;
 use imgui::*;
 
 pub const RIGHT_CHEVRON: char = '\u{f105}';
@@ -22,16 +22,6 @@ pub fn base_grey_color() -> ImColor {
 
 pub fn prefab_blue_color() -> ImColor {
     Color::with_u8(188, 203, 222, 255).into()
-}
-
-pub fn display_name_core(
-    name: &str,
-    entity_list_info: &mut EntityListInformation,
-    name_inspector_params: &NameInspectorParameters,
-    ui: &Ui<'_>,
-    uid: &str,
-) -> NameInspectorResult {
-    Name::inspect(name, entity_list_info, &name_inspector_params, &ui, uid)
 }
 
 pub fn typed_text_ui<T: typename::TypeName>() -> String {

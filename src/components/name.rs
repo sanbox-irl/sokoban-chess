@@ -35,12 +35,6 @@ impl Name {
             ui.same_line(0.0);
         }
 
-        // The shape we're making looks like this:
-        // > CLOSED:
-        // [] NO CHILDREN:
-        // 1 Open: That's the down arrow but I couldn't find the glyph
-        // let gap_amount;
-
         if nip.has_children {
             ui.text(&imgui::im_str!(
                 "{}",
@@ -133,14 +127,19 @@ impl Name {
                     ui.separator();
 
                     ui.menu(im_str!("Serialization"), nip.serialization_status.is_synced_at_all(), || {
-                        if imgui_system::help_menu_item(ui, &im_str!("Serialize Entity##{}", uid), "This is the exact same thing as Overwriting the Entity in the Component Inspect. It completely overwrites the comitted entity.") {
+                        if imgui_system::help_menu_item(ui, &im_str!("Serialize Entity##{}", uid), "This overwrites the Entity's serialization.") {
                             if nip.serialization_status == SyncStatus::OutofSync {
-                                res.requested_action = Some(NameRequestedAction::Serialize);
+                                res.requested_action = Some(NameRequestedAction::EntitySerializationCommand(EntitySerializationCommandType::Overwrite));
                                 ui.close_current_popup();
                             }
                         }
                         if imgui_system::help_menu_item(ui, &im_str!("Stop Serializing Entity##{}", uid), "Stops serializing the entity from the scene -- ie, it won't be here when you reload the scene.") {
-                            res.requested_action = Some(NameRequestedAction::Unserialize);
+                                res.requested_action = Some(NameRequestedAction::EntitySerializationCommand(EntitySerializationCommandType::StopSerializing));
+                            ui.close_current_popup();
+                        }
+
+                        if imgui_system::help_menu_item(ui, &im_str!("Revert Entity##{}", uid), "Reverts the Entity back to its Serialized State.") {
+                            res.requested_action = Some(NameRequestedAction::EntitySerializationCommand(EntitySerializationCommandType::Revert));
                             ui.close_current_popup();
                         }
                     });

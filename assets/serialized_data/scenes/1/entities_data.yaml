@@ -8,10 +8,10 @@
   transform:
     inner:
       local_position:
-        x: 0.0
+        x: 10.0
         y: 0.0
       world_position:
-        x: 0.0
+        x: 10.0
         y: 0.0
       parent:
         target_serialized_id: ~
@@ -25,7 +25,6 @@
   draw_rectangle: ~
   bounding_box: ~
   text_source: ~
-  tilemap: ~
   follow: ~
   conversant_npc: ~
   prefab_marker: ~

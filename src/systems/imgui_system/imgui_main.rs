@@ -1,4 +1,4 @@
-use super::*;
+use super::{imgui_component_utils::EntitySerializationCommand, *};
 
 pub fn imgui_main(
     ecs: &mut Ecs,
@@ -7,6 +7,8 @@ pub fn imgui_main(
     ui_handler: &mut UiHandler<'_>,
     time_keeper: &TimeKeeper,
 ) {
+    let mut entity_serialization_command: Option<EntitySerializationCommand> = None;
+
     main_menu_bar(
         hardware_interfaces
             .input
@@ -17,11 +19,29 @@ pub fn imgui_main(
 
     // Scene Entity Inspector
     if ui_handler.flags.contains(ImGuiFlags::ENTITY_VIEWER) {
-        imgui_entity::entity_list(ecs, resources, ui_handler);
+        match imgui_entity::entity_list(ecs, resources, ui_handler) {
+            Ok(sc) => {
+                if let Some(sc) = sc {
+                    entity_serialization_command = Some(sc)
+                }
+            }
+            Err(e) => {
+                error!("Error processing a NameResult Request! {}", e);
+            }
+        }
     }
 
     // Window for Each Entity
-    imgui_component::entity_inspector(ecs, resources, ui_handler);
+    match imgui_component::entity_inspector(ecs, resources, ui_handler) {
+        Ok(sc) => {
+            if let Some(sc) = sc {
+                entity_serialization_command = Some(sc)
+            }
+        }
+        Err(e) => {
+            error!("Error processing a NameResult Request! {}", e);
+        }
+    }
 
     // Singleton
     imgui_utility::create_window(ui_handler, ImGuiFlags::SINGLETONS, |ui_handler| {
@@ -48,6 +68,19 @@ pub fn imgui_main(
         ui_handler.ui.show_demo_window(&mut is_closed);
         if is_closed {
             ui_handler.flags.remove(ImGuiFlags::IMGUI_EXAMPLE);
+        }
+    }
+
+    if let Some(sc) = entity_serialization_command {
+        if let Err(e) = serialization_util::entities::process_serialized_command(
+            sc,
+            &mut ecs.component_database,
+            &mut ecs.singleton_database,
+            &mut ecs.entities,
+            &mut ecs.entity_allocator,
+            resources,
+        ) {
+            error!("Error Processing Serialized Command: {}", e);
         }
     }
 
