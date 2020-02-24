@@ -20,12 +20,12 @@ members:
           target_serialized_id: ~
       active: true
     grid_object: ~
-    scene_switcher:
-      inner:
-        target_scene: Jim Johndf
-      active: true
+    scene_switcher: ~
     graph_node: ~
-    velocity: ~
+    velocity:
+      inner:
+        intended_direction: ~
+      active: true
     sprite:
       inner:
         sprite_name: PixelMainCharacterStanding

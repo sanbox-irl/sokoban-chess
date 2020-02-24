@@ -236,7 +236,6 @@ pub fn entity_inspector(
     }
 
     let entity_command = if let Some(final_post_action) = final_post_action {
-
         match final_post_action {
             ComponentInspectorPostAction::ComponentCommands(command) => {
                 match command.command_type {
@@ -258,12 +257,28 @@ pub fn entity_inspector(
                             .unwrap()
                             .insert(command.key, command.delta);
 
+                        let new_serialized_entity: SerializedEntity =
+                            serde_yaml::from_value(serialized_yaml)?;
+
                         serialization_util::entities::commit_entity_to_serialized_scene(
-                            serde_yaml::from_value(serialized_yaml)?,
+                            new_serialized_entity.clone(),
                         )?;
 
                         if scene_is_prefab {
-                            // resources.add_prefab()
+                            // THIS IS A CRAZY PERSON WAY TO DO THIS. EVERYTHING CAN GO WRONG
+                            // LETS DO IT:
+                            let root_entity_id: Entity =
+                                scene_graph::ROOT_NODES.lock().unwrap().children.as_ref().unwrap()[0]
+                                    .target
+                                    .unwrap();
+                            let root_uuid = component_database
+                                .serialization_markers
+                                .get(&root_entity_id)
+                                .map(|pmc| pmc.inner().id)
+                                .unwrap();
+
+                            let prefab = resources.prefabs_mut().unwrap().get_mut(&root_uuid).unwrap();
+                            prefab.members.insert(uuid, new_serialized_entity);
                         }
                     }
                     ComponentSerializationCommandType::Revert
