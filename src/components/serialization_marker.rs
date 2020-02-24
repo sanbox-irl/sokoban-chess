@@ -37,7 +37,14 @@ impl Clone for SerializationMarker {
 }
 
 impl SerializationMarker {
-    pub fn new(id: Uuid) -> Self {
+    /// Creates a new SerializationMarker with a random UUIDv4
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Use this when you're making a new SerializationMarker when loading
+    /// data from disk or some other buffer.
+    pub fn with_id(id: Uuid) -> Self {
         let mut me = Self::default();
         me.id = id;
         me

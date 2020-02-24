@@ -279,6 +279,7 @@ pub fn entity_inspector(
     let entity_command = if let Some(final_post_action) = final_post_action {
         match final_post_action {
             ComponentInspectorPostAction::ComponentCommands(command) => {
+                info!("Executing ComponentInspectorPostAction {:#?}", command);
                 match command.command_type {
                     ComponentSerializationCommandType::Serialize
                     | ComponentSerializationCommandType::StopSerializing => {
@@ -298,9 +299,9 @@ pub fn entity_inspector(
                             .unwrap()
                             .insert(command.key, command.delta);
 
-                        serialization_util::entities::commit_entity_to_scene(serde_yaml::from_value(
-                            serialized_yaml,
-                        )?)?;
+                        serialization_util::entities::commit_entity_to_serialized_scene(
+                            serde_yaml::from_value(serialized_yaml)?,
+                        )?;
                     }
                     ComponentSerializationCommandType::Revert
                     | ComponentSerializationCommandType::RevertToParentPrefab => {
@@ -630,7 +631,7 @@ where
 
                     // Revert
                     if MenuItem::new(&REVERT).build(ui) {
-                        output = Some(ComponentSerializationCommandType::ApplyOverrideToParentPrefab);
+                        output = Some(ComponentSerializationCommandType::Revert);
                     }
                 }
                 serde_menu.end(ui);
@@ -650,8 +651,25 @@ fn handle_serialization_command(
 ) -> ComponentInspectorPostAction {
     match command_type {
         ComponentSerializationCommandType::Serialize => {
+            let mut delta = component_list.create_yaml_component(&entity);
+
+            // Is our new delta the same as our Parents Component?
+            // If it is, we're going to make our Delta NULL
+            if let Some(serialized_prefab) = serialized_prefab {
+                let mut serialized_prefab_as_yaml = serde_yaml::to_value(serialized_prefab.clone()).unwrap();
+                if let Some(parent_component) = serialized_prefab_as_yaml
+                    .as_mapping_mut()
+                    .unwrap()
+                    .remove(&component_list.get_yaml_component_key())
+                {
+                    if parent_component == delta {
+                        delta = serde_yaml::Value::Null;
+                    }
+                }
+            }
+
             ComponentInspectorPostAction::ComponentCommands(ComponentSerializationCommand {
-                delta: component_list.create_yaml_component(&entity),
+                delta,
                 command_type,
                 key: component_list.get_yaml_component_key(),
                 entity,

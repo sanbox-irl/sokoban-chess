@@ -80,8 +80,10 @@ pub fn entity_list(
                         if let Ok(Some(mut serialized_entity)) = serialized_entity {
                             prefab_marker.inner().uncommit_to_scene(&mut serialized_entity);
 
-                            success = serialization_util::entities::commit_entity_to_scene(serialized_entity)
-                                .is_ok();
+                            success = serialization_util::entities::commit_entity_to_serialized_scene(
+                                serialized_entity,
+                            )
+                            .is_ok();
                         }
                     }
                 }
@@ -191,7 +193,16 @@ fn imgui_entity_list(
                     };
 
                     if imgui::MenuItem::new(&name).build(ui) {
-                        prefab_system::instantiate_entity_from_prefab(ecs, *prefab_id, resources.prefabs());
+                        let entity = prefab_system::instantiate_entity_from_prefab(
+                            ecs,
+                            *prefab_id,
+                            resources.prefabs(),
+                        );
+                        if scene_system::current_scene_mode() == SceneMode::Draft {
+                            ecs.component_database
+                                .serialization_markers
+                                .set_component(&entity, SerializationMarker::new());
+                        }
                     }
                 }
 
@@ -264,7 +275,6 @@ fn imgui_entity_list(
 
         ui_handler.ui.separator();
 
-        // ENTITY_GRAPH
         let component_database = &mut ecs.component_database;
         let singleton_database = &mut ecs.singleton_database;
         let entities = &ecs.entities;

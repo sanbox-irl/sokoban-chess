@@ -208,7 +208,7 @@ impl ComponentDatabase {
     ) -> Option<PostDeserializationRequired> {
         // Make a serialization data thingee on it...
         self.serialization_markers
-            .set_component(&entity, SerializationMarker::new(serialized_entity.id.clone()));
+            .set_component(&entity, SerializationMarker::with_id(serialized_entity.id.clone()));
 
         // If it's got a prefab, load the prefab. Otherwise,
         // load it like a normal serialized entity:

@@ -11,11 +11,11 @@ members:
     transform:
       inner:
         local_position:
-          x: 20.0
-          y: 25.0
+          x: 14.0
+          y: 40.0
         world_position:
-          x: 20.0
-          y: 25.0
+          x: 14.0
+          y: 40.0
         parent:
           target_serialized_id: ~
       active: true
@@ -48,7 +48,6 @@ members:
     draw_rectangle: ~
     bounding_box: ~
     text_source: ~
-    tilemap: ~
     follow: ~
     conversant_npc: ~
     prefab_marker: ~

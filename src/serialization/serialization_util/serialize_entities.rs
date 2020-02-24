@@ -141,7 +141,7 @@ pub fn serialize_entity_full(
         singleton_database,
         resources,
     ) {
-        match commit_entity_to_scene(se) {
+        match commit_entity_to_serialized_scene(se) {
             Ok(()) => true,
             Err(e) => {
                 error!("COULDN'T SERIALIZE! {}", e);
@@ -164,7 +164,7 @@ pub fn unserialize_entity(serialized_id: &uuid::Uuid) -> Result<bool, Error> {
     Ok(succeeded)
 }
 
-pub fn commit_entity_to_scene(serialized_entity: SerializedEntity) -> Result<(), Error> {
+pub fn commit_entity_to_serialized_scene(serialized_entity: SerializedEntity) -> Result<(), Error> {
     let mut entities = load_all_entities()?;
     entities.insert(serialized_entity.id, serialized_entity);
 
