@@ -1,4 +1,4 @@
-use super::{math, vec_iter::*, Axis, Vec2Int};
+use super::{imgui_system, math, vec_iter::*, Axis, Vec2Int};
 use std::fmt::{self, Display};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
@@ -374,17 +374,20 @@ impl Vec2 {
 
     pub fn no_interact_inspector(&mut self, ui: &imgui::Ui<'_>, label: &imgui::ImStr) -> bool {
         let mut vec2_deconstructed = self.clone().into();
+        let mut return_value = false;
 
-        if ui
-            .input_float2(label, &mut vec2_deconstructed)
-            .flags(imgui::ImGuiInputTextFlags::ReadOnly)
-            .build()
-        {
-            self.x = vec2_deconstructed[0];
-            self.y = vec2_deconstructed[1];
-            true
-        } else {
-            false
-        }
+        imgui_system::wrap_style_var(ui, imgui::StyleVar::Alpha(0.3), || {
+            if ui
+                .input_float2(label, &mut vec2_deconstructed)
+                .flags(imgui::ImGuiInputTextFlags::ReadOnly)
+                .build()
+            {
+                self.x = vec2_deconstructed[0];
+                self.y = vec2_deconstructed[1];
+                return_value = true
+            }
+        });
+
+        return_value
     }
 }

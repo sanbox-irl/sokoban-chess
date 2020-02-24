@@ -15,6 +15,10 @@ pub fn current_scene_mode() -> SceneMode {
     CURRENT_SCENE.lock().unwrap().mode()
 }
 
+pub fn current_scene_name() -> String {
+    CURRENT_SCENE.lock().unwrap().name().to_owned()
+}
+
 pub fn set_next_scene(scene: Scene) -> bool {
     if scene_exists(&scene) == false {
         return false;

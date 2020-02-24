@@ -19,9 +19,9 @@ pub fn entity_inspector(
         entities,
     } = ecs;
 
-    let (scene_is_prefab, scene_is_draft_mode) = {
+    let scene_is_prefab = {
         let scene_data = scene_system::CURRENT_SCENE.lock().unwrap();
-        (scene_data.is_prefab(), scene_data.mode() == SceneMode::Draft)
+        scene_data.is_prefab()
     };
 
     for entity in ui_handler.stored_ids.iter() {
@@ -72,6 +72,9 @@ pub fn entity_inspector(
                     .ok()
             });
 
+        let should_have_prefab = component_database.prefab_markers.get(entity).is_some();
+        let should_have_serialized_entity = component_database.serialization_markers.get(entity).is_some();
+
         let entity_window = Window::new(&window_name)
             .size([600.0, 800.0], Condition::FirstUseEver)
             .position([1200.0, 100.0], Condition::FirstUseEver)
@@ -84,15 +87,15 @@ pub fn entity_inspector(
             // the field .names within component_database. If we use names, then this would
             // become a lot trickier.
             let names_raw_pointer: *const _ = &component_database.names;
-
             component_database.foreach_component_list_mut(
                 NonInspectableEntities::empty(),
                 |component_list| {
                     let possible_sync_statuses = component_list.get_sync_status(
                         entity,
-                        scene_is_draft_mode,
                         serialized_entity.as_ref(),
                         serialized_prefab.as_ref(),
+                        should_have_serialized_entity,
+                        should_have_prefab,
                     );
 
                     if let Some(command_type) = component_list.component_inspector(
@@ -216,50 +219,6 @@ pub fn entity_inspector(
 
                     serialization_submenu.end(ui);
                 }
-
-                // Prefab Menubar
-                if let Some(prefab_submenu) =
-                    ui.begin_menu(im_str!("Create Prefab"), prefab_status == PrefabStatus::None)
-                {
-                    let mut new_prefab_to_create: Option<uuid::Uuid> = None;
-
-                    if MenuItem::new(im_str!("New Prefab")).build(ui) {
-                        match prefab_system::commit_blank_prefab(resources) {
-                            Ok(uuid) => new_prefab_to_create = Some(uuid),
-                            Err(e) => error!("Couldn't create prefab: {}", e),
-                        }
-                    }
-
-                    if let Some(overwrite_submenu) = ui.begin_menu(
-                        im_str!("Overwrite Prefab"),
-                        resources.prefabs().is_empty() == false,
-                    ) {
-                        for prefab in resources.prefabs().values() {
-                            let name = match &prefab.root_entity().name {
-                                Some(sc) => im_str!("{}", &sc.inner.name),
-                                None => im_str!("ID: {}", prefab.root_id()),
-                            };
-
-                            if MenuItem::new(&name).build(ui) {
-                                new_prefab_to_create = Some(prefab.root_id());
-                            }
-                        }
-
-                        overwrite_submenu.end(ui);
-                    }
-
-                    if let Some(prefab_to_create) = new_prefab_to_create {
-                        prefab_system::load_entity_into_prefab(
-                            entity,
-                            prefab_to_create,
-                            component_database,
-                            singleton_database,
-                            resources,
-                        );
-                    }
-
-                    prefab_submenu.end(ui);
-                }
                 menu_bar.end(ui);
             }
 
@@ -279,7 +238,6 @@ pub fn entity_inspector(
     let entity_command = if let Some(final_post_action) = final_post_action {
         match final_post_action {
             ComponentInspectorPostAction::ComponentCommands(command) => {
-                info!("Executing ComponentInspectorPostAction {:#?}", command);
                 match command.command_type {
                     ComponentSerializationCommandType::Serialize
                     | ComponentSerializationCommandType::StopSerializing => {
@@ -311,23 +269,21 @@ pub fn entity_inspector(
                             .map(|sm| sm.inner().id)
                             .unwrap();
 
-                        let mut base_serialized_entity =
-                            serde_yaml::to_value(SerializedEntity::with_uuid(uuid))?;
+                        let ComponentSerializationCommand {
+                            command_type: _,
+                            delta,
+                            entity,
+                            key,
+                        } = command;
 
-                        base_serialized_entity
-                            .as_mapping_mut()
-                            .unwrap()
-                            .insert(command.key, command.delta);
-
-                        let serialized_entity = serde_yaml::from_value(base_serialized_entity)?;
-
-                        let post_deserialization = component_database.load_serialized_entity_into_database(
-                            &command.entity,
-                            serialized_entity,
+                        let post_deserialization = component_database.load_yaml_delta_into_database(
+                            &entity,
+                            key,
+                            delta,
+                            uuid,
                             &mut singleton_database.associated_entities,
                         );
 
-                        let entity = command.entity;
                         component_database.post_deserialization(post_deserialization, |component_list, sl| {
                             if let Some((inner, _)) = component_list.get_mut(&entity) {
                                 inner.post_deserialization(entity, sl);
@@ -350,7 +306,7 @@ pub fn entity_inspector(
                             let diff = member_yaml
                                 .as_mapping_mut()
                                 .unwrap()
-                                .insert(command.key, command.delta);
+                                .insert(command.key.clone(), command.delta.clone());
 
                             (serde_yaml::from_value(member_yaml)?, diff)
                         };
@@ -358,7 +314,14 @@ pub fn entity_inspector(
                         prefab.members.insert(new_member.id, new_member);
 
                         let prefab_reload_required =
-                            prefab_system::serialize_and_cache_prefab(prefab, resources);
+                            prefab_system::serialize_and_cache_prefab(prefab, sub_id, resources);
+
+                        prefab_system::post_prefab_serialization(
+                            ecs,
+                            command.key,
+                            command.delta,
+                            prefab_reload_required,
+                        )?;
                     }
                 }
 
@@ -460,7 +423,7 @@ where
 
     let text_color_token = ui.push_style_color(
         imgui::StyleColor::Text,
-        serialization_sync_status.imgui_color(scene_mode),
+        prefab_sync_status.imgui_color(scene_mode),
     );
 
     ui.tree_node(&imgui::ImString::new(&name))
@@ -468,6 +431,16 @@ where
         .frame_padding(false)
         .build(|| {
             imgui_utility::wrap_style_var(ui, StyleVar::Alpha(1.0), || {
+                // This is the Hover here:
+                if ui.is_item_hovered() {
+                    ui.tooltip_text(match prefab_sync_status {
+                        SyncStatus::Unsynced => "This Entity is not a Prefab.",
+                        SyncStatus::Headless => "This Componet is HEADLESS to its PREFAB!",
+                        SyncStatus::OutofSync => "Overriding Prefab Parent",
+                        SyncStatus::Synced => "Synced to Prefab Parent",
+                    });
+                }
+
                 // Sadly, we lack destructure assign
                 if can_right_click {
                     let right_click_actions = component_inspector_right_click(
@@ -485,28 +458,66 @@ where
                 // Handle the Warning!
                 match serialization_sync_status {
                     SyncStatus::Unsynced => {
-                        if scene_mode == SceneMode::Draft {
-                            imgui_utility::help_marker_generic(
-                                ui,
-                                imgui_utility::WARNING_ICON,
-                                format!("{} is not committed to the Scene!", name),
-                            )
-                        }
+                        imgui_system::wrap_style_color_var(
+                            ui,
+                            imgui::StyleColor::Text,
+                            imgui_utility::yellow_warning_color(),
+                            || {
+                                if scene_mode == SceneMode::Draft {
+                                    imgui_utility::help_marker_generic(
+                                        ui,
+                                        imgui_utility::WARNING_ICON,
+                                        format!("{} is not committed to the Scene!", name),
+                                    )
+                                }
+                            },
+                        );
                     }
-                    SyncStatus::Headless => imgui_utility::help_marker_generic(
-                        ui,
-                        imgui_utility::WARNING_ICON,
-                        format!(
-                            "{} is Headless! We thought we had a serialization, but we don't!",
-                            name
-                        ),
-                    ),
-                    SyncStatus::OutofSync => imgui_utility::help_marker_generic(
-                        ui,
-                        imgui_utility::WARNING_ICON,
-                        format!("{} is out of Sync with its Serialization!", name),
-                    ),
-                    SyncStatus::Synced => (),
+                    SyncStatus::Headless => {
+                        imgui_system::wrap_style_color_var(
+                            ui,
+                            imgui::StyleColor::Text,
+                            imgui_utility::red_warning_color(),
+                            || {
+                                imgui_utility::help_marker_generic(
+                                    ui,
+                                    imgui_utility::WARNING_ICON,
+                                    format!(
+                                "{} is Headless! It has a serialization marker, but no serialization found!",
+                                name
+                            ),
+                                )
+                            },
+                        );
+                    }
+                    SyncStatus::OutofSync => {
+                        imgui_system::wrap_style_color_var(
+                            ui,
+                            imgui::StyleColor::Text,
+                            imgui_utility::yellow_warning_color(),
+                            || {
+                                imgui_utility::help_marker_generic(
+                                    ui,
+                                    imgui_utility::WARNING_ICON,
+                                    format!("{} is out of Sync with its Serialization!", name),
+                                );
+                            },
+                        );
+                    }
+                    SyncStatus::Synced => {
+                        imgui_system::wrap_style_color_var(
+                            ui,
+                            imgui::StyleColor::Text,
+                            imgui_utility::green_color(),
+                            || {
+                                imgui_utility::help_marker_generic(
+                                    ui,
+                                    imgui_utility::SYNCED_ICON,
+                                    format!("{} is synced to its Serialization!", name),
+                                );
+                            },
+                        );
+                    }
                 };
             });
 
@@ -578,7 +589,7 @@ fn component_inspector_right_click(
             ui.separator();
 
             if MenuItem::new(&imgui_str("Apply Overrides To Prefab", uid))
-                .enabled(prefab_sync_status == SyncStatus::Unsynced)
+                .enabled(prefab_sync_status == SyncStatus::OutofSync)
                 .build(ui)
             {
                 requested_action = Some(ComponentSerializationCommandType::ApplyOverrideToParentPrefab);

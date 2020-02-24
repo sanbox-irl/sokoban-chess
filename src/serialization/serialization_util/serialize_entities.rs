@@ -20,7 +20,7 @@ pub fn load_all_entities() -> Result<HashMap<Uuid, SerializedEntity>, Error> {
     }
 }
 
-pub fn save_entity_list(entities: &HashMap<Uuid, SerializedEntity>) -> AnyResult<()> {
+pub fn commit_all_entities(entities: &HashMap<Uuid, SerializedEntity>) -> AnyResult<()> {
     let (path, is_prefab) = path();
     if is_prefab {
         let mut prefab: Prefab = load_serialized_file(&path)?;
@@ -122,7 +122,7 @@ pub fn serialize_all_entities(
         }
     }
 
-    save_entity_list(&serialized_entities)
+    commit_all_entities(&serialized_entities)
 }
 
 /// This serializes an entity. It is "full" because of its parameters taken -- it serializes over the
@@ -159,7 +159,7 @@ pub fn unserialize_entity(serialized_id: &uuid::Uuid) -> Result<bool, Error> {
 
     // FIND THE OLD PREFAB
     let succeeded = entities.remove(serialized_id).is_some();
-    save_entity_list(&entities)?;
+    commit_all_entities(&entities)?;
 
     Ok(succeeded)
 }
@@ -168,7 +168,7 @@ pub fn commit_entity_to_serialized_scene(serialized_entity: SerializedEntity) ->
     let mut entities = load_all_entities()?;
     entities.insert(serialized_entity.id, serialized_entity);
 
-    save_entity_list(&entities)
+    commit_all_entities(&entities)
 }
 
 pub fn load_committed_entity(

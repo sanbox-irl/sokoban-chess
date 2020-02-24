@@ -5,17 +5,19 @@ use super::{
 use anyhow::{Error, Result as AnyResult};
 use std::collections::HashMap;
 
+pub type AssociatedEntityMap = HashMap<Marker, Entity>;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SingletonDatabase {
     pub camera: SingletonComponent<Camera>,
     #[serde(skip)]
     pub rendering_utility: RenderingUtility,
     #[serde(skip)]
-    pub associated_entities: HashMap<Marker, Entity>,
+    pub associated_entities: AssociatedEntityMap,
 }
 
 impl SingletonDatabase {
-    pub fn new(marker_map: HashMap<Marker, Entity>) -> Result<SingletonDatabase, Error> {
+    pub fn new(marker_map: AssociatedEntityMap) -> Result<SingletonDatabase, Error> {
         let mut serialized_singletons: SingletonDatabase =
             serialization_util::singleton_components::load_singleton_database()?;
 

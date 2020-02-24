@@ -28,7 +28,7 @@ impl ComponentDatabase {
     pub fn new(
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
-        marker_map: &mut std::collections::HashMap<Marker, Entity>,
+        marker_map: &mut AssociatedEntityMap,
         prefabs: &PrefabMap,
     ) -> Result<ComponentDatabase, Error> {
         // Update the database...
@@ -203,12 +203,14 @@ impl ComponentDatabase {
         serialized_entity: SerializedEntity,
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
-        marker_map: &mut std::collections::HashMap<Marker, Entity>,
+        marker_map: &mut AssociatedEntityMap,
         prefabs: &PrefabMap,
     ) -> Option<PostDeserializationRequired> {
         // Make a serialization data thingee on it...
-        self.serialization_markers
-            .set_component(&entity, SerializationMarker::with_id(serialized_entity.id.clone()));
+        self.serialization_markers.set_component(
+            &entity,
+            SerializationMarker::with_id(serialized_entity.id.clone()),
+        );
 
         // If it's got a prefab, load the prefab. Otherwise,
         // load it like a normal serialized entity:
@@ -250,7 +252,7 @@ impl ComponentDatabase {
         entity_allocator: &mut EntityAllocator,
         entities: &mut Vec<Entity>,
         prefabs: &PrefabMap,
-        marker_map: &mut std::collections::HashMap<Marker, Entity>,
+        marker_map: &mut AssociatedEntityMap,
     ) -> Option<PostDeserializationRequired> {
         if let Some(prefab) = prefabs.get(&prefab_id) {
             // Load the Main
@@ -320,14 +322,33 @@ impl ComponentDatabase {
         }
     }
 
+    pub fn load_yaml_delta_into_database(
+        &mut self,
+        entity: &Entity,
+        key: serde_yaml::Value,
+        delta: serde_yaml::Value,
+        uuid: Uuid,
+        associated_entities: &mut AssociatedEntityMap,
+    ) -> PostDeserializationRequired {
+        let mut base_serialized_entity = serde_yaml::to_value(SerializedEntity::with_uuid(uuid)).unwrap();
+
+        base_serialized_entity
+            .as_mapping_mut()
+            .unwrap()
+            .insert(key, delta);
+
+        let serialized_entity = serde_yaml::from_value(base_serialized_entity).unwrap();
+
+        self.load_serialized_entity_into_database(entity, serialized_entity, associated_entities)
+    }
+
     /// This actually does the business of unwrapping a serialized entity and putting it inside
     /// the Ecs.
-    #[must_use]
-    pub fn load_serialized_entity_into_database(
+    fn load_serialized_entity_into_database(
         &mut self,
         entity: &Entity,
         serialized_entity: SerializedEntity,
-        marker_map: &mut std::collections::HashMap<Marker, Entity>,
+        marker_map: &mut AssociatedEntityMap,
     ) -> PostDeserializationRequired {
         let SerializedEntity {
             bounding_box,

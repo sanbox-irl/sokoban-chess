@@ -55,15 +55,12 @@ pub fn entity_list(
                 }
             }
             NameRequestedAction::PromoteToPrefab => {
-                let new_prefab = prefab_system::commit_blank_prefab(resources)?;
-
-                prefab_system::load_entity_into_prefab(
+                prefab_system::commit_new_prefab(
                     &entity,
-                    new_prefab,
                     &mut ecs.component_database,
                     &ecs.singleton_database,
                     resources,
-                );
+                )?;
             }
 
             NameRequestedAction::UnpackPrefab => {

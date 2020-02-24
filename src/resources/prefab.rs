@@ -42,6 +42,8 @@ impl Clone for Prefab {
 }
 
 impl Prefab {
+    /// Creates a new Prefab with only a single member, which will
+    /// also be the RootEntity
     pub fn new(root_entity: SerializedEntity) -> Prefab {
         let root_id = root_entity.id;
         let members = maplit::hashmap! {

@@ -81,9 +81,10 @@ pub trait ComponentListBounds {
     fn get_sync_status(
         &self,
         index: &Entity,
-        draft_mode: bool,
         serialized_entity: Option<&SerializedEntity>,
         serialized_prefab: Option<&SerializedEntity>,
+        should_have_serialized_entity: bool,
+        should_have_prefab_entity: bool,
     ) -> Option<ParentSyncStatus>;
 
     /// `create_yaml_component` creates a YamlValue out of our Component,
@@ -216,12 +217,20 @@ where
     fn get_sync_status(
         &self,
         index: &Entity,
-        draft_mode: bool,
         serialized_entity: Option<&SerializedEntity>,
         serialized_prefab: Option<&SerializedEntity>,
+        should_have_serialized_entity: bool,
+        should_have_prefab_entity: bool,
     ) -> Option<ParentSyncStatus> {
-        self.get(index)
-            .map(|cmp| ParentSyncStatus::new(cmp, serialized_entity, serialized_prefab, draft_mode))
+        self.get(index).map(|cmp| {
+            ParentSyncStatus::new(
+                cmp,
+                serialized_entity,
+                serialized_prefab,
+                should_have_serialized_entity,
+                should_have_prefab_entity,
+            )
+        })
     }
 
     fn create_yaml_component(&self, index: &Entity) -> serde_yaml::Value {

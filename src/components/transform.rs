@@ -96,8 +96,6 @@ impl ComponentBounds for Transform {
             self.dirty = true;
         }
 
-        ip.ui.checkbox(&im_str!("Dirty##{}", ip.uid), &mut self.dirty);
-
         self.world_position
             .no_interact_inspector(ip.ui, &im_str!("World Position##{}", ip.uid));
     }

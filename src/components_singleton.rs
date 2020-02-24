@@ -10,4 +10,4 @@ pub use camera::{Camera, CameraMode};
 pub use markers::Marker;
 pub use rendering_utility::{BasicTextures, RenderingUtility};
 pub use singleton_component::{SingletonBounds, SingletonComponent};
-pub use singleton_database::SingletonDatabase;
+pub use singleton_database::{AssociatedEntityMap, SingletonDatabase};

@@ -86,7 +86,7 @@ impl SyncStatus {
     pub fn new<T: ComponentBounds + Clone>(
         comp: &super::Component<T>,
         serialized_entity: Option<&SerializedEntity>,
-        draft_mode: bool,
+        should_be_some: bool,
     ) -> SyncStatus {
         serialized_entity
             .map(|se| {
@@ -97,7 +97,7 @@ impl SyncStatus {
                 }
             })
             .unwrap_or_else(|| {
-                if draft_mode {
+                if should_be_some {
                     SyncStatus::Headless
                 } else {
                     SyncStatus::Unsynced
@@ -115,17 +115,15 @@ impl SyncStatus {
     }
 
     pub fn imgui_color(&self, scene_mode: super::SceneMode) -> [f32; 4] {
-        match self {
-            SyncStatus::Unsynced => {
-                if scene_mode == super::SceneMode::Draft {
-                    super::imgui_system::red_warning_color()
-                } else {
-                    Color::WHITE.into()
-                }
+        if scene_mode != super::SceneMode::Draft {
+            Color::WHITE.into()
+        } else {
+            match self {
+                SyncStatus::Unsynced => Color::WHITE.into(),
+                SyncStatus::Headless => super::imgui_system::red_warning_color(),
+                SyncStatus::OutofSync => super::imgui_system::prefab_light_blue_color(),
+                SyncStatus::Synced => super::imgui_system::prefab_blue_color(),
             }
-            SyncStatus::Headless => super::imgui_system::red_warning_color(),
-            SyncStatus::OutofSync => super::imgui_system::yellow_warning_color(),
-            SyncStatus::Synced => Color::WHITE.into(),
         }
     }
 }
@@ -141,11 +139,12 @@ impl ParentSyncStatus {
         comp: &super::Component<T>,
         serialized_entity: Option<&SerializedEntity>,
         prefab_entity: Option<&SerializedEntity>,
-        draft_mode: bool,
+        should_have_serialized_entity: bool,
+        should_have_prefab_entity: bool,
     ) -> ParentSyncStatus {
         ParentSyncStatus {
-            serialized: SyncStatus::new(comp, serialized_entity, draft_mode),
-            prefab: SyncStatus::new(comp, prefab_entity, draft_mode),
+            serialized: SyncStatus::new(comp, serialized_entity, should_have_serialized_entity),
+            prefab: SyncStatus::new(comp, prefab_entity, should_have_prefab_entity),
         }
     }
 }
