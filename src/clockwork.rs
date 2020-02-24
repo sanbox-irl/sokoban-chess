@@ -2,8 +2,8 @@ use super::{
     systems::grid_system::Grid, systems::*, Ecs, HardwareInterface, ImGui, ImGuiDrawCommands,
     ResourcesDatabase, TimeKeeper,
 };
-use array2d::Array2D;
 use anyhow::Error;
+use array2d::Array2D;
 
 pub struct Clockwork {
     pub ecs: Ecs,
@@ -192,6 +192,7 @@ impl Clockwork {
 
         // Grid
         let mut grid = Array2D::filled_with(None, 5, 10);
+        scene_graph::clear_root();
 
         // Initialize the ECS
         let mut ecs = Ecs::new(&resources.prefabs())?;

@@ -103,7 +103,7 @@ pub fn instantiate_entity_from_prefab(
     entity
 }
 
-/// Serializes a caches a prefab, but it doesn't perform anything more complicated
+/// Serializes and caches a prefab, but it doesn't perform anything more complicated
 /// than that. Use the returned `PrefabLoadRequired` with `post_prefab_serialization`
 /// to finish the operation up.
 pub fn serialize_and_cache_prefab(

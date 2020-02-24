@@ -236,6 +236,7 @@ pub fn entity_inspector(
     }
 
     let entity_command = if let Some(final_post_action) = final_post_action {
+
         match final_post_action {
             ComponentInspectorPostAction::ComponentCommands(command) => {
                 match command.command_type {
@@ -260,6 +261,10 @@ pub fn entity_inspector(
                         serialization_util::entities::commit_entity_to_serialized_scene(
                             serde_yaml::from_value(serialized_yaml)?,
                         )?;
+
+                        if scene_is_prefab {
+                            // resources.add_prefab()
+                        }
                     }
                     ComponentSerializationCommandType::Revert
                     | ComponentSerializationCommandType::RevertToParentPrefab => {
@@ -434,7 +439,7 @@ where
                 // This is the Hover here:
                 if ui.is_item_hovered() {
                     ui.tooltip_text(match prefab_sync_status {
-                        SyncStatus::Unsynced => "This Entity is not a Prefab.",
+                        SyncStatus::Unsynced => "This Entity does not inherit from a Prefab.",
                         SyncStatus::Headless => "This Componet is HEADLESS to its PREFAB!",
                         SyncStatus::OutofSync => "Overriding Prefab Parent",
                         SyncStatus::Synced => "Synced to Prefab Parent",

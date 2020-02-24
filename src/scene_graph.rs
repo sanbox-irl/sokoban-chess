@@ -22,6 +22,12 @@ pub fn add_to_scene_graph<'a>(
         .add_child_directly(None, transform_c.into(), serializations);
 }
 
+pub fn clear_root() {
+    if let Some(children) = &mut ROOT_NODES.lock().unwrap().children {
+        children.clear();
+    }
+}
+
 pub fn walk_graph(transforms: &mut ComponentList<Transform>, nodes: &ComponentList<GraphNode>) {
     let root_nodes = ROOT_NODES.lock().unwrap();
 

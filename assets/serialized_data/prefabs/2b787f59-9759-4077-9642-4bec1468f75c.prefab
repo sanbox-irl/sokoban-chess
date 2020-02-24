@@ -20,7 +20,10 @@ members:
           target_serialized_id: ~
       active: true
     grid_object: ~
-    scene_switcher: ~
+    scene_switcher:
+      inner:
+        target_scene: Jim Johndf
+      active: true
     graph_node: ~
     velocity: ~
     sprite:

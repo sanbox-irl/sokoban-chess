@@ -33,6 +33,13 @@ impl Transform {
         // Dirty the Transform, cause it needs to be moved again!
         self.dirty = true;
 
+        self.remove_self_from_parent(my_id);
+
+        // Now Set the new Parent:
+        self.parent.target = new_parent_node;
+    }
+
+    fn remove_self_from_parent(&mut self, my_id: Entity) {
         // Remove the old Parent!
         if let Some(parent) = self.parent_mut() {
             let children = parent.children.as_mut().unwrap();
@@ -46,9 +53,6 @@ impl Transform {
                 error!("Entity {} had a parent, but it was not their parent.", my_id);
             }
         }
-
-        // Now Set the new Parent:
-        self.parent.target = new_parent_node;
     }
 
     pub fn parent_exists(&self) -> bool {
@@ -129,6 +133,7 @@ impl ComponentBounds for Transform {
     fn uncommit_to_scene(&self, se: &mut super::SerializedEntity) {
         se.transform = None;
     }
+    
     fn post_deserialization(
         &mut self,
         entity: super::Entity,
